@@ -1,0 +1,88 @@
+const tours = [
+  {
+    id: "1",
+    title: "Amazing Bali Adventure",
+    location: "Bali, Indonesia",
+    price: "$1,250",
+    duration: "5 Days",
+    rating: "4.8",
+    people: "2 Guests",
+    category: "Beach",
+    featured: true,
+    image:
+      "https://images.unsplash.com/photo-1537996194471-e657df975ab4?auto=format&fit=crop&w=1000&q=80",
+    description: "Explore lush rice terraces, sacred temples, and turquoise beaches across exotic Bali.",
+  },
+  {
+    id: "2",
+    title: "Discover Switzerland",
+    location: "Interlaken, Switzerland",
+    price: "$2,450",
+    duration: "7 Days",
+    rating: "4.9",
+    people: "2 Guests",
+    category: "Mountain",
+    featured: true,
+    image:
+      "https://images.unsplash.com/photo-1527668752968-14dc70a27c95?auto=format&fit=crop&w=1000&q=80",
+    description: "Experience the majestic Swiss Alps, scenic rail journeys, and sparkling alpine lakes.",
+  },
+  {
+    id: "3",
+    title: "Dubai Luxury Escape",
+    location: "Dubai, UAE",
+    price: "$1,800",
+    duration: "4 Days",
+    rating: "4.7",
+    people: "2 Guests",
+    category: "City",
+    featured: false,
+    image:
+      "https://images.unsplash.com/photo-1512453979798-5ea266f8880c?auto=format&fit=crop&w=1000&q=80",
+    description: "Stay in world-class 5-star hotels, explore desert dunes, and enjoy private yacht dinners.",
+  },
+  {
+    id: "4",
+    title: "Kyoto Heritage & Zen",
+    location: "Kyoto, Japan",
+    price: "$1,980",
+    duration: "6 Days",
+    rating: "4.9",
+    people: "2 Guests",
+    category: "Culture",
+    featured: true,
+    image:
+      "https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?auto=format&fit=crop&w=1000&q=80",
+    description: "Wander historic bamboo groves, ancient shrines, and traditional tea ceremonies.",
+  },
+  {
+    id: "5",
+    title: "Santorini Sunset Voyage",
+    location: "Santorini, Greece",
+    price: "$2,100",
+    duration: "5 Days",
+    rating: "4.8",
+    people: "2 Guests",
+    category: "Beach",
+    featured: false,
+    image:
+      "https://images.unsplash.com/photo-1570077188670-e3a8d69ac5ff?auto=format&fit=crop&w=1000&q=80",
+    description: "Iconic whitewashed cliffside villas, crystal blue Aegean waters, and sunset catamaran cruises.",
+  },
+  {
+    id: "6",
+    title: "Patagonia Trekking Quest",
+    location: "El Chaltén, Argentina",
+    price: "$2,750",
+    duration: "8 Days",
+    rating: "4.9",
+    people: "4 Guests",
+    category: "Adventure",
+    featured: true,
+    image:
+      "https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&w=1000&q=80",
+    description: "Hike through glacier valleys, pristine mountain lagoons, and rugged granite peaks.",
+  },
+];
+
+export default tours;
