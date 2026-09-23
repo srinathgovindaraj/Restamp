@@ -175,7 +175,7 @@ export default function AnimatedSplashScreen({ onAnimationComplete }) {
             }}
           >
             <Text style={styles.brandTitle}>
-              Tourvaa<Text style={styles.accentDot}>.</Text>
+              Restamp<Text style={styles.accentDot}>.</Text>
             </Text>
           </Animated.View>
 

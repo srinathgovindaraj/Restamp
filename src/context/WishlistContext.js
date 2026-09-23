@@ -1,11 +1,11 @@
 import React, { createContext, useContext, useState } from "react";
-import initialTours from "../data/tours";
+import ALL_PROPERTIES from "../data/properties";
 
 const WishlistContext = createContext();
 
 export function WishlistProvider({ children }) {
-  // Initialize with initial sample tours
-  const [wishlist, setWishlist] = useState(initialTours.slice(0, 2));
+  // Initialize with initial sample properties
+  const [wishlist, setWishlist] = useState(ALL_PROPERTIES.slice(0, 2));
 
   const isWishlisted = (id) => {
     return wishlist.some((item) => String(item.id) === String(id));
@@ -32,7 +32,7 @@ export function WishlistProvider({ children }) {
   };
 
   const restoreDefaultWishlist = () => {
-    setWishlist(initialTours);
+    setWishlist(ALL_PROPERTIES);
   };
 
   return (

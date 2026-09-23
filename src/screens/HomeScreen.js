@@ -1,1374 +1,1775 @@
-import React, { useState, useMemo, useRef } from "react";
+import React, { useState, useMemo } from "react";
 import {
   View,
   Text,
   StyleSheet,
-  TextInput,
-  FlatList,
-  Pressable,
-  Modal,
   ScrollView,
+  TextInput,
+  TouchableOpacity,
   Image,
-  Alert,
+  StatusBar,
+  SafeAreaView,
+  Dimensions,
+  Modal,
 } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
-import { SafeAreaView } from "react-native-safe-area-context";
-
+import { Ionicons, Feather } from "@expo/vector-icons";
 import COLORS from "../constants/colors";
-import TourCard from "../components/TourCard";
-import TourDetailModal from "../components/TourDetailModal";
-import DestinationDetailModal from "../components/DestinationDetailModal";
-import tours from "../data/tours";
-import destinations from "../data/destinations";
+import TYPOGRAPHY from "../constants/typography";
+import {
+  PROPERTY_TYPES,
+  CHENNAI_LOCALITIES,
+  RECOMMENDED_PROPERTIES,
+  VERIFIED_PROPERTIES,
+  RECENTLY_ADDED,
+  ALL_PROPERTIES,
+  NEWLY_LAUNCHED_PROJECTS,
+  DEMAND_DATA,
+} from "../data/properties";
 import { useWishlist } from "../context/WishlistContext";
 
-// Exclusive Offers Data
-const OFFERS = [
-  {
-    id: "off-1",
-    title: "Summer Getaway",
-    discount: "25% OFF",
-    code: "SUMMER25",
-    subtitle: "On all beach & tropical island expeditions",
-    badge: "Limited Time",
-    gradientColors: ["#0075FF", "#00B4D8"],
-    image:
-      "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=800&q=80",
-    validTill: "Valid till Sep 30",
-  },
-  {
-    id: "off-2",
-    title: "Alpine Adventure",
-    discount: "Flat $300 OFF",
-    code: "PEAK300",
-    subtitle: "On Swiss Alps & Patagonia mountain treks",
-    badge: "Special Deal",
-    gradientColors: ["#4F46E5", "#7C3AED"],
-    image:
-      "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=800&q=80",
-    validTill: "Valid till Oct 15",
-  },
-  {
-    id: "off-3",
-    title: "Early Bird Escape",
-    discount: "Save $200",
-    code: "EARLY2026",
-    subtitle: "Book 30 days ahead for complimentary VIP perks",
-    badge: "Exclusive",
-    gradientColors: ["#EA580C", "#F59E0B"],
-    image:
-      "https://images.unsplash.com/photo-1518684079-3c830dcef090?auto=format&fit=crop&w=800&q=80",
-    validTill: "Valid till Nov 01",
-  },
+const { width } = Dimensions.get("window");
+const CARD_WIDTH = width * 0.78;
+const REC_CARD_WIDTH = Math.min(170, Math.max(130, Math.round((width - 40) / 2.45)));
+const PROJECT_CARD_WIDTH = Math.min(320, width * 0.84);
+const DEMAND_CARD_WIDTH = Math.min(270, width * 0.72);
+
+const DEAL_TYPES = ["Buy", "Rent", "Lease"];
+
+const LOCALITY_LIST = [
+  "Anna Nagar",
+  "OMR",
+  "Velachery",
+  "ECR",
+  "T. Nagar",
+  "Tambaram",
+  "Adyar",
+  "Guindy",
 ];
 
-// Categories for Modal Filter
-const CATEGORIES = [
-  { id: "All", label: "All", icon: "apps-outline" },
-  { id: "Beach", label: "Beach", icon: "sunny-outline" },
-  { id: "Mountain", label: "Mountain", icon: "triangle-outline" },
-  { id: "City", label: "City", icon: "business-outline" },
-  { id: "Culture", label: "Culture", icon: "color-palette-outline" },
-  { id: "Adventure", label: "Adventure", icon: "trail-sign-outline" },
+const BUDGET_OPTIONS = [
+  "All Budgets",
+  "Under ₹50L",
+  "₹50L - ₹1Cr",
+  "₹1Cr - ₹2Cr",
+  "₹2Cr+",
 ];
 
-const SORT_OPTIONS = [
-  { id: "recommended", label: "Recommended", icon: "sparkles-outline" },
-  { id: "rating", label: "Highest Rated", icon: "star-outline" },
-  { id: "price_asc", label: "Price: Low to High", icon: "arrow-up-outline" },
-  { id: "price_desc", label: "Price: High to Low", icon: "arrow-down-outline" },
-];
+const BHK_OPTIONS = ["All BHK", "1 BHK", "2 BHK", "3 BHK", "4+ BHK"];
 
-const PRICE_RANGES = [
-  { id: "all", label: "All Prices" },
-  { id: "under_1500", label: "Under $1,500" },
-  { id: "1500_2200", label: "$1,500 - $2,200" },
-  { id: "above_2200", label: "Above $2,200" },
-];
-
-const RATING_OPTIONS = [
-  { id: "all", label: "All Ratings" },
-  { id: "4.8", label: "4.8+ Stars" },
-  { id: "4.9", label: "4.9 Stars only" },
-];
-
-export default function HomeScreen() {
+export default function HomeScreen({ navigation }) {
+  const [dealType, setDealType] = useState("Buy");
+  const [selectedType, setSelectedType] = useState("apartment");
+  const [searchQuery, setSearchQuery] = useState("");
   const { isWishlisted, toggleWishlist } = useWishlist();
 
-  // Search & Filter States
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("All");
-  const [sortBy, setSortBy] = useState("recommended");
-  const [priceRange, setPriceRange] = useState("all");
-  const [minRating, setMinRating] = useState("all");
+  // Search & Filter Modal States
+  const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
+  const [selectedLocality, setSelectedLocality] = useState("");
+  const [localityInput, setLocalityInput] = useState("");
+  const [modalType, setModalType] = useState("Apartment");
+  const [modalBudget, setModalBudget] = useState("All Budgets");
+  const [modalBhk, setModalBhk] = useState("All BHK");
 
-  // Modal Visibility for Details
-  const [selectedTour, setSelectedTour] = useState(null);
-  const [selectedDestination, setSelectedDestination] = useState(null);
-  const [showAllTours, setShowAllTours] = useState(false);
+  // Demand & Newly Launched States
+  const [demandRegion, setDemandRegion] = useState("Chennai South");
+  const [demandFeedback, setDemandFeedback] = useState(null);
+  const [revealedProjectPhone, setRevealedProjectPhone] = useState(null);
 
-  // Slider Refs and Scroll Offsets
-  const destinationsScrollRef = useRef(null);
-  const offersScrollRef = useRef(null);
-  const destinationsOffset = useRef(0);
-  const offersOffset = useRef(0);
+  const filterProperties = (list) => {
+    return list.filter((item) => {
+      // Deal filter
+      if (dealType === "Buy" && item.badgeType !== "sale") return false;
+      if (dealType === "Rent" && item.badgeType !== "rent") return false;
+      if (dealType === "Lease" && item.badgeType !== "lease") return false;
 
-  const scrollDestinations = (direction) => {
-    const cardStep = 182; // card width (170) + gap (12)
-    const maxOffset = Math.max(0, (destinations.length - 2) * cardStep);
-    const newOffset =
-      direction === "right"
-        ? Math.min(maxOffset, destinationsOffset.current + cardStep)
-        : Math.max(0, destinationsOffset.current - cardStep);
+      // Locality filter
+      if (selectedLocality && selectedLocality !== "") {
+        if (!item.location.toLowerCase().includes(selectedLocality.toLowerCase())) {
+          return false;
+        }
+      }
 
-    destinationsScrollRef.current?.scrollToOffset({
-      offset: newOffset,
-      animated: true,
-    });
-    destinationsOffset.current = newOffset;
-  };
+      // BHK filter
+      if (modalBhk && modalBhk !== "All BHK") {
+        const num = parseInt(modalBhk);
+        if (modalBhk === "4+ BHK") {
+          if (item.beds < 4) return false;
+        } else if (item.beds !== num) {
+          return false;
+        }
+      }
 
-  const scrollOffers = (direction) => {
-    const cardStep = 284; // card width (270) + gap (14)
-    const maxOffset = Math.max(0, (OFFERS.length - 1) * cardStep);
-    const newOffset =
-      direction === "right"
-        ? Math.min(maxOffset, offersOffset.current + cardStep)
-        : Math.max(0, offersOffset.current - cardStep);
-
-    offersScrollRef.current?.scrollToOffset({
-      offset: newOffset,
-      animated: true,
-    });
-    offersOffset.current = newOffset;
-  };
-
-  // Filter Modal Visibility & Staged States
-  const [isFilterModalVisible, setIsFilterModalVisible] = useState(false);
-  const [stagedCategory, setStagedCategory] = useState("All");
-  const [stagedSortBy, setStagedSortBy] = useState("recommended");
-  const [stagedPriceRange, setStagedPriceRange] = useState("all");
-  const [stagedMinRating, setStagedMinRating] = useState("all");
-
-  // Filter Modal Actions
-  const handleOpenFilterModal = () => {
-    setStagedCategory(selectedCategory);
-    setStagedSortBy(sortBy);
-    setStagedPriceRange(priceRange);
-    setStagedMinRating(minRating);
-    setIsFilterModalVisible(true);
-  };
-
-  const handleApplyFilters = () => {
-    setSelectedCategory(stagedCategory);
-    setSortBy(stagedSortBy);
-    setPriceRange(stagedPriceRange);
-    setMinRating(stagedMinRating);
-    setIsFilterModalVisible(false);
-  };
-
-  const handleResetModalFilters = () => {
-    setStagedCategory("All");
-    setStagedSortBy("recommended");
-    setStagedPriceRange("all");
-    setStagedMinRating("all");
-  };
-
-  const handleResetAllFilters = () => {
-    setSearchQuery("");
-    setSelectedCategory("All");
-    setSortBy("recommended");
-    setPriceRange("all");
-    setMinRating("all");
-  };
-
-  // Count active non-default filters
-  const activeFiltersCount = useMemo(() => {
-    let count = 0;
-    if (selectedCategory !== "All") count += 1;
-    if (sortBy !== "recommended") count += 1;
-    if (priceRange !== "all") count += 1;
-    if (minRating !== "all") count += 1;
-    return count;
-  }, [selectedCategory, sortBy, priceRange, minRating]);
-
-  // Preview count inside filter modal
-  const stagedMatchingCount = useMemo(() => {
-    return tours.filter((tour) => {
-      if (stagedCategory !== "All" && tour.category !== stagedCategory) return false;
-      const numPrice = parseInt(tour.price.replace(/[^0-9]/g, ""), 10);
-      if (stagedPriceRange === "under_1500" && numPrice >= 1500) return false;
+      // Text query
       if (
-        stagedPriceRange === "1500_2200" &&
-        (numPrice < 1500 || numPrice > 2200)
-      )
-        return false;
-      if (stagedPriceRange === "above_2200" && numPrice <= 2200) return false;
-      if (
-        stagedMinRating !== "all" &&
-        parseFloat(tour.rating) < parseFloat(stagedMinRating)
+        searchQuery.trim() !== "" &&
+        !item.title.toLowerCase().includes(searchQuery.toLowerCase()) &&
+        !item.location.toLowerCase().includes(searchQuery.toLowerCase())
       ) {
         return false;
       }
       return true;
-    }).length;
-  }, [stagedCategory, stagedPriceRange, stagedMinRating]);
-
-  // Filtered and Sorted Tours
-  const filteredTours = useMemo(() => {
-    let result = tours.filter((tour) => {
-      // Search
-      if (searchQuery.trim()) {
-        const query = searchQuery.toLowerCase();
-        const matchesQuery =
-          tour.title.toLowerCase().includes(query) ||
-          tour.location.toLowerCase().includes(query) ||
-          tour.category.toLowerCase().includes(query);
-        if (!matchesQuery) return false;
-      }
-
-      // Category
-      if (selectedCategory !== "All" && tour.category !== selectedCategory) {
-        return false;
-      }
-
-      // Price Range
-      const numPrice = parseInt(tour.price.replace(/[^0-9]/g, ""), 10);
-      if (priceRange === "under_1500" && numPrice >= 1500) return false;
-      if (
-        priceRange === "1500_2200" &&
-        (numPrice < 1500 || numPrice > 2200)
-      )
-        return false;
-      if (priceRange === "above_2200" && numPrice <= 2200) return false;
-
-      // Rating
-      if (
-        minRating !== "all" &&
-        parseFloat(tour.rating) < parseFloat(minRating)
-      ) {
-        return false;
-      }
-
-      return true;
     });
+  };
 
-    // Sorting
-    if (sortBy === "rating") {
-      result.sort((a, b) => parseFloat(b.rating) - parseFloat(a.rating));
-    } else if (sortBy === "price_asc") {
-      result.sort((a, b) => {
-        const pA = parseInt(a.price.replace(/[^0-9]/g, ""), 10);
-        const pB = parseInt(b.price.replace(/[^0-9]/g, ""), 10);
-        return pA - pB;
-      });
-    } else if (sortBy === "price_desc") {
-      result.sort((a, b) => {
-        const pA = parseInt(a.price.replace(/[^0-9]/g, ""), 10);
-        const pB = parseInt(b.price.replace(/[^0-9]/g, ""), 10);
-        return pB - pA;
-      });
-    }
+  const recList = filterProperties(RECOMMENDED_PROPERTIES).length > 0 ? filterProperties(RECOMMENDED_PROPERTIES) : RECOMMENDED_PROPERTIES;
+  const verList = filterProperties(VERIFIED_PROPERTIES).length > 0 ? filterProperties(VERIFIED_PROPERTIES) : VERIFIED_PROPERTIES;
+  const recAddedList = filterProperties(RECENTLY_ADDED).length > 0 ? filterProperties(RECENTLY_ADDED) : RECENTLY_ADDED;
 
-    return result;
-  }, [searchQuery, selectedCategory, sortBy, priceRange, minRating]);
+  // Filter preview count inside modal
+  const modalMatchedCount = useMemo(() => {
+    return ALL_PROPERTIES.filter((item) => {
+      if (dealType === "Buy" && item.badgeType !== "sale") return false;
+      if (dealType === "Rent" && item.badgeType !== "rent") return false;
+      if (dealType === "Lease" && item.badgeType !== "lease") return false;
+      if (selectedLocality && !item.location.toLowerCase().includes(selectedLocality.toLowerCase())) {
+        return false;
+      }
+      return true;
+    }).length || ALL_PROPERTIES.length;
+  }, [dealType, selectedLocality]);
 
-  // Limit popular tours to only 4 cards unless 'See all' is toggled or searching/filtering
-  const displayedTours = useMemo(() => {
-    if (showAllTours || searchQuery.trim() || activeFiltersCount > 0) {
-      return filteredTours;
-    }
-    return filteredTours.slice(0, 4);
-  }, [filteredTours, showAllTours, searchQuery, activeFiltersCount]);
+  const handleApplyModalFilters = () => {
+    setIsSearchModalOpen(false);
+  };
 
-  const handleClaimOffer = (offer) => {
-    Alert.alert(
-      `Promo Code Applied! 🎟️`,
-      `Code "${offer.code}" has been copied for ${offer.discount}. It will automatically apply at checkout.`,
-      [{ text: "Awesome!" }]
-    );
+  const handleClearModalFilters = () => {
+    setSelectedLocality("");
+    setLocalityInput("");
+    setModalBudget("All Budgets");
+    setModalBhk("All BHK");
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <FlatList
-        data={displayedTours}
-        keyExtractor={(item) => item.id}
+    <SafeAreaView style={styles.safeArea}>
+      <StatusBar barStyle="dark-content" backgroundColor="#F4F7FB" />
+      <ScrollView
+        style={styles.container}
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.listContent}
-        ListHeaderComponent={
-          <>
-            {/* 1. LOCATION & USER HEADER */}
-            <View style={styles.header}>
-              <View style={styles.locationWrapper}>
-                <Ionicons
-                  name="location-sharp"
-                  size={23}
-                  color={COLORS.primary}
-                />
-                <View style={styles.locationText}>
-                  <Text style={styles.locationLabel}>Location</Text>
-                  <Text style={styles.locationValue}>Chennai, India</Text>
-                </View>
-              </View>
-
-              <View style={styles.headerRight}>
-                <Pressable style={styles.headerIcon}>
-                  <Ionicons name="notifications" size={22} color={COLORS.textPrimary} />
-                  <View style={styles.headerDot} />
-                </Pressable>
-
-                <View style={styles.profileCircle}>
-                  <Ionicons name="person" size={20} color={COLORS.white} />
-                </View>
-              </View>
-            </View>
-
-            {/* 2. SEARCH BAR */}
-            <View style={styles.search}>
-              <Ionicons
-                name="search"
-                size={20}
-                color={COLORS.textSecondary}
-              />
-
-              <TextInput
-                style={styles.searchInput}
-                placeholder="Search destination, tour..."
-                placeholderTextColor="#9A9A9A"
-                value={searchQuery}
-                onChangeText={setSearchQuery}
-              />
-
-              {searchQuery.length > 0 && (
-                <Pressable
-                  style={styles.clearSearchBtn}
-                  onPress={() => setSearchQuery("")}
-                >
-                  <Ionicons
-                    name="close-circle"
-                    size={20}
-                    color={COLORS.textSecondary}
-                  />
-                </Pressable>
-              )}
-
-              <Pressable
-                style={[
-                  styles.filterBtn,
-                  activeFiltersCount > 0 && styles.filterBtnActive,
-                ]}
-                onPress={handleOpenFilterModal}
-              >
-                <Ionicons
-                  name="options"
-                  size={20}
-                  color={
-                    activeFiltersCount > 0 ? COLORS.primary : COLORS.textPrimary
-                  }
-                />
-                {activeFiltersCount > 0 && (
-                  <View style={styles.filterBadge}>
-                    <Text style={styles.filterBadgeText}>
-                      {activeFiltersCount}
-                    </Text>
-                  </View>
-                )}
-              </Pressable>
-            </View>
-
-            {/* 3. POPULAR TOURS SECTION HEADING (FIRST SECTION) */}
-            <View style={[styles.sectionHeadingRow, { marginTop: 6, marginBottom: 12 }]}>
-              <Text style={styles.sectionTitle}>Popular Tours</Text>
-
-              {activeFiltersCount > 0 || searchQuery.length > 0 ? (
-                <Pressable onPress={handleResetAllFilters}>
-                  <Text style={styles.seeAll}>Reset filters</Text>
-                </Pressable>
-              ) : filteredTours.length > 4 ? (
-                <Pressable onPress={() => setShowAllTours(!showAllTours)}>
-                  <Text style={styles.seeAll}>
-                    {showAllTours ? "Show less" : "See all"}
-                  </Text>
-                </Pressable>
-              ) : null}
-            </View>
-          </>
-        }
-        renderItem={({ item }) => (
-          <TourCard
-            tour={item}
-            isWishlisted={isWishlisted(item.id)}
-            onToggleWishlist={() => toggleWishlist(item)}
-            onPress={() => setSelectedTour(item)}
-          />
-        )}
-        ListFooterComponent={
-          !searchQuery.trim() && activeFiltersCount === 0 ? (
-            <View style={styles.footerSections}>
-              {/* FEATURED DESTINATIONS */}
-              <View style={styles.destinationsSection}>
-                <View style={styles.sectionHeadingRow}>
-                  <Text style={styles.sectionTitle}>Featured Destinations</Text>
-
-                  <Pressable>
-                    <Text style={styles.seeAll}>See all</Text>
-                  </Pressable>
-                </View>
-
-                <FlatList
-                  ref={destinationsScrollRef}
-                  horizontal
-                  showsHorizontalScrollIndicator={false}
-                  nestedScrollEnabled={true}
-                  data={destinations}
-                  keyExtractor={(item) => item.id}
-                  style={styles.sliderList}
-                  contentContainerStyle={styles.destinationsContent}
-                  onScroll={(e) => {
-                    destinationsOffset.current = e.nativeEvent.contentOffset.x;
-                  }}
-                  scrollEventThrottle={16}
-                  renderItem={({ item: dest }) => (
-                    <Pressable
-                      style={styles.destinationCard}
-                      onPress={() => setSelectedDestination(dest)}
-                    >
-                      <Image
-                        source={{ uri: dest.image }}
-                        style={styles.destinationImage}
-                        resizeMode="cover"
-                      />
-                      <View style={styles.destinationOverlay} />
-
-                      {/* Content Wrapper */}
-                      <View style={styles.destinationCardContent}>
-                        {/* Top Badges */}
-                        <View style={styles.destinationTopBadges}>
-                          <View style={styles.ratingBadge}>
-                            <Ionicons name="star" size={11} color="#FFB800" />
-                            <Text style={styles.ratingBadgeText}>{dest.rating}</Text>
-                          </View>
-                          <View style={styles.tourCountBadge}>
-                            <Text style={styles.tourCountBadgeText}>
-                              {dest.tourCount}
-                            </Text>
-                          </View>
-                        </View>
-
-                        {/* Bottom Info */}
-                        <View style={styles.destinationBottomInfo}>
-                          <Text style={styles.destinationCountry}>
-                            {dest.country}
-                          </Text>
-                          <Text style={styles.destinationName}>{dest.name}</Text>
-                        </View>
-                      </View>
-                    </Pressable>
-                  )}
-                />
-              </View>
-
-              {/* EXCLUSIVE OFFERS */}
-              <View style={styles.offersSection}>
-                <View style={styles.sectionHeadingRow}>
-                  <Text style={styles.sectionTitle}>Exclusive Offers</Text>
-                </View>
-
-                <FlatList
-                  ref={offersScrollRef}
-                  horizontal
-                  showsHorizontalScrollIndicator={false}
-                  nestedScrollEnabled={true}
-                  data={OFFERS}
-                  keyExtractor={(item) => item.id}
-                  style={styles.sliderList}
-                  contentContainerStyle={styles.offersContent}
-                  onScroll={(e) => {
-                    offersOffset.current = e.nativeEvent.contentOffset.x;
-                  }}
-                  scrollEventThrottle={16}
-                  renderItem={({ item: offer }) => (
-                    <Pressable
-                      style={styles.offerCard}
-                      onPress={() => handleClaimOffer(offer)}
-                    >
-                      <Image
-                        source={{ uri: offer.image }}
-                        style={styles.offerImage}
-                        resizeMode="cover"
-                      />
-                      <View style={styles.offerOverlay} />
-
-                      {/* Content Wrapper */}
-                      <View style={styles.offerCardContent}>
-                        {/* Badge */}
-                        <View style={styles.offerBadge}>
-                          <Text style={styles.offerBadgeText}>{offer.badge}</Text>
-                        </View>
-
-                        {/* Offer Content */}
-                        <View style={styles.offerContent}>
-                          <Text style={styles.offerDiscount}>{offer.discount}</Text>
-                          <Text style={styles.offerTitle}>{offer.title}</Text>
-                          <Text style={styles.offerSubtitle} numberOfLines={1}>
-                            {offer.subtitle}
-                          </Text>
-
-                          <View style={styles.offerFooter}>
-                            <View style={styles.offerCodePill}>
-                              <Ionicons name="pricetag" size={11} color={COLORS.white} />
-                              <Text style={styles.offerCodeText}>{offer.code}</Text>
-                            </View>
-                            <Text style={styles.claimText}>Claim Deal →</Text>
-                          </View>
-                        </View>
-                      </View>
-                    </Pressable>
-                  )}
-                />
-              </View>
-            </View>
-          ) : null
-        }
-        ListEmptyComponent={
-          <View style={styles.emptyContainer}>
-            <View style={styles.emptyIconBox}>
-              <Ionicons
-                name="search"
-                size={36}
-                color={COLORS.primary}
-              />
-            </View>
-            <Text style={styles.emptyTitle}>No tours found</Text>
-            <Text style={styles.emptySubtitle}>
-              We couldn't find any tours matching your criteria. Try adjusting your search query or filters.
-            </Text>
-            <Pressable
-              style={styles.emptyResetBtn}
-              onPress={handleResetAllFilters}
-            >
-              <Text style={styles.emptyResetBtnText}>Reset All Filters</Text>
-            </Pressable>
-          </View>
-        }
-      />
-
-      {/* TOUR DETAIL MODAL */}
-      <TourDetailModal
-        visible={!!selectedTour}
-        tour={selectedTour}
-        onClose={() => setSelectedTour(null)}
-        isWishlisted={selectedTour ? isWishlisted(selectedTour.id) : false}
-        onToggleWishlist={toggleWishlist}
-      />
-
-      {/* DESTINATION DETAIL MODAL */}
-      <DestinationDetailModal
-        visible={!!selectedDestination}
-        destination={selectedDestination}
-        onClose={() => setSelectedDestination(null)}
-        onSelectTour={(t) => {
-          setSelectedTour(t);
-        }}
-        isWishlisted={isWishlisted}
-        onToggleWishlist={toggleWishlist}
-      />
-
-      {/* FILTER BOTTOM SHEET MODAL */}
-      <Modal
-        visible={isFilterModalVisible}
-        animationType="slide"
-        transparent={true}
-        onRequestClose={() => setIsFilterModalVisible(false)}
+        contentContainerStyle={styles.scrollContent}
       >
-        <View style={styles.modalOverlay}>
-          <Pressable
-            style={styles.modalBackdrop}
-            onPress={() => setIsFilterModalVisible(false)}
-          />
-          <View style={styles.modalContent}>
-            <View style={styles.modalHandle} />
+        {/* ================= HEADER BAR ================= */}
+        <View style={styles.header}>
+          <TouchableOpacity style={styles.notificationBtn} activeOpacity={0.8}>
+            <Ionicons name="notifications-outline" size={22} color={COLORS.textDark} />
+            <View style={styles.notificationDot} />
+          </TouchableOpacity>
+        </View>
 
-            <View style={styles.modalHeader}>
-              <View>
-                <Text style={styles.modalTitle}>Filter Tours</Text>
-                <Text style={styles.modalSubtitle}>
-                  Find your perfect itinerary
-                </Text>
-              </View>
-
-              <View style={styles.modalHeaderActions}>
-                <Pressable
-                  style={styles.modalResetBtn}
-                  onPress={handleResetModalFilters}
+        {/* ================= TOP SECTION (BUY / RENT / LEASE, SEARCH, CHIPS) ================= */}
+        <View style={styles.topSection}>
+          {/* 1. DEAL TABS (BUY, RENT, LEASE) */}
+          <View style={styles.dealTypeRow}>
+            {DEAL_TYPES.map((type) => {
+              const isActive = dealType === type;
+              return (
+                <TouchableOpacity
+                  key={type}
+                  style={styles.dealTypeTab}
+                  activeOpacity={0.7}
+                  onPress={() => setDealType(type)}
                 >
-                  <Text style={styles.modalResetText}>Reset</Text>
-                </Pressable>
+                  <Text
+                    style={[
+                      styles.dealTypeText,
+                      isActive ? styles.dealTypeTextActive : styles.dealTypeTextInactive,
+                    ]}
+                  >
+                    {type}
+                  </Text>
+                  {isActive && <View style={styles.activeUnderline} />}
+                </TouchableOpacity>
+              );
+            })}
+          </View>
 
-                <Pressable
-                  style={styles.modalCloseBtn}
-                  onPress={() => setIsFilterModalVisible(false)}
-                >
-                  <Ionicons name="close" size={22} color={COLORS.textPrimary} />
-                </Pressable>
-              </View>
-            </View>
-
-            <ScrollView
-              showsVerticalScrollIndicator={false}
-              contentContainerStyle={styles.modalScrollBody}
+          {/* 2. SEARCH BAR (CLICK OPENS LOCALITY & DOWN FILTER MODAL) */}
+          <View style={styles.searchRow}>
+            <TouchableOpacity
+              style={styles.searchInputContainer}
+              activeOpacity={0.85}
+              onPress={() => setIsSearchModalOpen(true)}
             >
-              {/* Category Filter */}
-              <View style={styles.modalSection}>
-                <Text style={styles.modalSectionTitle}>Category</Text>
-                <View style={styles.optionsWrap}>
-                  {CATEGORIES.map((cat) => {
-                    const isSelected = stagedCategory === cat.id;
-                    return (
-                      <Pressable
-                        key={cat.id}
-                        style={[
-                          styles.optionPill,
-                          isSelected && styles.optionPillActive,
-                        ]}
-                        onPress={() => setStagedCategory(cat.id)}
-                      >
-                        <Ionicons
-                          name={cat.icon}
-                          size={15}
-                          color={
-                            isSelected ? COLORS.white : COLORS.textSecondary
-                          }
-                          style={{ marginRight: 6 }}
-                        />
-                        <Text
-                          style={[
-                            styles.optionPillText,
-                            isSelected && styles.optionPillTextActive,
-                          ]}
-                        >
-                          {cat.label}
-                        </Text>
-                      </Pressable>
-                    );
-                  })}
+              <Ionicons name="search-outline" size={20} color="#94A3B8" style={styles.searchIcon} />
+              {selectedLocality ? (
+                <View style={styles.activeLocalityTag}>
+                  <Text style={styles.activeLocalityTagText}>{selectedLocality}</Text>
+                  <TouchableOpacity onPress={() => setSelectedLocality("")}>
+                    <Ionicons name="close-circle" size={16} color={COLORS.primary} style={{ marginLeft: 4 }} />
+                  </TouchableOpacity>
                 </View>
-              </View>
-
-              {/* Sort By Filter */}
-              <View style={styles.modalSection}>
-                <Text style={styles.modalSectionTitle}>Sort By</Text>
-                <View style={styles.optionsWrap}>
-                  {SORT_OPTIONS.map((opt) => {
-                    const isSelected = stagedSortBy === opt.id;
-                    return (
-                      <Pressable
-                        key={opt.id}
-                        style={[
-                          styles.optionPill,
-                          isSelected && styles.optionPillActive,
-                        ]}
-                        onPress={() => setStagedSortBy(opt.id)}
-                      >
-                        <Ionicons
-                          name={opt.icon}
-                          size={15}
-                          color={
-                            isSelected ? COLORS.white : COLORS.textSecondary
-                          }
-                          style={{ marginRight: 6 }}
-                        />
-                        <Text
-                          style={[
-                            styles.optionPillText,
-                            isSelected && styles.optionPillTextActive,
-                          ]}
-                        >
-                          {opt.label}
-                        </Text>
-                      </Pressable>
-                    );
-                  })}
-                </View>
-              </View>
-
-              {/* Price Range */}
-              <View style={styles.modalSection}>
-                <Text style={styles.modalSectionTitle}>Price Range</Text>
-                <View style={styles.optionsWrap}>
-                  {PRICE_RANGES.map((rng) => {
-                    const isSelected = stagedPriceRange === rng.id;
-                    return (
-                      <Pressable
-                        key={rng.id}
-                        style={[
-                          styles.optionPill,
-                          isSelected && styles.optionPillActive,
-                        ]}
-                        onPress={() => setStagedPriceRange(rng.id)}
-                      >
-                        <Text
-                          style={[
-                            styles.optionPillText,
-                            isSelected && styles.optionPillTextActive,
-                          ]}
-                        >
-                          {rng.label}
-                        </Text>
-                      </Pressable>
-                    );
-                  })}
-                </View>
-              </View>
-
-              {/* Rating */}
-              <View style={styles.modalSection}>
-                <Text style={styles.modalSectionTitle}>Minimum Rating</Text>
-                <View style={styles.optionsWrap}>
-                  {RATING_OPTIONS.map((rate) => {
-                    const isSelected = stagedMinRating === rate.id;
-                    return (
-                      <Pressable
-                        key={rate.id}
-                        style={[
-                          styles.optionPill,
-                          isSelected && styles.optionPillActive,
-                        ]}
-                        onPress={() => setStagedMinRating(rate.id)}
-                      >
-                        <Ionicons
-                          name="star"
-                          size={14}
-                          color={isSelected ? COLORS.white : "#FFB800"}
-                          style={{ marginRight: 6 }}
-                        />
-                        <Text
-                          style={[
-                            styles.optionPillText,
-                            isSelected && styles.optionPillTextActive,
-                          ]}
-                        >
-                          {rate.label}
-                        </Text>
-                      </Pressable>
-                    );
-                  })}
-                </View>
-              </View>
-            </ScrollView>
-
-            <View style={styles.modalFooter}>
-              <Pressable
-                style={styles.modalApplyBtn}
-                onPress={handleApplyFilters}
-              >
-                <Text style={styles.modalApplyBtnText}>
-                  {`Apply Filters (${stagedMatchingCount} ${
-                    stagedMatchingCount === 1 ? "tour" : "tours"
-                  })`}
+              ) : (
+                <Text style={styles.searchPlaceholderText}>
+                  Search city, locality, project...
                 </Text>
-              </Pressable>
+              )}
+            </TouchableOpacity>
+          </View>
+
+          {/* 3. CATEGORY CIRCLE ICONS WITH LABELS UNDERNEATH */}
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.circleCategoryScroll}
+          >
+            {PROPERTY_TYPES.map((pt) => {
+              const isSelected = selectedType === pt.id;
+              return (
+                <TouchableOpacity
+                  key={pt.id}
+                  style={styles.circleCategoryItem}
+                  activeOpacity={0.8}
+                  onPress={() => setSelectedType(isSelected ? "" : pt.id)}
+                >
+                  <View
+                    style={[
+                      styles.circleIconBox,
+                      isSelected ? styles.circleIconBoxActive : styles.circleIconBoxInactive,
+                    ]}
+                  >
+                    <Ionicons
+                      name={pt.icon}
+                      size={24}
+                      color={isSelected ? "#FFFFFF" : COLORS.primary}
+                    />
+                  </View>
+                  <Text
+                    style={[
+                      styles.circleCategoryLabel,
+                      isSelected ? styles.circleCategoryLabelActive : styles.circleCategoryLabelInactive,
+                    ]}
+                    numberOfLines={1}
+                  >
+                    {pt.name}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </ScrollView>
+        </View>
+
+        {/* ================= RECOMMENDED PROPERTIES (SINGLE ROW SLIDER) ================= */}
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>Recommended Properties</Text>
+        </View>
+
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.recommendedScrollContainer}
+          decelerationRate="fast"
+          snapToInterval={REC_CARD_WIDTH + 12}
+        >
+          {recList.map((property) => {
+            const saved = isWishlisted(property.id);
+            return (
+              <View key={property.id} style={styles.recommendedCard}>
+                <View style={styles.recommendedImageContainer}>
+                  <Image source={{ uri: property.image }} style={styles.recommendedImage} />
+                  <View style={styles.verifiedGreenBadge}>
+                    <Text style={styles.verifiedGreenBadgeText}>verified</Text>
+                  </View>
+                  <TouchableOpacity
+                    style={styles.floatingHeartBtn}
+                    activeOpacity={0.8}
+                    hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                    onPress={() => toggleWishlist(property)}
+                  >
+                    <Ionicons
+                      name="heart"
+                      size={22}
+                      color={saved ? "#FF0000" : "#FFFFFF"}
+                    />
+                  </TouchableOpacity>
+                </View>
+
+                <View style={styles.recommendedCardBody}>
+                  <Text style={styles.recommendedTitle} numberOfLines={2}>
+                    {property.title}
+                  </Text>
+                  <Text style={styles.recommendedSubtitle} numberOfLines={2}>
+                    <Text style={styles.recommendedPrice}>{property.price}{property.pricePeriod}</Text> • {property.location}. {property.description}
+                  </Text>
+                </View>
+              </View>
+            );
+          })}
+        </ScrollView>
+
+        {/* ================= VERIFIED PROPERTIES ================= */}
+        <View style={styles.sectionHeader}>
+          <View style={{ flexDirection: "row", alignItems: "center" }}>
+            <Text style={styles.sectionTitle}>Verified Properties</Text>
+            <View style={styles.verifiedTag}>
+              <Ionicons name="checkmark-circle" size={14} color="#16A34A" style={{ marginRight: 3 }} />
+              <Text style={styles.verifiedTagText}>99Verified</Text>
             </View>
           </View>
         </View>
+
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.cardHorizontalList}
+          decelerationRate="fast"
+          snapToInterval={CARD_WIDTH + 16}
+        >
+          {verList.map((property) => {
+            const saved = isWishlisted(property.id);
+            return (
+              <View key={property.id} style={styles.propertyCard}>
+                <View style={styles.cardImageContainer}>
+                  <Image source={{ uri: property.image }} style={styles.cardImage} />
+                  <View style={styles.badgeRow}>
+                    <View style={styles.badgeVerified}>
+                      <Ionicons name="checkmark-circle" size={12} color="#FFFFFF" style={{ marginRight: 3 }} />
+                      <Text style={styles.badgeTextWhite}>{property.badge}</Text>
+                    </View>
+                  </View>
+                  <TouchableOpacity
+                    style={styles.floatingHeartBtn}
+                    activeOpacity={0.8}
+                    hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                    onPress={() => toggleWishlist(property)}
+                  >
+                    <Ionicons
+                      name="heart"
+                      size={22}
+                      color={saved ? "#FF0000" : "#FFFFFF"}
+                    />
+                  </TouchableOpacity>
+                </View>
+
+                <View style={styles.cardBody}>
+                  <View style={styles.priceRow}>
+                    <Text style={styles.priceText}>{property.price}{property.pricePeriod}</Text>
+                    <View style={styles.ratingBadge}>
+                      <Ionicons name="star" size={13} color={COLORS.star} />
+                      <Text style={styles.ratingText}>{property.rating}</Text>
+                    </View>
+                  </View>
+
+                  <Text style={styles.propertyTitle} numberOfLines={1}>
+                    {property.title}
+                  </Text>
+                  <View style={styles.locationRow}>
+                    <Ionicons name="location-outline" size={14} color={COLORS.textSecondary} />
+                    <Text style={styles.locationAddress} numberOfLines={1}>
+                      {property.location}
+                    </Text>
+                  </View>
+
+                  <View style={styles.specsRow}>
+                    <Text style={styles.specText}>🛏️ {property.beds} Beds</Text>
+                    <Text style={styles.specDot}>•</Text>
+                    <Text style={styles.specText}>🚿 {property.baths} Baths</Text>
+                    <Text style={styles.specDot}>•</Text>
+                    <Text style={styles.specText}>📐 {property.sqft} sqft</Text>
+                  </View>
+                </View>
+              </View>
+            );
+          })}
+        </ScrollView>
+
+        {/* ================= RECENTLY ADDED ================= */}
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>Recently Added</Text>
+        </View>
+
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.cardHorizontalList}
+          decelerationRate="fast"
+          snapToInterval={CARD_WIDTH + 16}
+        >
+          {recAddedList.map((property) => {
+            const saved = isWishlisted(property.id);
+            return (
+              <View key={property.id} style={styles.propertyCard}>
+                <View style={styles.cardImageContainer}>
+                  <Image source={{ uri: property.image }} style={styles.cardImage} />
+                  <View style={styles.badgeRow}>
+                    <View style={styles.badgeOrange}>
+                      <Text style={styles.badgeTextWhite}>{property.badge || "Just Added"}</Text>
+                    </View>
+                  </View>
+                  <TouchableOpacity
+                    style={styles.floatingHeartBtn}
+                    activeOpacity={0.8}
+                    hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                    onPress={() => toggleWishlist(property)}
+                  >
+                    <Ionicons
+                      name="heart"
+                      size={22}
+                      color={saved ? "#FF0000" : "#FFFFFF"}
+                    />
+                  </TouchableOpacity>
+                </View>
+
+                <View style={styles.cardBody}>
+                  <View style={styles.priceRow}>
+                    <Text style={styles.priceText}>{property.price}{property.pricePeriod}</Text>
+                    <View style={styles.ratingBadge}>
+                      <Ionicons name="star" size={13} color={COLORS.star} />
+                      <Text style={styles.ratingText}>{property.rating}</Text>
+                    </View>
+                  </View>
+
+                  <Text style={styles.propertyTitle} numberOfLines={1}>
+                    {property.title}
+                  </Text>
+                  <View style={styles.locationRow}>
+                    <Ionicons name="location-outline" size={14} color={COLORS.textSecondary} />
+                    <Text style={styles.locationAddress} numberOfLines={1}>
+                      {property.location}
+                    </Text>
+                  </View>
+
+                  <View style={styles.specsRow}>
+                    <Text style={styles.specText}>🛏️ {property.beds} Beds</Text>
+                    <Text style={styles.specDot}>•</Text>
+                    <Text style={styles.specText}>🚿 {property.baths} Baths</Text>
+                    <Text style={styles.specDot}>•</Text>
+                    <Text style={styles.specText}>📐 {property.sqft} sqft</Text>
+                  </View>
+                </View>
+              </View>
+            );
+          })}
+        </ScrollView>
+
+        {/* ================= NEWLY LAUNCHED PROJECTS (SECTION 4) ================= */}
+        <View style={styles.projectSectionHeader}>
+          <View style={styles.projectHeaderBadge}>
+            <Ionicons name="sparkles" size={18} color="#D97706" />
+          </View>
+          <View style={{ flex: 1, marginLeft: 12 }}>
+            <Text style={styles.projectSectionTitle}>Newly launched projects</Text>
+            <Text style={styles.projectSectionSubtitle}>
+              Best prices • Unit of choice • Easy payment plans
+            </Text>
+          </View>
+        </View>
+
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.projectCardList}
+          decelerationRate="fast"
+          snapToInterval={PROJECT_CARD_WIDTH + 14}
+        >
+          {NEWLY_LAUNCHED_PROJECTS.map((proj) => {
+            const isRevealed = revealedProjectPhone === proj.id;
+            return (
+              <View key={proj.id} style={styles.newProjectCard}>
+                {/* Top Warm Banner */}
+                <View style={styles.projectBanner}>
+                  <Text style={styles.projectBannerText}>{proj.tag}</Text>
+                </View>
+
+                {/* Card Main Body */}
+                <View style={styles.projectCardContent}>
+                  {/* Left: Round Project Image with RERA Badge */}
+                  <View style={styles.projectThumbWrapper}>
+                    <Image source={{ uri: proj.image }} style={styles.projectThumb} />
+                    <View style={styles.reraBadge}>
+                      <Ionicons name="checkmark" size={10} color="#FFFFFF" style={{ marginRight: 2 }} />
+                      <Text style={styles.reraText}>{proj.rera}</Text>
+                    </View>
+                  </View>
+
+                  {/* Right: Info */}
+                  <View style={styles.projectInfoCol}>
+                    <Text style={styles.projectTitle} numberOfLines={1}>
+                      {proj.title}
+                    </Text>
+                    <Text style={styles.projectLocality} numberOfLines={1}>
+                      {proj.locality}
+                    </Text>
+                    <Text style={styles.projectPrice}>
+                      {proj.priceRange} <Text style={styles.projectTypeDivider}>|</Text> {proj.type}
+                    </Text>
+                    <View style={styles.growthRow}>
+                      <Ionicons name="caret-up" size={11} color="#16A34A" style={{ marginRight: 2 }} />
+                      <Text style={styles.growthText}>{proj.growth.replace("▲ ", "")}</Text>
+                    </View>
+                  </View>
+                </View>
+
+                {/* Bottom Action Strip */}
+                <View style={styles.projectBottomStrip}>
+                  <View style={styles.zeroBrokerageRow}>
+                    <Ionicons name="pricetag" size={14} color={COLORS.primary} style={{ marginRight: 6 }} />
+                    <Text style={styles.zeroBrokerageText}>
+                      Get preferred options{"\n"}@zero brokerage
+                    </Text>
+                  </View>
+
+                  <TouchableOpacity
+                    style={styles.viewNumberBtn}
+                    activeOpacity={0.85}
+                    onPress={() => {
+                      setRevealedProjectPhone(isRevealed ? null : proj.id);
+                    }}
+                  >
+                    <Text style={styles.viewNumberBtnText}>
+                      {isRevealed ? proj.phone : "View number"}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            );
+          })}
+        </ScrollView>
+
+        {/* ================= DEMAND IN CHENNAI (SECTION 5) ================= */}
+        <View style={styles.demandSectionHeader}>
+          <View style={{ flex: 1 }}>
+            <View style={{ flexDirection: "row", alignItems: "center" }}>
+              <Text style={styles.sectionTitle}>Demand in Chennai</Text>
+              <TouchableOpacity activeOpacity={0.7} style={{ marginLeft: 6 }}>
+                <Ionicons name="information-circle-outline" size={18} color="#64748B" />
+              </TouchableOpacity>
+            </View>
+            <Text style={styles.demandSubtitle}>
+              Where are buyers searching in Chennai
+            </Text>
+          </View>
+        </View>
+
+        {/* Region Underline Tabs */}
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.demandTabsContainer}
+        >
+          {["Chennai South", "Chennai Central", "Chennai North", "Chennai West"].map((region) => {
+            const isSelected = demandRegion === region;
+            return (
+              <TouchableOpacity
+                key={region}
+                activeOpacity={0.8}
+                onPress={() => setDemandRegion(region)}
+                style={styles.demandTabItem}
+              >
+                <Text style={[styles.demandTabText, isSelected && styles.demandTabTextActive]}>
+                  {region}
+                </Text>
+                {isSelected && <View style={styles.demandTabIndicator} />}
+              </TouchableOpacity>
+            );
+          })}
+        </ScrollView>
+
+        {/* Demand Insight Cards */}
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.demandCardsList}
+          decelerationRate="fast"
+          snapToInterval={DEMAND_CARD_WIDTH + 14}
+        >
+          {(DEMAND_DATA[demandRegion] || DEMAND_DATA["Chennai South"]).map((item) => (
+            <View key={item.id} style={styles.demandCard}>
+              <Text style={styles.demandCategoryTitle}>{item.category}</Text>
+              <Text style={styles.demandCategorySubtitle}>{item.subtitle}</Text>
+
+              <View style={styles.demandRankList}>
+                {item.localities.map((loc) => (
+                  <View key={loc.name} style={styles.demandRankItem}>
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.demandRankName}>
+                        <Text style={styles.demandRankNum}>{loc.rank} </Text>
+                        <Text style={styles.demandLocName}>{loc.name}</Text>
+                      </Text>
+                      <View style={[styles.demandProgressBar, { width: loc.barWidth }]} />
+                    </View>
+                    <Text style={styles.demandSearchPercent}>{loc.percentage}</Text>
+                  </View>
+                ))}
+              </View>
+
+              <TouchableOpacity
+                activeOpacity={0.7}
+                style={styles.viewMoreLocalitiesBtn}
+                onPress={() => navigation.navigate("Search")}
+              >
+                <Text style={styles.viewMoreLocalitiesText}>View more localities</Text>
+              </TouchableOpacity>
+            </View>
+          ))}
+        </ScrollView>
+
+        {/* Feedback Row */}
+        <View style={styles.feedbackRow}>
+          <Text style={styles.feedbackPrompt}>Is this helpful?</Text>
+          <TouchableOpacity
+            style={[styles.feedbackBtn, demandFeedback === "yes" && styles.feedbackBtnActive]}
+            activeOpacity={0.8}
+            onPress={() => setDemandFeedback(demandFeedback === "yes" ? null : "yes")}
+          >
+            <Text style={styles.feedbackBtnText}>Yes 👍</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.feedbackBtn, demandFeedback === "no" && styles.feedbackBtnActive]}
+            activeOpacity={0.8}
+            onPress={() => setDemandFeedback(demandFeedback === "no" ? null : "no")}
+          >
+            <Text style={styles.feedbackBtnText}>No 👎</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* ================= EXPLORE BY LOCATION ================= */}
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>Explore by Location</Text>
+        </View>
+
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.locationList}
+        >
+          {CHENNAI_LOCALITIES.map((loc) => (
+            <TouchableOpacity
+              key={loc.id}
+              style={styles.locationCard}
+              activeOpacity={0.85}
+              onPress={() => {
+                setSelectedLocality(loc.name.split(" ")[0]);
+              }}
+            >
+              <Image source={{ uri: loc.image }} style={styles.locationCardImage} />
+              <View style={styles.locationOverlay} />
+              <View style={styles.locationCardContent}>
+                <Text style={styles.locationCardName}>{loc.name}</Text>
+                <Text style={styles.locationCardCount}>{loc.count}</Text>
+              </View>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+      </ScrollView>
+
+      {/* ========================================================================= */}
+      {/* SEARCH CLICK POPUP: ASK LOCALITY AND SHOW DOWN THE FILTER                */}
+      {/* ========================================================================= */}
+      <Modal
+        visible={isSearchModalOpen}
+        animationType="slide"
+        transparent={false}
+        onRequestClose={() => setIsSearchModalOpen(false)}
+      >
+        <SafeAreaView style={styles.modalSafeArea}>
+          {/* Modal Header */}
+          <View style={styles.modalHeader}>
+            <Text style={styles.modalHeaderTitle}>Search Property</Text>
+            <TouchableOpacity
+              style={styles.modalCloseBtn}
+              onPress={() => setIsSearchModalOpen(false)}
+            >
+              <Ionicons name="close" size={22} color="#0F172A" />
+            </TouchableOpacity>
+          </View>
+
+          <ScrollView
+            style={styles.modalScroll}
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={styles.modalScrollContent}
+          >
+            {/* 1. ASK LOCALITY INPUT */}
+            <View style={styles.modalCard}>
+              <Text style={styles.modalSectionLabel}>Enter Locality in Chennai</Text>
+              <View style={styles.modalInputRow}>
+                <Ionicons name="search-outline" size={18} color="#94A3B8" style={{ marginRight: 8 }} />
+                <TextInput
+                  style={styles.modalTextInput}
+                  placeholder="Search locality, project, landmark..."
+                  placeholderTextColor="#94A3B8"
+                  value={localityInput}
+                  onChangeText={(text) => {
+                    setLocalityInput(text);
+                    setSelectedLocality(text);
+                  }}
+                />
+                {localityInput.length > 0 && (
+                  <TouchableOpacity onPress={() => { setLocalityInput(""); setSelectedLocality(""); }}>
+                    <Ionicons name="close-circle" size={16} color="#94A3B8" />
+                  </TouchableOpacity>
+                )}
+              </View>
+
+              {/* Popular Localities Chips */}
+              <Text style={styles.modalSubLabel}>Popular Localities</Text>
+              <View style={styles.chipsWrap}>
+                {LOCALITY_LIST.filter((loc) =>
+                  loc.toLowerCase().includes(localityInput.toLowerCase())
+                ).map((loc) => {
+                  const isLocSelected = selectedLocality.toLowerCase() === loc.toLowerCase();
+                  return (
+                    <TouchableOpacity
+                      key={loc}
+                      style={[styles.localityChip, isLocSelected && styles.localityChipSelected]}
+                      onPress={() => {
+                        setSelectedLocality(loc);
+                        setLocalityInput(loc);
+                      }}
+                    >
+                      <Text style={[styles.localityChipText, isLocSelected && styles.localityChipTextSelected]}>
+                        {isLocSelected ? "✓ " : "+ "}{loc}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+            </View>
+
+            {/* 2. DOWN THE FILTER: PROPERTY TYPE */}
+            <View style={styles.modalCard}>
+              <Text style={styles.modalSectionLabel}>Property Type</Text>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
+                {["Apartment", "Villa", "House", "Commercial", "Plot"].map((type) => {
+                  const isSelected = modalType === type;
+                  return (
+                    <TouchableOpacity
+                      key={type}
+                      style={[styles.modalFilterChip, isSelected && styles.modalFilterChipActive]}
+                      onPress={() => setModalType(type)}
+                    >
+                      <Text style={[styles.modalFilterChipText, isSelected && styles.modalFilterChipTextActive]}>
+                        {type}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </ScrollView>
+            </View>
+
+            {/* 3. DOWN THE FILTER: BUDGET */}
+            <View style={styles.modalCard}>
+              <Text style={styles.modalSectionLabel}>Budget</Text>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
+                {BUDGET_OPTIONS.map((bg) => {
+                  const isSelected = modalBudget === bg;
+                  return (
+                    <TouchableOpacity
+                      key={bg}
+                      style={[styles.modalFilterChip, isSelected && styles.modalFilterChipActive]}
+                      onPress={() => setModalBudget(bg)}
+                    >
+                      <Text style={[styles.modalFilterChipText, isSelected && styles.modalFilterChipTextActive]}>
+                        {bg}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </ScrollView>
+            </View>
+
+            {/* 4. DOWN THE FILTER: BHK */}
+            <View style={styles.modalCard}>
+              <Text style={styles.modalSectionLabel}>Bedrooms (BHK)</Text>
+              <View style={styles.bhkRow}>
+                {BHK_OPTIONS.map((bhk) => {
+                  const isSelected = modalBhk === bhk;
+                  return (
+                    <TouchableOpacity
+                      key={bhk}
+                      style={[styles.bhkPill, isSelected && styles.bhkPillActive]}
+                      onPress={() => setModalBhk(bhk)}
+                    >
+                      <Text style={[styles.bhkPillText, isSelected && styles.bhkPillTextActive]}>
+                        {bhk}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+            </View>
+          </ScrollView>
+
+          {/* Modal Bottom Action Bar */}
+          <View style={styles.modalBottomBar}>
+            <TouchableOpacity style={styles.modalResetBtn} onPress={handleClearModalFilters}>
+              <Text style={styles.modalResetText}>Clear All</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.modalShowBtn}
+              activeOpacity={0.85}
+              onPress={handleApplyModalFilters}
+            >
+              <Text style={styles.modalShowBtnText}>
+                Show {modalMatchedCount} Properties
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </SafeAreaView>
       </Modal>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: "#F4F7FB",
+  },
   container: {
     flex: 1,
-    backgroundColor: COLORS.background,
+    backgroundColor: "#F4F7FB",
+  },
+  scrollContent: {
+    paddingBottom: 90,
   },
 
-  listContent: {
-    paddingHorizontal: 16,
-    paddingBottom: 30,
-  },
-
+  /* HEADER */
   header: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
-    marginTop: 8,
-    marginBottom: 20,
+    justifyContent: "flex-end",
+    paddingHorizontal: 20,
+    paddingTop: 12,
+    paddingBottom: 4,
+    backgroundColor: "#F4F7FB",
   },
-
-  locationWrapper: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-
-  locationText: {
-    marginLeft: 9,
-  },
-
-  locationLabel: {
-    fontSize: 11,
-    color: COLORS.textSecondary,
-  },
-
-  locationValue: {
-    marginTop: 2,
-    fontSize: 14,
-    fontWeight: "600",
-    color: COLORS.textPrimary,
-  },
-
-  headerRight: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-  },
-
-  headerIcon: {
-    width: 40,
-    height: 40,
-    alignItems: "center",
-    justifyContent: "center",
-    position: "relative",
-  },
-
-  headerDot: {
-    position: "absolute",
-    top: 9,
-    right: 9,
-    width: 7,
-    height: 7,
-    borderRadius: 4,
-    backgroundColor: COLORS.danger,
-  },
-
-  profileCircle: {
+  notificationBtn: {
     width: 42,
     height: 42,
     borderRadius: 21,
-    backgroundColor: COLORS.primary,
-    alignItems: "center",
+    backgroundColor: "#FFFFFF",
     justifyContent: "center",
-  },
-
-  search: {
-    height: 56,
-    flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "transparent",
-    borderRadius: 120,
-    overflow: "hidden",
-    paddingLeft: 18,
-    marginBottom: 24,
-    borderWidth: 1,
-    borderColor: "rgba(0, 0, 0, 0.1)",
-  },
-
-  searchInput: {
-    flex: 1,
-    height: "100%",
-    paddingHorizontal: 11,
-    fontSize: 14,
-    color: COLORS.textPrimary,
-    outlineStyle: "none",
-  },
-
-  clearSearchBtn: {
-    width: 40,
-    height: 56,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-
-  filterBtn: {
-    width: 55,
-    height: 56,
-    alignItems: "center",
-    justifyContent: "center",
-    borderLeftWidth: 1,
-    borderLeftColor: COLORS.border,
+    shadowColor: "#000000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 6,
+    elevation: 2,
     position: "relative",
   },
-
-  filterBtnActive: {
-    backgroundColor: COLORS.primaryLight || "#EBF4FF",
-    borderTopRightRadius: 100,
-    borderBottomRightRadius: 100,
-  },
-
-  filterBadge: {
+  notificationDot: {
     position: "absolute",
     top: 9,
-    right: 9,
-    backgroundColor: COLORS.primary,
-    borderRadius: 9,
-    minWidth: 16,
-    height: 16,
-    alignItems: "center",
-    justifyContent: "center",
-    paddingHorizontal: 3,
+    right: 11,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: "#EF4444",
+    borderWidth: 1.5,
+    borderColor: "#FFFFFF",
   },
 
-  filterBadgeText: {
-    color: COLORS.white,
-    fontSize: 9,
-    fontWeight: "700",
+  /* TOP SECTION */
+  topSection: {
+    backgroundColor: "#F4F7FB",
+    paddingTop: 4,
+    paddingBottom: 10,
   },
 
-  sectionHeadingRow: {
+  /* 1. DEAL TYPE TABS (BUY, RENT, LEASE) */
+  dealTypeRow: {
     flexDirection: "row",
-    justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 14,
+    paddingHorizontal: 20,
+    paddingTop: 8,
+    paddingBottom: 14,
+    gap: 24,
   },
-
-  sectionTitle: {
-    fontSize:16,
+  dealTypeTab: {
+    alignItems: "flex-start",
+  },
+  dealTypeText: {
+    ...TYPOGRAPHY.sectionHeading,
+  },
+  dealTypeTextActive: {
     fontWeight: "600",
-    color: COLORS.textPrimary,
-  
-  },
-
-  seeAll: {
     color: COLORS.primary,
-    fontSize: 13,
-    fontWeight: "600",
+  },
+  dealTypeTextInactive: {
+    fontWeight: "400",
+    color: "#94A3B8",
+  },
+  activeUnderline: {
+    height: 2.5,
+    width: "100%",
+    backgroundColor: COLORS.primary,
+    borderRadius: 2,
+    marginTop: 4,
   },
 
-  footerSections: {
-    marginTop: 10,
-    paddingBottom: 20,
-  },
-
-  // Featured Destinations
-  destinationsSection: {
-    marginBottom: 26,
-  },
-
-  sliderList: {
-    marginHorizontal: -16,
-  },
-
-  destinationsContent: {
-    paddingHorizontal: 16,
-    gap: 12,
-  },
-
-  sliderArrowGroup: {
+  /* 2. SEARCH BAR */
+  searchRow: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 8,
+    paddingHorizontal: 20,
+    paddingBottom: 14,
   },
-
-  sliderArrowBtn: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: COLORS.white,
+  searchInputContainer: {
+    flex: 1,
+    flexDirection: "row",
     alignItems: "center",
-    justifyContent: "center",
-    borderWidth: 1,
-    borderColor: "#E5E7EB",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.08,
-    shadowRadius: 2,
+    backgroundColor: "#FFFFFF",
+    borderRadius: 28,
+    paddingHorizontal: 16,
+    height: 50,
+    shadowColor: "#000000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 8,
     elevation: 2,
   },
-
-  destinationCard: {
-    width: 170,
-    height: 220,
-    borderRadius: 20,
-    overflow: "hidden",
-    position: "relative",
-    backgroundColor: "#1E293B",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.12,
-    shadowRadius: 6,
-    elevation: 3,
+  searchIcon: {
+    marginRight: 8,
   },
-
-  destinationCardContent: {
-    ...StyleSheet.absoluteFillObject,
-    justifyContent: "space-between",
-    padding: 12,
-    zIndex: 2,
-  },
-
-  destinationImage: {
-    ...StyleSheet.absoluteFillObject,
-  },
-
-  destinationOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: "rgba(0, 0, 0, 0.38)",
-    zIndex: 1,
-  },
-
-  destinationTopBadges: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-
-  ratingBadge: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "rgba(0, 0, 0, 0.55)",
-    paddingHorizontal: 7,
-    paddingVertical: 3,
-    borderRadius: 10,
-    gap: 3,
-  },
-
-  ratingBadgeText: {
-    color: COLORS.white,
-    fontSize: 11,
-    fontWeight: "700",
-  },
-
-  tourCountBadge: {
-    backgroundColor: "rgba(255, 255, 255, 0.3)",
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 10,
-  },
-
-  tourCountBadgeText: {
-    color: COLORS.white,
-    fontSize: 11,
-    fontWeight: "600",
-  },
-
-  destinationBottomInfo: {
-  },
-
-  destinationCountry: {
-    color: "rgba(255, 255, 255, 0.85)",
-    fontSize: 11,
-    fontWeight: "500",
-    marginBottom: 2,
-  },
-
-  destinationName: {
-    color: COLORS.white,
-    fontSize: 18,
-    fontWeight: "800",
-    letterSpacing: -0.2,
-  },
-
-  // 4. Offers
-  offersSection: {
-    marginBottom: 26,
-  },
-
-  offersContent: {
-    paddingHorizontal: 16,
-    gap: 14,
-  },
-
-  offerCard: {
-    width: 275,
-    height: 180,
-    borderRadius: 20,
-    overflow: "hidden",
-    position: "relative",
-    backgroundColor: "#1E293B",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.12,
-    shadowRadius: 6,
-    elevation: 3,
-  },
-
-  offerCardContent: {
-    ...StyleSheet.absoluteFillObject,
-    justifyContent: "space-between",
-    padding: 14,
-    zIndex: 2,
-  },
-
-  offerImage: {
-    ...StyleSheet.absoluteFillObject,
-  },
-
-  offerOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: "rgba(0, 0, 0, 0.52)",
-    zIndex: 1,
-  },
-
-  offerBadge: {
-    alignSelf: "flex-start",
-    backgroundColor: COLORS.primary,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 10,
-  },
-
-  offerBadgeText: {
-    color: COLORS.white,
-    fontSize: 10,
-    fontWeight: "800",
-    letterSpacing: 0.5,
-  },
-
-  offerContent: {
-  },
-
-  offerDiscount: {
-    fontSize: 22,
-    fontWeight: "900",
-    color: COLORS.white,
-    letterSpacing: -0.3,
-  },
-
-  offerTitle: {
+  searchPlaceholderText: {
+    ...TYPOGRAPHY.inputText,
+    color: "#94A3B8",
     fontSize: 14,
-    fontWeight: "700",
-    color: COLORS.white,
-    marginTop: 2,
   },
-
-  offerSubtitle: {
-    fontSize: 11,
-    color: "rgba(255, 255, 255, 0.8)",
-    marginTop: 2,
-  },
-
-  offerFooter: {
+  activeLocalityTag: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
-    marginTop: 10,
-    paddingTop: 8,
-    borderTopWidth: 1,
-    borderTopColor: "rgba(255, 255, 255, 0.2)",
-  },
-
-  offerCodePill: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "rgba(255, 255, 255, 0.25)",
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 8,
-    gap: 4,
-  },
-
-  offerCodeText: {
-    color: COLORS.white,
-    fontSize: 11,
-    fontWeight: "700",
-    letterSpacing: 0.5,
-  },
-
-  claimText: {
-    color: COLORS.white,
-    fontSize: 12,
-    fontWeight: "700",
-  },
-
-  // Empty State
-  emptyContainer: {
-    paddingVertical: 40,
-    alignItems: "center",
-    justifyContent: "center",
-    paddingHorizontal: 24,
-  },
-
-  emptyIconBox: {
-    width: 68,
-    height: 68,
-    borderRadius: 34,
-    backgroundColor: COLORS.primaryLight || "#EBF4FF",
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: 14,
-  },
-
-  emptyTitle: {
-    fontSize: 17,
-    fontWeight: "700",
-    color: COLORS.textPrimary,
-    marginBottom: 6,
-  },
-
-  emptySubtitle: {
-    fontSize: 13,
-    color: COLORS.textSecondary,
-    textAlign: "center",
-    lineHeight: 18,
-    marginBottom: 18,
-  },
-
-  emptyResetBtn: {
-    backgroundColor: COLORS.primary,
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderRadius: 12,
-  },
-
-  emptyResetBtnText: {
-    color: COLORS.white,
-    fontSize: 13,
-    fontWeight: "600",
-  },
-
-  // Filter Modal Styles
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.45)",
-    justifyContent: "flex-end",
-  },
-
-  modalBackdrop: {
-    flex: 1,
-  },
-
-  modalContent: {
-    backgroundColor: COLORS.white,
-    borderTopLeftRadius: 28,
-    borderTopRightRadius: 28,
-    paddingTop: 12,
-    paddingHorizontal: 20,
-    paddingBottom: 30,
-    maxHeight: "82%",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: -4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 10,
-    elevation: 20,
-  },
-
-  modalHandle: {
-    width: 38,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: "#D8D8D8",
-    alignSelf: "center",
-    marginBottom: 14,
-  },
-
-  modalHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 16,
-    paddingBottom: 14,
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.border,
-  },
-
-  modalTitle: {
-    fontSize: 20,
-    fontWeight: "700",
-    color: COLORS.textPrimary,
-  },
-
-  modalSubtitle: {
-    fontSize: 12,
-    color: COLORS.textSecondary,
-    marginTop: 2,
-  },
-
-  modalHeaderActions: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-  },
-
-  modalResetBtn: {
+    backgroundColor: "#EBF4FF",
     paddingHorizontal: 10,
     paddingVertical: 5,
+    borderRadius: 14,
   },
-
-  modalResetText: {
-    fontSize: 13,
+  activeLocalityTagText: {
+    ...TYPOGRAPHY.smallHelperText,
     color: COLORS.primary,
     fontWeight: "600",
   },
 
-  modalCloseBtn: {
+  /* 3. CATEGORY CIRCLE ICONS WITH LABELS UNDERNEATH */
+  circleCategoryScroll: {
+    paddingHorizontal: 20,
+    paddingTop: 4,
+    paddingBottom: 8,
+  },
+  circleCategoryItem: {
+    alignItems: "center",
+    marginRight: 18,
+    width: 66,
+  },
+  circleIconBox: {
+    width: 54,
+    height: 54,
+    borderRadius: 27,
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 6,
+  },
+  circleIconBoxInactive: {
+    backgroundColor: "#F0F4FF",
+  },
+  circleIconBoxActive: {
+    backgroundColor: COLORS.primary,
+    shadowColor: COLORS.primary,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    elevation: 3,
+  },
+  circleCategoryLabel: {
+    fontSize: 12.5,
+    fontWeight: "500",
+    textAlign: "center",
+    lineHeight: 16,
+  },
+  circleCategoryLabelInactive: {
+    color: "#1E293B",
+  },
+  circleCategoryLabelActive: {
+    color: COLORS.primary,
+    fontWeight: "700",
+  },
+
+  /* SECTION HEADERS */
+  sectionHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 20,
+    marginTop: 18,
+    marginBottom: 12,
+  },
+  sectionTitle: {
+    ...TYPOGRAPHY.sectionHeading,
+    color: "#0F172A",
+  },
+  seeAllText: {
+    ...TYPOGRAPHY.button,
+    color: COLORS.primary,
+  },
+  verifiedTag: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#DCFCE7",
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 10,
+    marginLeft: 8,
+  },
+  verifiedTagText: {
+    ...TYPOGRAPHY.smallHelperText,
+    fontWeight: "500",
+    color: "#16A34A",
+  },
+
+  /* RECOMMENDED PROPERTIES SLIDER (SINGLE ROW) */
+  recommendedScrollContainer: {
+    paddingHorizontal: 20,
+    paddingBottom: 4,
+  },
+  recommendedCard: {
+    width: REC_CARD_WIDTH,
+    backgroundColor: "#FFFFFF",
+    borderRadius: 8,
+    overflow: "hidden",
+    marginRight: 12,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 6,
+    elevation: 2,
+    borderWidth: 1,
+    borderColor: "#F1F5F9",
+  },
+  recommendedImageContainer: {
+    height: 110,
+    width: "100%",
+    position: "relative",
+  },
+  recommendedImage: {
+    width: "100%",
+    height: "100%",
+    backgroundColor: "#E2E8F0",
+  },
+  verifiedGreenBadge: {
+    position: "absolute",
+    top: 8,
+    left: 8,
+    backgroundColor: "#00C853",
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 4,
+  },
+  verifiedGreenBadgeText: {
+    color: "#FFFFFF",
+    fontSize: 10,
+    fontWeight: "600",
+    textTransform: "lowercase",
+  },
+  floatingHeartBtn: {
+    position: "absolute",
+    top: 8,
+    right: 8,
+    width: 26,
+    height: 26,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "transparent",
+    zIndex: 10,
+  },
+  recommendedCardBody: {
+    paddingHorizontal: 10,
+    paddingTop: 8,
+    paddingBottom: 10,
+  },
+  recommendedTitle: {
+    fontSize: 13,
+    fontWeight: "700",
+    color: "#0F172A",
+    lineHeight: 17,
+    marginBottom: 4,
+  },
+  recommendedSubtitle: {
+    fontSize: 11,
+    fontWeight: "400",
+    color: "#64748B",
+    lineHeight: 15,
+  },
+  recommendedPrice: {
+    color: COLORS.primary,
+    fontWeight: "600",
+  },
+
+  /* NEWLY LAUNCHED PROJECTS */
+  projectSectionHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 20,
+    marginTop: 22,
+    marginBottom: 12,
+  },
+  projectHeaderBadge: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: "#FEF3C7",
+    justifyContent: "center",
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#FDE68A",
+  },
+  projectSectionTitle: {
+    ...TYPOGRAPHY.sectionHeading,
+    color: "#0F172A",
+    fontSize: 18,
+    lineHeight: 22,
+  },
+  projectSectionSubtitle: {
+    ...TYPOGRAPHY.caption,
+    color: "#64748B",
+    marginTop: 2,
+    fontSize: 12,
+  },
+  projectCardList: {
+    paddingHorizontal: 20,
+    paddingBottom: 4,
+  },
+  newProjectCard: {
+    width: PROJECT_CARD_WIDTH,
+    backgroundColor: "#FFFFFF",
+    borderRadius: 8,
+    overflow: "hidden",
+    marginRight: 14,
+    borderWidth: 1,
+    borderColor: "#F3E8D6",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
+    elevation: 2,
+  },
+  projectBanner: {
+    backgroundColor: "#FEF3C7",
+    paddingVertical: 5,
+    alignItems: "center",
+  },
+  projectBannerText: {
+    fontSize: 11.5,
+    fontWeight: "600",
+    color: "#92400E",
+    letterSpacing: 0.3,
+  },
+  projectCardContent: {
+    flexDirection: "row",
+    padding: 14,
+    alignItems: "center",
+  },
+  projectThumbWrapper: {
+    width: 76,
+    height: 76,
+    borderRadius: 38,
+    overflow: "hidden",
+    position: "relative",
+    backgroundColor: "#F1F5F9",
+  },
+  projectThumb: {
+    width: "100%",
+    height: "100%",
+  },
+  reraBadge: {
+    position: "absolute",
+    bottom: 2,
+    left: 4,
+    right: 4,
+    backgroundColor: "rgba(15, 23, 42, 0.88)",
+    borderRadius: 10,
+    paddingVertical: 2,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  reraText: {
+    color: "#FFFFFF",
+    fontSize: 9.5,
+    fontWeight: "700",
+  },
+  projectInfoCol: {
+    flex: 1,
+    marginLeft: 12,
+  },
+  projectTitle: {
+    fontSize: 15.5,
+    fontWeight: "700",
+    color: "#0F172A",
+    lineHeight: 20,
+  },
+  projectLocality: {
+    fontSize: 12.5,
+    color: "#64748B",
+    marginTop: 2,
+  },
+  projectPrice: {
+    fontSize: 13,
+    fontWeight: "700",
+    color: "#0F172A",
+    marginTop: 4,
+  },
+  projectTypeDivider: {
+    color: "#CBD5E1",
+    fontWeight: "400",
+  },
+  growthRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: 3,
+  },
+  growthText: {
+    fontSize: 11.5,
+    fontWeight: "600",
+    color: "#16A34A",
+  },
+  projectBottomStrip: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderTopWidth: 1,
+    borderColor: "#F1F5F9",
+    backgroundColor: "#FAFAFA",
+  },
+  zeroBrokerageRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    flex: 1,
+    marginRight: 8,
+  },
+  zeroBrokerageText: {
+    fontSize: 11,
+    color: "#475569",
+    lineHeight: 14,
+    fontWeight: "500",
+  },
+  viewNumberBtn: {
+    backgroundColor: COLORS.primary,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 18,
+  },
+  viewNumberBtnText: {
+    color: "#FFFFFF",
+    fontSize: 12,
+    fontWeight: "600",
+  },
+
+  /* DEMAND IN CHENNAI */
+  demandSectionHeader: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    justifyContent: "space-between",
+    paddingHorizontal: 20,
+    marginTop: 24,
+    marginBottom: 10,
+  },
+  demandSubtitle: {
+    ...TYPOGRAPHY.caption,
+    color: "#64748B",
+    marginTop: 2,
+    fontSize: 12.5,
+  },
+  demandTabsContainer: {
+    paddingHorizontal: 20,
+    marginBottom: 14,
+  },
+  demandTabItem: {
+    marginRight: 20,
+    paddingBottom: 8,
+    position: "relative",
+  },
+  demandTabText: {
+    fontSize: 13.5,
+    fontWeight: "500",
+    color: "#64748B",
+  },
+  demandTabTextActive: {
+    color: "#0F172A",
+    fontWeight: "700",
+  },
+  demandTabIndicator: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 3,
+    backgroundColor: COLORS.primary,
+    borderRadius: 2,
+  },
+  demandCardsList: {
+    paddingHorizontal: 20,
+    paddingBottom: 4,
+  },
+  demandCard: {
+    width: DEMAND_CARD_WIDTH,
+    backgroundColor: "#FFFFFF",
+    borderRadius: 8,
+    padding: 16,
+    marginRight: 14,
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 8,
+    elevation: 1,
+  },
+  demandCategoryTitle: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: "#0F172A",
+    lineHeight: 20,
+  },
+  demandCategorySubtitle: {
+    fontSize: 11.5,
+    color: "#64748B",
+    marginTop: 2,
+    marginBottom: 12,
+  },
+  demandRankList: {
+    marginBottom: 12,
+  },
+  demandRankItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 10,
+  },
+  demandRankName: {
+    fontSize: 13,
+    lineHeight: 16,
+  },
+  demandRankNum: {
+    fontWeight: "400",
+    color: "#94A3B8",
+  },
+  demandLocName: {
+    fontWeight: "700",
+    color: "#0F172A",
+    textDecorationLine: "underline",
+  },
+  demandProgressBar: {
+    height: 5,
+    backgroundColor: "#93C5FD",
+    borderRadius: 3,
+    marginTop: 4,
+  },
+  demandSearchPercent: {
+    fontSize: 11.5,
+    color: "#475569",
+    fontWeight: "500",
+  },
+  viewMoreLocalitiesBtn: {
+    paddingTop: 6,
+    borderTopWidth: 1,
+    borderColor: "#F1F5F9",
+  },
+  viewMoreLocalitiesText: {
+    fontSize: 12.5,
+    fontWeight: "600",
+    color: COLORS.primary,
+  },
+  feedbackRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 20,
+    marginTop: 12,
+    marginBottom: 18,
+  },
+  feedbackPrompt: {
+    fontSize: 12,
+    color: "#64748B",
+    marginRight: 12,
+  },
+  feedbackBtn: {
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 14,
+    backgroundColor: "#F1F5F9",
+    marginRight: 8,
+  },
+  feedbackBtnActive: {
+    backgroundColor: "#DCFCE7",
+    borderWidth: 1,
+    borderColor: "#86EFAC",
+  },
+  feedbackBtnText: {
+    fontSize: 11.5,
+    color: "#334155",
+    fontWeight: "600",
+  },
+
+  /* CARD LISTS */
+  cardHorizontalList: {
+    paddingHorizontal: 20,
+  },
+  propertyCard: {
+    width: CARD_WIDTH,
+    backgroundColor: "#FFFFFF",
+    borderRadius: 8,
+    marginRight: 16,
+    overflow: "hidden",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
+    elevation: 2,
+  },
+  cardImageContainer: {
+    height: 170,
+    width: "100%",
+    position: "relative",
+  },
+  cardImage: {
+    width: "100%",
+    height: "100%",
+  },
+  badgeRow: {
+    position: "absolute",
+    top: 10,
+    left: 10,
+  },
+  badgeGreen: {
+    backgroundColor: "rgba(16, 185, 129, 0.9)",
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  badgeBlue: {
+    backgroundColor: "rgba(59, 130, 246, 0.9)",
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  badgeVerified: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "rgba(22, 163, 74, 0.95)",
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  badgeOrange: {
+    backgroundColor: "rgba(249, 115, 22, 0.9)",
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  badgeTextWhite: {
+    color: "#FFFFFF",
+    ...TYPOGRAPHY.badge,
+  },
+  heartBtn: {
+    position: "absolute",
+    top: 10,
+    right: 10,
     width: 34,
     height: 34,
     borderRadius: 17,
-    backgroundColor: COLORS.background,
-    alignItems: "center",
+    backgroundColor: "rgba(255, 255, 255, 0.9)",
     justifyContent: "center",
+    alignItems: "center",
   },
 
-  modalScrollBody: {
-    paddingBottom: 12,
+  cardBody: {
+    padding: 14,
   },
-
-  modalSection: {
-    marginBottom: 20,
+  priceRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 4,
   },
-
-  modalSectionTitle: {
-    fontSize: 14,
-    fontWeight: "700",
-    color: COLORS.textPrimary,
+  priceText: {
+    ...TYPOGRAPHY.propertyPrice,
+    color: COLORS.primary,
+  },
+  ratingBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#FFFBEB",
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 10,
+  },
+  ratingText: {
+    ...TYPOGRAPHY.propertyMeta,
+    color: "#0F172A",
+    marginLeft: 3,
+  },
+  propertyTitle: {
+    ...TYPOGRAPHY.propertyTitle,
+    color: "#0F172A",
+    marginBottom: 4,
+  },
+  locationRow: {
+    flexDirection: "row",
+    alignItems: "center",
     marginBottom: 10,
   },
+  locationAddress: {
+    ...TYPOGRAPHY.location,
+    color: COLORS.textSecondary,
+    marginLeft: 4,
+  },
+  specsRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#F8FAFC",
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    borderRadius: 10,
+  },
+  specText: {
+    ...TYPOGRAPHY.propertyMeta,
+    color: COLORS.textSecondary,
+  },
+  specDot: {
+    marginHorizontal: 8,
+    color: COLORS.muted,
+  },
 
-  optionsWrap: {
+  /* VERTICAL CARDS */
+  verticalCardsList: {
+    paddingHorizontal: 20,
+  },
+  verticalCard: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 14,
+    marginBottom: 16,
+    overflow: "hidden",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  verticalImageContainer: {
+    height: 160,
+    width: "100%",
+    position: "relative",
+  },
+  verticalImage: {
+    width: "100%",
+    height: "100%",
+  },
+
+  /* LOCATION CARDS */
+  locationList: {
+    paddingHorizontal: 20,
+    paddingBottom: 10,
+  },
+  locationCard: {
+    width: 140,
+    height: 100,
+    borderRadius: 8,
+    marginRight: 12,
+    overflow: "hidden",
+    position: "relative",
+  },
+  locationCardImage: {
+    width: "100%",
+    height: "100%",
+  },
+  locationOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "rgba(0, 0, 0, 0.4)",
+  },
+  locationCardContent: {
+    position: "absolute",
+    bottom: 10,
+    left: 10,
+    right: 10,
+  },
+  locationCardName: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: "#FFFFFF",
+  },
+  locationCardCount: {
+    fontSize: 11,
+    color: "rgba(255, 255, 255, 0.85)",
+    marginTop: 2,
+  },
+
+  /* ================= MODAL STYLES ================= */
+  modalSafeArea: {
+    flex: 1,
+    backgroundColor: "#F8FAFC",
+  },
+  modalHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 20,
+    paddingVertical: 14,
+    backgroundColor: "#FFFFFF",
+    borderBottomWidth: 1,
+    borderBottomColor: "#F1F5F9",
+  },
+  modalHeaderTitle: {
+    ...TYPOGRAPHY.screenHeading,
+    color: "#0F172A",
+  },
+  modalCloseBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: "#F1F5F9",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  modalScroll: {
+    flex: 1,
+  },
+  modalScrollContent: {
+    padding: 16,
+    paddingBottom: 100,
+  },
+  modalCard: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: "#F1F5F9",
+  },
+  modalSectionLabel: {
+    ...TYPOGRAPHY.sectionHeading,
+    fontSize: 14,
+    color: "#0F172A",
+    marginBottom: 10,
+  },
+  modalInputRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#F8FAFC",
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    height: 44,
+    marginBottom: 12,
+  },
+  modalTextInput: {
+    flex: 1,
+    ...TYPOGRAPHY.inputText,
+    fontSize: 13,
+    color: "#0F172A",
+    outlineStyle: "none",
+    borderWidth: 0,
+  },
+  modalSubLabel: {
+    ...TYPOGRAPHY.smallHelperText,
+    color: "#94A3B8",
+    marginBottom: 8,
+  },
+  chipsWrap: {
     flexDirection: "row",
     flexWrap: "wrap",
     gap: 8,
   },
-
-  optionPill: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: COLORS.background,
-    paddingHorizontal: 14,
-    paddingVertical: 9,
-    borderRadius: 18,
-    borderWidth: 1,
-    borderColor: "transparent",
+  localityChip: {
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    borderRadius: 14,
+    backgroundColor: "#F1F5F9",
   },
-
-  optionPillActive: {
+  localityChipSelected: {
+    backgroundColor: "#EBF4FF",
+    borderWidth: 1,
+    borderColor: COLORS.primary,
+  },
+  localityChipText: {
+    ...TYPOGRAPHY.smallHelperText,
+    color: "#475569",
+  },
+  localityChipTextSelected: {
+    color: COLORS.primary,
+    fontWeight: "600",
+  },
+  modalFilterChip: {
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
+    backgroundColor: "#FFFFFF",
+  },
+  modalFilterChipActive: {
     backgroundColor: COLORS.primary,
     borderColor: COLORS.primary,
   },
-
-  optionPillText: {
-    fontSize: 13,
-    fontWeight: "500",
-    color: COLORS.textPrimary,
+  modalFilterChipText: {
+    ...TYPOGRAPHY.smallHelperText,
+    color: "#475569",
   },
-
-  optionPillTextActive: {
-    color: COLORS.white,
+  modalFilterChipTextActive: {
+    color: "#FFFFFF",
     fontWeight: "600",
   },
-
-  modalFooter: {
-    paddingTop: 14,
-    borderTopWidth: 1,
-    borderTopColor: COLORS.border,
+  bhkRow: {
+    flexDirection: "row",
+    gap: 8,
   },
-
-  modalApplyBtn: {
-    backgroundColor: COLORS.primary,
-    height: 50,
-    borderRadius: 16,
+  bhkPill: {
+    flex: 1,
+    paddingVertical: 9,
     alignItems: "center",
     justifyContent: "center",
-    shadowColor: COLORS.primary,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.25,
-    shadowRadius: 8,
-    elevation: 3,
+    borderRadius: 12,
+    backgroundColor: "#F8FAFC",
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
   },
-
-  modalApplyBtnText: {
-    color: COLORS.white,
-    fontSize: 15,
+  bhkPillActive: {
+    backgroundColor: COLORS.primary,
+    borderColor: COLORS.primary,
+  },
+  bhkPillText: {
+    ...TYPOGRAPHY.smallHelperText,
+    color: "#475569",
+  },
+  bhkPillTextActive: {
+    color: "#FFFFFF",
     fontWeight: "600",
+  },
+  modalBottomBar: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: "#FFFFFF",
+    paddingHorizontal: 20,
+    paddingTop: 12,
+    paddingBottom: 24,
+    flexDirection: "row",
+    alignItems: "center",
+    borderTopWidth: 1,
+    borderTopColor: "#E2E8F0",
+    elevation: 8,
+  },
+  modalResetBtn: {
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    marginRight: 10,
+  },
+  modalResetText: {
+    ...TYPOGRAPHY.button,
+    color: "#64748B",
+  },
+  modalShowBtn: {
+    flex: 1,
+    height: 46,
+    borderRadius: 14,
+    backgroundColor: COLORS.primary,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  modalShowBtnText: {
+    ...TYPOGRAPHY.button,
+    color: "#FFFFFF",
   },
 });

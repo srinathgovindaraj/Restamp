@@ -1,219 +1,127 @@
 import React from "react";
-
-import {
-  View,
-  StyleSheet,
-} from "react-native";
-
-import {
-  NavigationContainer,
-} from "@react-navigation/native";
-
-import {
-  createBottomTabNavigator,
-} from "@react-navigation/bottom-tabs";
-
-import {
-  Ionicons,
-} from "@expo/vector-icons";
+import { View, Text, StyleSheet, Platform } from "react-native";
+import { NavigationContainer } from "@react-navigation/native";
+import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+import { Ionicons } from "@expo/vector-icons";
 
 import HomeScreen from "../screens/HomeScreen";
-import WishlistScreen from "../screens/WishlistScreen";
-import ExploreScreen from "../screens/ExploreScreen";
-import MessageScreen from "../screens/MessageScreen";
-import AccountScreen from "../screens/AccountScreen";
+import SearchScreen from "../screens/SearchScreen";
+import SavedScreen from "../screens/SavedScreen";
+import EnquiriesScreen from "../screens/EnquiriesScreen";
+import MenuScreen from "../screens/MenuScreen";
 
 import COLORS from "../constants/colors";
+import TYPOGRAPHY from "../constants/typography";
 
 const Tab = createBottomTabNavigator();
 
-
-// =====================================================
-// TAB ICON SETTINGS
-// =====================================================
-
-const tabIcons = {
+const tabConfig = {
   Home: {
-    active: "home",
-    inactive: "home-outline",
-
-    width: 32,
-    height: 32,
-    size: 24,
+    label: "Home",
+    activeIcon: "home",
+    inactiveIcon: "home-outline",
   },
-
-  Wishlist: {
-    active: "heart",
-    inactive: "heart-outline",
-
-    width: 32,
-    height: 32,
-    size: 24,
+  Search: {
+    label: "Search",
+    activeIcon: "search",
+    inactiveIcon: "search-outline",
   },
-
-  Explore: {
-    active: "compass",
-    inactive: "compass-outline",
-
-    width: 32,
-    height: 32,
-    size: 24,
+  Saved: {
+    label: "Saved",
+    activeIcon: "heart",
+    inactiveIcon: "heart-outline",
   },
-
-  Messages: {
-    active: "chatbubble",
-    inactive: "chatbubble-outline",
-
-    width: 32,
-    height: 32,
-    size: 24,
+  Enquiries: {
+    label: "Enquiries",
+    activeIcon: "chatbubble-ellipses",
+    inactiveIcon: "chatbubble-ellipses-outline",
   },
-
-  Account: {
-    active: "person",
-    inactive: "person-outline",
-
-    width: 32,
-    height: 32,
-    size: 24,
+  Menu: {
+    label: "Menu",
+    activeIcon: "person",
+    inactiveIcon: "person-outline",
   },
 };
-
-
-// =====================================================
-// NAVIGATOR
-// =====================================================
 
 export default function AppNavigator() {
   return (
     <NavigationContainer>
       <Tab.Navigator
         screenOptions={({ route }) => {
-          const iconConfig =
-            tabIcons[route.name];
+          const config = tabConfig[route.name] || tabConfig.Home;
 
           return {
             headerShown: false,
-
-            // =========================================
-            // TAB COLORS
-            // =========================================
-
-            tabBarActiveTintColor:
-              COLORS.primary,
-
-            tabBarInactiveTintColor:
-              "#A4A4A4",
-
-            // =========================================
-            // TAB BAR STYLE
-            // =========================================
+            tabBarShowLabel: false,
 
             tabBarStyle: {
-              height: 72,
-
-              paddingTop: 8,
-              paddingBottom: 10,
-
-              borderTopWidth: 1,
-              borderTopColor: "#EEEEEE",
-
-              backgroundColor:
-                COLORS.white,
+              position: "absolute",
+              bottom: Platform.OS === "ios" ? 28 : 20,
+              left: 16,
+              right: 16,
+              height: 68,
+              backgroundColor: "#FFFFFF",
+              borderRadius: 40,
+              borderTopWidth: 0,
+              shadowColor: "#000000",
+              shadowOffset: { width: 0, height: 8 },
+              shadowOpacity: 0.1,
+              shadowRadius: 20,
+              elevation: 10,
+              paddingHorizontal: 12,
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "space-around",
             },
 
-            // =========================================
-            // LABEL
-            // =========================================
-
-            tabBarLabelStyle: {
-              fontSize: 11,
-              fontWeight: "500",
-            },
-
-            // =========================================
-            // ICON
-            // =========================================
-
-            tabBarIcon: ({
-              color,
-              focused,
-            }) => {
-              const iconName = focused
-                ? iconConfig.active
-                : iconConfig.inactive;
+            tabBarIcon: ({ focused }) => {
+              const iconName = focused ? config.activeIcon : config.inactiveIcon;
+              const activeColor = "#111111";
+              const inactiveColor = "#8E8E93";
 
               return (
-                <View
-                  style={[
-                    styles.iconContainer,
-                    {
-                      width:
-                        iconConfig.width,
-
-                      height:
-                        iconConfig.height,
-                    },
-                  ]}
-                >
+                <View style={styles.tabItemContainer}>
                   <Ionicons
                     name={iconName}
-                    size={iconConfig.size}
-                    color={color}
+                    size={23}
+                    color={focused ? activeColor : inactiveColor}
                   />
+                  <Text
+                    style={[
+                      styles.tabLabel,
+                      { color: focused ? activeColor : inactiveColor },
+                      focused && styles.tabLabelActive,
+                    ]}
+                  >
+                    {config.label}
+                  </Text>
                 </View>
               );
             },
           };
         }}
       >
-        {/* HOME */}
-
-        <Tab.Screen
-          name="Home"
-          component={HomeScreen}
-        />
-
-        {/* WISHLIST */}
-
-        <Tab.Screen
-          name="Wishlist"
-          component={WishlistScreen}
-        />
-
-        {/* EXPLORE */}
-
-        <Tab.Screen
-          name="Explore"
-          component={ExploreScreen}
-        />
-
-        {/* MESSAGES */}
-
-        <Tab.Screen
-          name="Messages"
-          component={MessageScreen}
-        />
-
-        {/* ACCOUNT */}
-
-        <Tab.Screen
-          name="Account"
-          component={AccountScreen}
-        />
+        <Tab.Screen name="Home" component={HomeScreen} />
+        <Tab.Screen name="Search" component={SearchScreen} />
+        <Tab.Screen name="Saved" component={SavedScreen} />
+        <Tab.Screen name="Enquiries" component={EnquiriesScreen} />
+        <Tab.Screen name="Menu" component={MenuScreen} />
       </Tab.Navigator>
     </NavigationContainer>
   );
 }
 
-
-// =====================================================
-// STYLES
-// =====================================================
-
 const styles = StyleSheet.create({
-  iconContainer: {
+  tabItemContainer: {
     alignItems: "center",
     justifyContent: "center",
+    paddingVertical: 4,
+  },
+  tabLabel: {
+    ...TYPOGRAPHY.bottomTab,
+    marginTop: 3,
+  },
+  tabLabelActive: {
+    fontWeight: "600",
   },
 });

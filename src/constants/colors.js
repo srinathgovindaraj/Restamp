@@ -1,23 +1,30 @@
 const COLORS = {
   primary: "#146EF5",
   primaryLight: "#EBF4FF",
+  primaryDark: "#0B51C9",
 
   white: "#FFFFFF",
   black: "#111111",
 
-  background: "#F7F8FA",
+  background: "#F7F9FC",
   card: "#FFFFFF",
+  pillGray: "#F2F4F8",
 
-  textPrimary: "#434343ff",
-  textSecondary: "#777777",
-  muted: "#9A9A9A",
+  textDark: "#1E293B",
+  textPrimary: "#1E293B",
+  textSecondary: "#64748B",
+  muted: "#94A3B8",
 
-  border: "#E8E8E8",
+  border: "#E2E8F0",
 
-  success: "#0ca85aff",
-  danger: "#FF4D4F",
-  star: "#FFB800",
-  heart: "#FFFFFF",
+  badgeGreen: "#10B981",
+  badgeBlue: "#3B82F6",
+  badgeOrange: "#F97316",
+
+  success: "#10B981",
+  danger: "#EF4444",
+  heartRed: "#EF4444",
+  star: "#FFC107",
 };
 
 export default COLORS;
