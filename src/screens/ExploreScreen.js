@@ -337,6 +337,7 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 13,
     color: COLORS.textPrimary,
+    outlineStyle: "none",
   },
   scrollContent: {
     paddingBottom: 30,
@@ -383,8 +384,8 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   sectionTitle: {
-    fontSize: 17,
-    fontWeight: "700",
+    fontSize: 12,
+    fontWeight: "400",
     color: COLORS.textPrimary,
   },
   featuredCount: {

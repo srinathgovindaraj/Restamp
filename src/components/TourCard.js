@@ -1,15 +1,13 @@
 import React, { useState } from "react";
-
 import { View, Text, Image, StyleSheet, Pressable } from "react-native";
-
-import { Ionicons } from "@expo/vector-icons";
-
+import { Ionicons, Feather } from "@expo/vector-icons";
 import COLORS from "../constants/colors";
 
 export default function TourCard({
   tour,
   isWishlisted: isWishlistedProp,
   onToggleWishlist,
+  onPress,
 }) {
   const [internalWishlisted, setInternalWishlisted] = useState(false);
   const isWishlisted =
@@ -24,121 +22,159 @@ export default function TourCard({
     }
   };
 
-  return (
-    <Pressable
-      style={styles.card}
-      onPress={() => {
-        console.log("Tour:", tour.id);
-      }}
-    >
-      {/* ================= IMAGE ================= */}
+  const handleCardPress = () => {
+    if (onPress) {
+      onPress(tour);
+    } else {
+      console.log("Tour clicked:", tour.id, tour.title);
+    }
+  };
 
+  // Format currency & prices
+  const formatPriceValue = (val) => {
+    if (!val) return "";
+    const str = String(val);
+    const symbol = str.startsWith("₹") ? "₹" : str.startsWith("$") ? "$" : "$";
+    const numOnly = parseFloat(str.replace(/[^0-9.]/g, ""));
+    if (isNaN(numOnly)) return str;
+    return `${symbol}${numOnly.toLocaleString("en-US", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    })}`;
+  };
+
+  const displayPrice = formatPriceValue(tour.price);
+  const displayOriginalPrice = tour.originalPrice
+    ? formatPriceValue(tour.originalPrice)
+    : formatPriceValue(
+        parseFloat(String(tour.price).replace(/[^0-9.]/g, "") || "0") * 1.16
+      );
+
+  return (
+    <Pressable style={styles.card} onPress={handleCardPress}>
+      {/* 1. TOP IMAGE WITH BADGES */}
       <View style={styles.imageContainer}>
         <Image
-          source={{
-            uri: tour.image,
-          }}
+          source={{ uri: tour.image }}
           style={styles.image}
+          resizeMode="cover"
         />
 
-        {/* ================= AVAILABLE ================= */}
+        {/* Location Badge */}
+        {tour.location && (
+          <View style={styles.locationBadge}>
+            <Feather
+              name="map-pin"
+              size={12}
+              color={COLORS.white}
+              strokeWidth={2.5}
+              style={styles.locationBadgeIcon}
+            />
+            <Text style={styles.locationBadgeText} numberOfLines={1}>
+              {tour.location}
+            </Text>
+          </View>
+        )}
 
-        <View style={styles.status}>
-          <View style={styles.statusDot} />
-
-          <Text style={styles.statusText}>Available</Text>
-        </View>
-
-        {/* ================= WISHLIST ================= */}
-
+        {/* Wishlist Heart Button */}
         <Pressable
-          style={[
-            styles.wishlist,
-            isWishlisted && styles.wishlistActive,
-          ]}
+          style={styles.wishlistBtn}
           onPress={handleWishlistPress}
           hitSlop={8}
         >
-          <View style={styles.wishlistIconBox}>
-            <Ionicons
-              name={isWishlisted ? "heart" : "heart-outline"}
-              size={20}
-              color={isWishlisted ? COLORS.danger : (COLORS.heart || COLORS.white)}
-            />
-          </View>
+          <Ionicons
+            name={isWishlisted ? "heart" : "heart"}
+            size={16}
+            color={isWishlisted ? COLORS.danger : "#D0D5DD"}
+          />
         </Pressable>
       </View>
 
-      {/* ================= DETAILS ================= */}
-
+      {/* 2. CARD DETAILS CONTENT */}
       <View style={styles.content}>
-        {/* TITLE + PRICE */}
+        {/* Title */}
+        <Text style={styles.title} numberOfLines={1}>
+          {tour.title}
+        </Text>
 
-        <View style={styles.titleRow}>
-          <Text style={styles.title} numberOfLines={1}>
-            {tour.title}
+        {/* Ratings Row: 5 Stars + Rating score + Review count */}
+        <View style={styles.ratingRow}>
+          <View style={styles.starsWrap}>
+            {[1, 2, 3, 4, 5].map((starIndex) => (
+              <Ionicons
+                key={starIndex}
+                name="star"
+                size={13}
+                color="#FFB800"
+                style={styles.starIcon}
+              />
+            ))}
+          </View>
+          <Text style={styles.ratingScore}>{tour.rating}</Text>
+          <Text style={styles.reviewCount}>
+            {tour.reviewsCount || "3,692 reviews"}
           </Text>
-
-          <Text style={styles.price}>{tour.price}</Text>
         </View>
 
-        {/* ================= LOCATION ================= */}
+        {/* Divider */}
+        <View style={styles.divider} />
 
-        <View style={styles.locationRow}>
-          <View style={styles.locationIconBox}>
-            <Ionicons
-              name="location-outline"
-              size={14}
-              color={COLORS.textSecondary}
-            />
+        {/* Specifications 2x2 Grid with Feather Outline Icons */}
+        <View style={styles.specsGrid}>
+          {/* Row 1: Duration & Location */}
+          <View style={styles.specsRow}>
+            <View style={styles.specItem}>
+              <Feather name="clock" size={13} color="#666769ff" strokeWidth={3} />
+              <Text style={styles.specText} numberOfLines={1}>
+                {tour.duration || "1 Day"}
+              </Text>
+            </View>
+
+            <View style={styles.specDividerLine} />
+
+            <View style={styles.specItem}>
+              <Feather name="map-pin" size={13} color="#666769ff" strokeWidth={3} />
+              <Text style={styles.specText} numberOfLines={1}>
+                {tour.location}
+              </Text>
+            </View>
           </View>
 
-          <Text style={styles.location}>{tour.location}</Text>
+          {/* Row 2: Age Range & Group Size */}
+          <View style={styles.specsRow}>
+            <View style={styles.specItem}>
+              <Feather name="user" size={13} color="#666769ff" strokeWidth={3} />
+              <Text style={styles.specText} numberOfLines={1}>
+                Age: {tour.ageRange || "12–70"}
+              </Text>
+            </View>
+
+            <View style={styles.specDividerLine} />
+
+            <View style={styles.specItem}>
+              <Feather name="users" size={13} color="#666769ff" strokeWidth={3} />
+              <Text style={styles.specText} numberOfLines={1}>
+                Max: {tour.groupSize || "20"}
+              </Text>
+            </View>
+          </View>
         </View>
 
-        {/* ================= INFO ================= */}
+        {/* Divider */}
+        <View style={styles.divider} />
 
-        <View style={styles.infoRow}>
-          {/* DURATION */}
-
-          <View style={styles.info}>
-            <View style={styles.infoIconBox}>
-              <Ionicons
-                name="time-outline"
-                size={14}
-                color={COLORS.textPrimary}
-              />
-            </View>
-
-            <Text style={styles.infoText}>{tour.duration}</Text>
+        {/* Price Row */}
+        <View style={styles.priceRow}>
+          <View style={styles.priceLeft}>
+            <Text style={styles.fromLabel}>From </Text>
+            <Text style={styles.originalPrice}>{displayOriginalPrice}pp</Text>
           </View>
 
-          {/* RATING */}
-
-          <View style={styles.info}>
-            <View style={styles.infoIconBox}>
-              <Ionicons
-                name="star-outline"
-                size={14}
-                color={COLORS.textPrimary}
-              />
-            </View>
-
-            <Text style={styles.infoText}>{tour.rating}</Text>
-          </View>
-
-          {/* PEOPLE */}
-
-          <View style={styles.info}>
-            <View style={styles.infoIconBox}>
-              <Ionicons
-                name="people-outline"
-                size={14}
-                color={COLORS.textPrimary}
-              />
-            </View>
-
-            <Text style={styles.infoText}>{tour.people}</Text>
+          <View style={styles.priceRight}>
+            <Text style={styles.currentPrice}>
+              {displayPrice}
+              <Text style={styles.ppSuffix}> pp</Text>
+            </Text>
           </View>
         </View>
       </View>
@@ -147,26 +183,25 @@ export default function TourCard({
 }
 
 const styles = StyleSheet.create({
-  // ================= CARD =================
-
   card: {
     backgroundColor: COLORS.white,
-
-    borderRadius: 20,
-
-    marginBottom: 18,
-
+    borderRadius: 18,
+    marginBottom: 14,
     overflow: "hidden",
-
     borderWidth: 1,
-    borderColor: COLORS.border,
+    borderColor: "#EAECEF",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 6,
+    elevation: 2,
   },
 
-  // ================= IMAGE =================
-
+  // Image Section
   imageContainer: {
-    height: 212,
+    height: 140,
     position: "relative",
+    backgroundColor: "#F0F2F5",
   },
 
   image: {
@@ -174,166 +209,177 @@ const styles = StyleSheet.create({
     height: "100%",
   },
 
-  // ================= STATUS =================
-
-  status: {
+  locationBadge: {
     position: "absolute",
-
-    top: 14,
-    left: 14,
-
+    top: 10,
+    left: 10,
     flexDirection: "row",
     alignItems: "center",
-
-    backgroundColor: "rgba(255,255,255,0.90)",
-
-    paddingHorizontal: 12,
-    paddingVertical: 7,
-
-    borderRadius: 20,
+    backgroundColor: "rgba(84, 84, 84, 0.72)",
+    borderWidth: 1,
+    borderColor: "rgba(151, 151, 151, 0.45)",
+    paddingHorizontal: 9,
+    paddingVertical: 4,
+    borderRadius: 14,
+    maxWidth: "70%",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+    elevation: 3,
   },
 
-  statusDot: {
-    width: 9,
-    height: 9,
-
-    borderRadius: 50,
-
-    backgroundColor: COLORS.success,
-
-    marginRight: 7,
+  locationBadgeIcon: {
+    marginRight: 4,
   },
 
-  statusText: {
-    fontSize: 13,
-    fontWeight: "500",
-
-    color: COLORS.textPrimary,
+  locationBadgeText: {
+    fontSize: 11,
+    fontWeight: "600",
+    color: COLORS.white,
   },
 
-  // ================= WISHLIST =================
-
-  wishlist: {
+  wishlistBtn: {
     position: "absolute",
-
-    right: 14,
-    top: 14,
-
-    width: 40,
-    height: 40,
-
-    borderRadius: 20,
-
-    alignItems: "center",
-    justifyContent: "center",
-
-    backgroundColor: "rgba(0, 0, 0, 0.25)",
-  },
-
-  wishlistActive: {
-    backgroundColor: "rgba(255, 255, 255, 0.95)",
-  },
-
-  // manually control heart icon area
-  wishlistIconBox: {
+    top: 10,
+    right: 10,
     width: 32,
     height: 32,
-
+    borderRadius: 16,
+    backgroundColor: "rgba(255, 255, 255, 0.96)",
     alignItems: "center",
     justifyContent: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.08,
+    shadowRadius: 3,
+    elevation: 2,
   },
 
-  // ================= CONTENT =================
-
+  // Content Details Section
   content: {
-    padding: 16,
-  },
-
-  // ================= TITLE =================
-
-  titleRow: {
-    flexDirection: "row",
-
-    justifyContent: "space-between",
-
-    alignItems: "center",
+    paddingHorizontal: 14,
+    paddingTop: 11,
+    paddingBottom: 12,
   },
 
   title: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#111727",
+    lineHeight: 21,
+    marginBottom: 4,
+    letterSpacing: -0.2,
+  },
+
+  // Rating Row
+  ratingRow: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+
+  starsWrap: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+
+  starIcon: {
+    marginRight: 1.5,
+  },
+
+  ratingScore: {
+    fontSize: 13,
+    fontWeight: "800",
+    color: "#111727",
+    marginLeft: 5,
+  },
+
+  reviewCount: {
+    fontSize: 12,
+    fontWeight: "500",
+    color: "#7E8B9B",
+    marginLeft: 4,
+  },
+
+  // Divider
+  divider: {
+    height: 1,
+    backgroundColor: "#F1F3F5",
+    marginVertical: 8,
+  },
+
+  // Specifications 2x2 Grid
+  specsGrid: {
+    gap: 6,
+  },
+
+  specsRow: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+
+  specItem: {
     flex: 1,
-
-    marginRight: 10,
-
-    fontSize: 17,
-    fontWeight: "700",
-
-    color: COLORS.textPrimary,
-  },
-
-  price: {
-    fontSize: 17,
-    fontWeight: "700",
-
-    color: COLORS.primary,
-  },
-
-  // ================= LOCATION =================
-
-  locationRow: {
     flexDirection: "row",
     alignItems: "center",
-
-    marginTop: 10,
+    gap: 5,
   },
 
-  // manually control location icon width / height
-  locationIconBox: {
-    width: 14,
-    height: 14,
-
-    alignItems: "center",
-    justifyContent: "center",
+  specDividerLine: {
+    width: 1,
+    height: 12,
+    backgroundColor: "#E2E8F0",
+    marginHorizontal: 8,
   },
 
-  location: {
-    marginLeft: 5,
+  specText: {
+    fontSize: 13,
+    fontWeight: "400",
+    color: "#757575ff",
+    flex: 1,
+  },
 
-    color: COLORS.textSecondary,
+  // Price Row
+  priceRow: {
+    flexDirection: "row",
+    alignItems: "baseline",
+    justifyContent: "space-between",
+  },
 
+  priceLeft: {
+    flexDirection: "row",
+    alignItems: "baseline",
+    gap: 3,
+  },
+
+  fromLabel: {
+    fontSize: 13,
+    fontWeight: "800",
+    color: "#111727",
+  },
+
+  originalPrice: {
     fontSize: 12,
+    fontWeight: "400",
+    color: "#8A94A0",
+    textDecorationLine: "line-through",
   },
 
-  // ================= INFO ROW =================
-
-  infoRow: {
+  priceRight: {
     flexDirection: "row",
-
-    alignItems: "center",
-
-    marginTop: 14,
-
-    gap: 16,
+    alignItems: "baseline",
   },
 
-  info: {
-    flexDirection: "row",
-    alignItems: "center",
+  currentPrice: {
+    fontSize: 19,
+    fontWeight: "900",
+    color: "#0F141A",
+    letterSpacing: -0.2,
   },
 
-  // manually control info icon width / height
-  infoIconBox: {
-    width: 14,
-    height: 14,
-
-    alignItems: "center",
-    justifyContent: "center",
-  },
-
-  infoText: {
-    marginLeft: 5,
-
+  ppSuffix: {
     fontSize: 12,
-
-    color: COLORS.textPrimary,
+    fontWeight: "700",
+    color: "#6b7b8eff",
   },
 });
