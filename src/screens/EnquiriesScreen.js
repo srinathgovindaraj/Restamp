@@ -9,7 +9,7 @@ import {
   Image,
   StatusBar,
 } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import { Building, MessageSquare } from "lucide-react-native";
 import COLORS from "../constants/colors";
 
 const MOCK_ENQUIRIES = [
@@ -96,7 +96,7 @@ export default function EnquiriesScreen() {
               <Text style={styles.agencyText}>{item.agency}</Text>
 
               <View style={styles.propertyTag}>
-                <Ionicons name="business-outline" size={12} color={COLORS.primary} style={{ marginRight: 4 }} />
+                <Building size={12} color={COLORS.primary} style={{ marginRight: 4 }} />
                 <Text style={styles.propertyTitleText} numberOfLines={1}>
                   {item.propertyTitle}
                 </Text>
@@ -111,7 +111,7 @@ export default function EnquiriesScreen() {
                   <Text style={styles.statusText}>{item.status}</Text>
                 </View>
                 <TouchableOpacity style={styles.chatActionBtn}>
-                  <Ionicons name="chatbubble-ellipses-outline" size={14} color={COLORS.primary} style={{ marginRight: 4 }} />
+                  <MessageSquare size={13} color={COLORS.primary} style={{ marginRight: 4 }} />
                   <Text style={styles.chatActionText}>Chat Now</Text>
                 </TouchableOpacity>
               </View>

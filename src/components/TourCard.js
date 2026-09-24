@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { View, Text, Image, StyleSheet, Pressable } from "react-native";
-import { Ionicons, Feather } from "@expo/vector-icons";
+import { MapPin, Heart, Star, Clock, User, Users } from "lucide-react-native";
 import COLORS from "../constants/colors";
 
 export default function TourCard({
@@ -63,11 +63,9 @@ export default function TourCard({
         {/* Location Badge */}
         {tour.location && (
           <View style={styles.locationBadge}>
-            <Feather
-              name="map-pin"
+            <MapPin
               size={12}
               color={COLORS.white}
-              strokeWidth={2.5}
               style={styles.locationBadgeIcon}
             />
             <Text style={styles.locationBadgeText} numberOfLines={1}>
@@ -82,10 +80,10 @@ export default function TourCard({
           onPress={handleWishlistPress}
           hitSlop={8}
         >
-          <Ionicons
-            name={isWishlisted ? "heart" : "heart"}
+          <Heart
             size={16}
             color={isWishlisted ? COLORS.danger : "#D0D5DD"}
+            fill={isWishlisted ? COLORS.danger : "none"}
           />
         </Pressable>
       </View>
@@ -101,11 +99,11 @@ export default function TourCard({
         <View style={styles.ratingRow}>
           <View style={styles.starsWrap}>
             {[1, 2, 3, 4, 5].map((starIndex) => (
-              <Ionicons
+              <Star
                 key={starIndex}
-                name="star"
                 size={13}
                 color="#FFB800"
+                fill="#FFB800"
                 style={styles.starIcon}
               />
             ))}
@@ -119,12 +117,12 @@ export default function TourCard({
         {/* Divider */}
         <View style={styles.divider} />
 
-        {/* Specifications 2x2 Grid with Feather Outline Icons */}
+        {/* Specifications 2x2 Grid */}
         <View style={styles.specsGrid}>
           {/* Row 1: Duration & Location */}
           <View style={styles.specsRow}>
             <View style={styles.specItem}>
-              <Feather name="clock" size={13} color="#666769ff" strokeWidth={3} />
+              <Clock size={13} color="#666769ff" />
               <Text style={styles.specText} numberOfLines={1}>
                 {tour.duration || "1 Day"}
               </Text>
@@ -133,7 +131,7 @@ export default function TourCard({
             <View style={styles.specDividerLine} />
 
             <View style={styles.specItem}>
-              <Feather name="map-pin" size={13} color="#666769ff" strokeWidth={3} />
+              <MapPin size={13} color="#666769ff" />
               <Text style={styles.specText} numberOfLines={1}>
                 {tour.location}
               </Text>
@@ -143,7 +141,7 @@ export default function TourCard({
           {/* Row 2: Age Range & Group Size */}
           <View style={styles.specsRow}>
             <View style={styles.specItem}>
-              <Feather name="user" size={13} color="#666769ff" strokeWidth={3} />
+              <User size={13} color="#666769ff" />
               <Text style={styles.specText} numberOfLines={1}>
                 Age: {tour.ageRange || "12–70"}
               </Text>
@@ -152,7 +150,7 @@ export default function TourCard({
             <View style={styles.specDividerLine} />
 
             <View style={styles.specItem}>
-              <Feather name="users" size={13} color="#666769ff" strokeWidth={3} />
+              <Users size={13} color="#666769ff" />
               <Text style={styles.specText} numberOfLines={1}>
                 Max: {tour.groupSize || "20"}
               </Text>

@@ -11,11 +11,24 @@ import {
   StatusBar,
   Animated,
 } from "react-native";
-import { Ionicons, Feather } from "@expo/vector-icons";
+import {
+  MapPin,
+  Search as SearchIcon,
+  ArrowRight,
+  ArrowLeft,
+  SlidersHorizontal,
+  Heart,
+  Star,
+  CheckCircle2,
+  ChevronUp,
+  ChevronDown,
+  Circle,
+} from "lucide-react-native";
 import COLORS from "../constants/colors";
 import TYPOGRAPHY from "../constants/typography";
 import ALL_PROPERTIES from "../data/properties";
 import { useWishlist } from "../context/WishlistContext";
+import PropertyDetailModal from "../components/PropertyDetailModal";
 
 const POPULAR_LOCALITIES = [
   "Anna Nagar",
@@ -44,6 +57,9 @@ const CONSTRUCTION_STATUSES = ["Ready to move", "New Launch", "Under Constructio
 export default function SearchScreen({ navigation }) {
   // Mode: "filter" (minimalist filter screen) or "results" (showing matched listings)
   const [viewMode, setViewMode] = useState("filter");
+
+  // Selected property for detail modal
+  const [selectedProperty, setSelectedProperty] = useState(null);
 
   // Filter states
   const [dealTab, setDealTab] = useState("Buy"); // Buy / Rent / Lease
@@ -150,23 +166,17 @@ export default function SearchScreen({ navigation }) {
                 activeOpacity={0.7}
                 onPress={() => setIsSelectingLocality(!isSelectingLocality)}
               >
-                <Ionicons name="location-sharp" size={17} color={COLORS.primary} style={{ marginRight: 6 }} />
+                <MapPin size={16} color={COLORS.primary} style={{ marginRight: 6 }} />
                 <Text style={styles.locationPillText}>
                   {city} {selectedLocality ? `• ${selectedLocality}` : ""}
                 </Text>
-                <Ionicons
-                  name={isSelectingLocality ? "chevron-up" : "chevron-down"}
-                  size={16}
-                  color={COLORS.muted}
-                  style={{ marginLeft: "auto" }}
-                />
               </TouchableOpacity>
 
               {/* Collapsible Locality Selector */}
               {isSelectingLocality && (
                 <View style={styles.localityDropdown}>
                   <View style={styles.localityInputRow}>
-                    <Ionicons name="search-outline" size={16} color={COLORS.muted} style={{ marginRight: 8 }} />
+                    <SearchIcon size={15} color={COLORS.muted} style={{ marginRight: 8 }} />
                     <TextInput
                       style={styles.localityInput}
                       placeholder="Search locality or landmark..."
@@ -290,11 +300,11 @@ export default function SearchScreen({ navigation }) {
                 <Text style={styles.moreFiltersText}>
                   {showMoreFilters ? "Fewer Filters" : "More Filters (Construction status, Posted by)"}
                 </Text>
-                <Ionicons
-                  name={showMoreFilters ? "chevron-up" : "chevron-down"}
-                  size={18}
-                  color={COLORS.primary}
-                />
+                {showMoreFilters ? (
+                  <ChevronUp size={18} color={COLORS.primary} />
+                ) : (
+                  <ChevronDown size={18} color={COLORS.primary} />
+                )}
               </TouchableOpacity>
 
               {showMoreFilters && (
@@ -309,12 +319,19 @@ export default function SearchScreen({ navigation }) {
                           style={[styles.statusChip, isSelected && styles.statusChipActive]}
                           onPress={() => setConstructionStatus(status)}
                         >
-                          <Ionicons
-                            name={isSelected ? "checkmark-circle" : "ellipse-outline"}
-                            size={14}
-                            color={isSelected ? COLORS.primary : COLORS.muted}
-                            style={{ marginRight: 6 }}
-                          />
+                          {isSelected ? (
+                            <CheckCircle2
+                              size={14}
+                              color={COLORS.primary}
+                              style={{ marginRight: 6 }}
+                            />
+                          ) : (
+                            <Circle
+                              size={14}
+                              color={COLORS.muted}
+                              style={{ marginRight: 6 }}
+                            />
+                          )}
                           <Text style={[styles.statusChipText, isSelected && styles.statusChipTextActive]}>
                             {status}
                           </Text>
@@ -341,7 +358,7 @@ export default function SearchScreen({ navigation }) {
               <Text style={styles.showPropertiesBtnText}>
                 Show {totalResultsCount} Properties
               </Text>
-              <Ionicons name="arrow-forward" size={16} color="#FFFFFF" style={{ marginLeft: 6 }} />
+              <ArrowRight size={16} color="#FFFFFF" style={{ marginLeft: 6 }} />
             </TouchableOpacity>
           </View>
         </View>
@@ -357,7 +374,7 @@ export default function SearchScreen({ navigation }) {
               onPress={() => setViewMode("filter")}
               activeOpacity={0.8}
             >
-              <Ionicons name="chevron-back" size={20} color="#0F172A" />
+              <ArrowLeft size={18} color="#0F172A" />
               <View style={styles.searchSummaryInfo}>
                 <Text style={styles.summaryTitle}>
                   {selectedType} in {selectedLocality || city}
@@ -372,7 +389,7 @@ export default function SearchScreen({ navigation }) {
               style={styles.editFilterIconBtn}
               onPress={() => setViewMode("filter")}
             >
-              <Ionicons name="options-outline" size={18} color={COLORS.primary} />
+              <SlidersHorizontal size={16} color={COLORS.primary} />
               <Text style={styles.editFilterText}>Filters</Text>
             </TouchableOpacity>
           </View>
@@ -397,6 +414,7 @@ export default function SearchScreen({ navigation }) {
                   key={property.id}
                   style={styles.propertyResultCard}
                   activeOpacity={0.9}
+                  onPress={() => setSelectedProperty(property)}
                 >
                   <View style={styles.resultImageContainer}>
                     <Image source={{ uri: property.image }} style={styles.resultImage} />
@@ -409,10 +427,10 @@ export default function SearchScreen({ navigation }) {
                       hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                       onPress={() => toggleWishlist(property)}
                     >
-                      <Ionicons
-                        name="heart"
-                        size={22}
+                      <Heart
+                        size={20}
                         color={saved ? "#FF0000" : "#FFFFFF"}
+                        fill={saved ? "#FF0000" : "rgba(0,0,0,0.3)"}
                       />
                     </TouchableOpacity>
                   </View>
@@ -423,7 +441,7 @@ export default function SearchScreen({ navigation }) {
                         {property.price}{property.pricePeriod}
                       </Text>
                       <View style={styles.resultRating}>
-                        <Ionicons name="star" size={13} color={COLORS.star} />
+                        <Star size={13} color={COLORS.star} fill={COLORS.star} />
                         <Text style={styles.resultRatingText}>{property.rating}</Text>
                       </View>
                     </View>
@@ -431,7 +449,7 @@ export default function SearchScreen({ navigation }) {
                     <Text style={styles.resultTitle}>{property.title}</Text>
 
                     <View style={styles.locationRow}>
-                      <Ionicons name="location-outline" size={13} color={COLORS.textSecondary} />
+                      <MapPin size={13} color={COLORS.textSecondary} />
                       <Text style={styles.resultLocation}>{property.location}</Text>
                     </View>
 
@@ -449,6 +467,16 @@ export default function SearchScreen({ navigation }) {
           </ScrollView>
         </View>
       )}
+
+      {/* ================= PROPERTY DETAIL MODAL ================= */}
+      <PropertyDetailModal
+        visible={!!selectedProperty}
+        property={selectedProperty}
+        onClose={() => setSelectedProperty(null)}
+        onSelectProperty={(p) => setSelectedProperty(p)}
+        isWishlisted={isWishlisted}
+        onToggleWishlist={toggleWishlist}
+      />
     </SafeAreaView>
   );
 }

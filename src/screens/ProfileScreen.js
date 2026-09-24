@@ -9,7 +9,16 @@ import {
   TouchableOpacity,
   StatusBar,
 } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import {
+  CheckCircle2,
+  ArrowRight,
+  Heart,
+  MessageSquare,
+  Home,
+  Bell,
+  HelpCircle,
+  ChevronRight,
+} from "lucide-react-native";
 import COLORS from "../constants/colors";
 
 export default function ProfileScreen({ navigation }) {
@@ -30,7 +39,7 @@ export default function ProfileScreen({ navigation }) {
             <Text style={styles.userName}>Jessica Taylor</Text>
             <Text style={styles.userEmail}>jessica.taylor@example.com</Text>
             <View style={styles.badgeBuyer}>
-              <Ionicons name="checkmark-circle" size={14} color={COLORS.primary} style={{ marginRight: 4 }} />
+              <CheckCircle2 size={14} color={COLORS.primary} style={{ marginRight: 4 }} />
               <Text style={styles.badgeBuyerText}>Verified Buyer & Owner</Text>
             </View>
           </View>
@@ -43,7 +52,7 @@ export default function ProfileScreen({ navigation }) {
             <Text style={styles.postBannerSub}>Post your property for FREE and reach thousands of buyers</Text>
             <View style={styles.postBtn}>
               <Text style={styles.postBtnText}>Post Property FREE</Text>
-              <Ionicons name="arrow-forward" size={14} color="#FFFFFF" style={{ marginLeft: 4 }} />
+              <ArrowRight size={14} color="#FFFFFF" style={{ marginLeft: 4 }} />
             </View>
           </View>
         </TouchableOpacity>
@@ -57,35 +66,35 @@ export default function ProfileScreen({ navigation }) {
             onPress={() => navigation.navigate("Saved")}
           >
             <View style={[styles.menuIconContainer, { backgroundColor: "#FFF0F0" }]}>
-              <Ionicons name="heart" size={20} color={COLORS.heartRed} />
+              <Heart size={20} color={COLORS.heartRed} fill={COLORS.heartRed} />
             </View>
             <View style={styles.menuTextContainer}>
               <Text style={styles.menuTitle}>Saved Shortlists</Text>
               <Text style={styles.menuSub}>View saved villas, apartments & houses</Text>
             </View>
-            <Ionicons name="chevron-forward" size={18} color={COLORS.muted} />
+            <ChevronRight size={18} color={COLORS.muted} />
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.menuItem}>
             <View style={[styles.menuIconContainer, { backgroundColor: "#EBF4FF" }]}>
-              <Ionicons name="chatbubbles" size={20} color={COLORS.primary} />
+              <MessageSquare size={20} color={COLORS.primary} />
             </View>
             <View style={styles.menuTextContainer}>
               <Text style={styles.menuTitle}>My Enquiries & Leads</Text>
               <Text style={styles.menuSub}>Recent calls and messages sent to agents</Text>
             </View>
-            <Ionicons name="chevron-forward" size={18} color={COLORS.muted} />
+            <ChevronRight size={18} color={COLORS.muted} />
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.menuItem}>
             <View style={[styles.menuIconContainer, { backgroundColor: "#F0FDF4" }]}>
-              <Ionicons name="home" size={20} color="#16A34A" />
+              <Home size={20} color="#16A34A" />
             </View>
             <View style={styles.menuTextContainer}>
               <Text style={styles.menuTitle}>My Posted Properties</Text>
               <Text style={styles.menuSub}>Manage active listings for sale or rent</Text>
             </View>
-            <Ionicons name="chevron-forward" size={18} color={COLORS.muted} />
+            <ChevronRight size={18} color={COLORS.muted} />
           </TouchableOpacity>
         </View>
 
@@ -95,24 +104,24 @@ export default function ProfileScreen({ navigation }) {
 
           <TouchableOpacity style={styles.menuItem}>
             <View style={[styles.menuIconContainer, { backgroundColor: "#F8FAFC" }]}>
-              <Ionicons name="notifications-outline" size={20} color={COLORS.textDark} />
+              <Bell size={20} color={COLORS.textDark} />
             </View>
             <View style={styles.menuTextContainer}>
               <Text style={styles.menuTitle}>Property Alerts & Notifications</Text>
               <Text style={styles.menuSub}>Price drop alerts & new matches</Text>
             </View>
-            <Ionicons name="chevron-forward" size={18} color={COLORS.muted} />
+            <ChevronRight size={18} color={COLORS.muted} />
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.menuItem}>
             <View style={[styles.menuIconContainer, { backgroundColor: "#F8FAFC" }]}>
-              <Ionicons name="help-circle-outline" size={20} color={COLORS.textDark} />
+              <HelpCircle size={20} color={COLORS.textDark} />
             </View>
             <View style={styles.menuTextContainer}>
               <Text style={styles.menuTitle}>Help & Support</Text>
               <Text style={styles.menuSub}>FAQ, customer care & feedback</Text>
             </View>
-            <Ionicons name="chevron-forward" size={18} color={COLORS.muted} />
+            <ChevronRight size={18} color={COLORS.muted} />
           </TouchableOpacity>
         </View>
       </ScrollView>

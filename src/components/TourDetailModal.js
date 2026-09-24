@@ -9,7 +9,19 @@ import {
   Pressable,
   Alert,
 } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import {
+  X,
+  Heart,
+  MapPin,
+  Star,
+  Clock,
+  Users,
+  User,
+  MessageSquare,
+  CheckCircle2,
+  XCircle,
+  ArrowRight,
+} from "lucide-react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import COLORS from "../constants/colors";
 
@@ -113,17 +125,17 @@ export default function TourDetailModal({
             {/* Top Floating Actions */}
             <SafeAreaView style={styles.heroHeaderActions}>
               <Pressable style={styles.floatingActionBtn} onPress={onClose}>
-                <Ionicons name="close" size={20} color={COLORS.textPrimary} />
+                <X size={20} color={COLORS.textPrimary} />
               </Pressable>
 
               <Pressable
                 style={styles.floatingActionBtn}
                 onPress={() => onToggleWishlist?.(tour)}
               >
-                <Ionicons
-                  name={isWishlisted ? "heart" : "heart-outline"}
+                <Heart
                   size={20}
                   color={isWishlisted ? COLORS.danger : COLORS.textPrimary}
+                  fill={isWishlisted ? COLORS.danger : "none"}
                 />
               </Pressable>
             </SafeAreaView>
@@ -140,8 +152,7 @@ export default function TourDetailModal({
           <View style={styles.mainInfo}>
             {/* Location */}
             <View style={styles.locationRow}>
-              <Ionicons
-                name="location-sharp"
+              <MapPin
                 size={14}
                 color={COLORS.primary}
               />
@@ -155,11 +166,11 @@ export default function TourDetailModal({
             <View style={styles.ratingRow}>
               <View style={styles.starsWrap}>
                 {[1, 2, 3, 4, 5].map((i) => (
-                  <Ionicons
+                  <Star
                     key={i}
-                    name="star"
                     size={14}
                     color="#FFB800"
+                    fill="#FFB800"
                     style={{ marginRight: 2 }}
                   />
                 ))}
@@ -170,10 +181,10 @@ export default function TourDetailModal({
               </Text>
             </View>
 
-            {/* MINIMAL SPECS STRIP (Minimal Black Outline Icons) */}
+            {/* MINIMAL SPECS STRIP */}
             <View style={styles.specsStrip}>
               <View style={styles.specColumn}>
-                <Ionicons name="stopwatch-outline" size={16} color="#111827" />
+                <Clock size={16} color="#111827" />
                 <Text style={styles.specValue}>{tour.duration || "5 Days"}</Text>
                 <Text style={styles.specLabel}>Duration</Text>
               </View>
@@ -181,7 +192,7 @@ export default function TourDetailModal({
               <View style={styles.specDivider} />
 
               <View style={styles.specColumn}>
-                <Ionicons name="people-outline" size={16} color="#111827" />
+                <Users size={16} color="#111827" />
                 <Text style={styles.specValue}>Max {tour.groupSize || "20"}</Text>
                 <Text style={styles.specLabel}>Group</Text>
               </View>
@@ -189,7 +200,7 @@ export default function TourDetailModal({
               <View style={styles.specDivider} />
 
               <View style={styles.specColumn}>
-                <Ionicons name="person-outline" size={16} color="#111827" />
+                <User size={16} color="#111827" />
                 <Text style={styles.specValue}>{tour.ageRange || "12–70"}</Text>
                 <Text style={styles.specLabel}>Age</Text>
               </View>
@@ -197,7 +208,7 @@ export default function TourDetailModal({
               <View style={styles.specDivider} />
 
               <View style={styles.specColumn}>
-                <Ionicons name="chatbubble-outline" size={16} color="#111827" />
+                <MessageSquare size={16} color="#111827" />
                 <Text style={styles.specValue}>English</Text>
                 <Text style={styles.specLabel}>Guide</Text>
               </View>
@@ -272,8 +283,7 @@ export default function TourDetailModal({
                 <View style={styles.highlightsWrap}>
                   {highlights.map((item, index) => (
                     <View key={index} style={styles.highlightRow}>
-                      <Ionicons
-                        name="checkmark-circle"
+                      <CheckCircle2
                         size={16}
                         color={COLORS.success}
                         style={{ marginTop: 2 }}
@@ -320,8 +330,7 @@ export default function TourDetailModal({
                 <View style={styles.inclusionList}>
                   {includedItems.map((inc, i) => (
                     <View key={i} style={styles.inclusionRow}>
-                      <Ionicons
-                        name="checkmark-circle-outline"
+                      <CheckCircle2
                         size={17}
                         color={COLORS.success}
                       />
@@ -336,8 +345,7 @@ export default function TourDetailModal({
                 <View style={styles.inclusionList}>
                   {excludedItems.map((exc, i) => (
                     <View key={i} style={styles.inclusionRow}>
-                      <Ionicons
-                        name="close-circle-outline"
+                      <XCircle
                         size={17}
                         color={COLORS.muted}
                       />
@@ -366,7 +374,7 @@ export default function TourDetailModal({
 
           <Pressable style={styles.bookNowBtn} onPress={handleBookNow}>
             <Text style={styles.bookNowText}>Book Now</Text>
-            <Ionicons name="arrow-forward" size={16} color={COLORS.white} />
+            <ArrowRight size={16} color={COLORS.white} />
           </Pressable>
         </SafeAreaView>
       </View>

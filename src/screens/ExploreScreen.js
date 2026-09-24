@@ -11,7 +11,7 @@ import {
   Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Ionicons } from "@expo/vector-icons";
+import { Search, XCircle, Heart, Star } from "lucide-react-native";
 import COLORS from "../constants/colors";
 import toursData from "../data/tours";
 import { useWishlist } from "../context/WishlistContext";
@@ -66,7 +66,7 @@ export default function ExploreScreen() {
         <Text style={styles.headerSubtitle}>Discover curated world travels</Text>
 
         <View style={styles.searchBar}>
-          <Ionicons name="search-outline" size={18} color={COLORS.textSecondary} />
+          <Search size={18} color={COLORS.textSecondary} />
           <TextInput
             style={styles.searchInput}
             placeholder="Search by destination or title..."
@@ -76,7 +76,7 @@ export default function ExploreScreen() {
           />
           {searchQuery.length > 0 && (
             <Pressable onPress={() => setSearchQuery("")}>
-              <Ionicons name="close-circle" size={18} color={COLORS.textSecondary} />
+              <XCircle size={18} color={COLORS.textSecondary} />
             </Pressable>
           )}
         </View>
@@ -101,11 +101,6 @@ export default function ExploreScreen() {
                   style={[styles.categoryChip, active && styles.categoryChipActive]}
                   onPress={() => setSelectedCategory(item.id)}
                 >
-                  <Ionicons
-                    name={item.icon}
-                    size={14}
-                    color={active ? COLORS.white : COLORS.textSecondary}
-                  />
                   <Text
                     style={[
                       styles.categoryChipText,
@@ -154,16 +149,16 @@ export default function ExploreScreen() {
                       }}
                       hitSlop={8}
                     >
-                      <Ionicons
-                        name={saved ? "heart" : "heart-outline"}
+                      <Heart
                         size={16}
                         color={saved ? COLORS.danger : COLORS.white}
+                        fill={saved ? COLORS.danger : "none"}
                       />
                     </Pressable>
 
                     <View style={styles.featuredInfo}>
                       <View style={styles.featuredRatingBadge}>
-                        <Ionicons name="star" size={11} color={COLORS.star} />
+                        <Star size={11} color={COLORS.star} fill={COLORS.star} />
                         <Text style={styles.featuredRatingText}>{item.rating}</Text>
                       </View>
                       <Text style={styles.featuredTitle} numberOfLines={1}>
@@ -258,14 +253,14 @@ export default function ExploreScreen() {
                       }}
                       hitSlop={8}
                     >
-                      <Ionicons
-                        name={saved ? "heart" : "heart-outline"}
+                      <Heart
                         size={14}
                         color={saved ? COLORS.danger : COLORS.white}
+                        fill={saved ? COLORS.danger : "none"}
                       />
                     </Pressable>
                     <View style={styles.gridRating}>
-                      <Ionicons name="star" size={10} color={COLORS.star} />
+                      <Star size={10} color={COLORS.star} fill={COLORS.star} />
                       <Text style={styles.gridRatingText}>{item.rating}</Text>
                     </View>
                   </View>
@@ -289,7 +284,7 @@ export default function ExploreScreen() {
           </View>
         ) : (
           <View style={styles.emptySearch}>
-            <Ionicons name="search-outline" size={36} color={COLORS.muted} />
+            <Search size={36} color={COLORS.muted} />
             <Text style={styles.emptySearchTitle}>No destinations found</Text>
             <Text style={styles.emptySearchSub}>
               We couldn't find matches for "{searchQuery}". Try a different keyword.

@@ -9,7 +9,7 @@ import {
   Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Ionicons } from "@expo/vector-icons";
+import { Heart, MapPin, Clock, Star, Sparkles } from "lucide-react-native";
 import COLORS from "../constants/colors";
 import { useWishlist } from "../context/WishlistContext";
 
@@ -51,7 +51,7 @@ export default function WishlistScreen() {
           onPress={() => handleRemove(item.id)}
           hitSlop={8}
         >
-          <Ionicons name="heart" size={18} color={COLORS.danger} />
+          <Heart size={18} color={COLORS.danger} fill={COLORS.danger} />
         </Pressable>
         {item.category && (
           <View style={styles.categoryBadge}>
@@ -69,18 +69,18 @@ export default function WishlistScreen() {
         </View>
 
         <View style={styles.locationRow}>
-          <Ionicons name="location-outline" size={13} color={COLORS.textSecondary} />
+          <MapPin size={13} color={COLORS.textSecondary} />
           <Text style={styles.locationText}>{item.location}</Text>
         </View>
 
         <View style={styles.footerRow}>
           <View style={styles.metaRow}>
             <View style={styles.metaItem}>
-              <Ionicons name="time-outline" size={13} color={COLORS.textSecondary} />
+              <Clock size={13} color={COLORS.textSecondary} />
               <Text style={styles.metaText}>{item.duration}</Text>
             </View>
             <View style={styles.metaItem}>
-              <Ionicons name="star" size={13} color={COLORS.star} />
+              <Star size={13} color={COLORS.star} fill={COLORS.star} />
               <Text style={styles.metaText}>{item.rating}</Text>
             </View>
           </View>
@@ -156,7 +156,7 @@ export default function WishlistScreen() {
       ) : (
         <View style={styles.emptyContainer}>
           <View style={styles.emptyIconCircle}>
-            <Ionicons name="heart-outline" size={36} color={COLORS.textSecondary} />
+            <Heart size={36} color={COLORS.textSecondary} />
           </View>
           <Text style={styles.emptyTitle}>
             {wishlist.length === 0 ? "Your wishlist is empty" : "No tours in this category"}
@@ -169,7 +169,7 @@ export default function WishlistScreen() {
 
           {wishlist.length === 0 ? (
             <Pressable style={styles.actionBtn} onPress={restoreDefaultWishlist}>
-              <Ionicons name="sparkles-outline" size={16} color={COLORS.white} />
+              <Sparkles size={16} color={COLORS.white} />
               <Text style={styles.actionBtnText}>Restore Sample Tours</Text>
             </Pressable>
           ) : (

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -9,12 +9,14 @@ import {
   TouchableOpacity,
   StatusBar,
 } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import { HeartOff, Trash2, MapPin, Phone } from "lucide-react-native";
 import COLORS from "../constants/colors";
 import { useWishlist } from "../context/WishlistContext";
+import PropertyDetailModal from "../components/PropertyDetailModal";
 
 export default function SavedScreen({ navigation }) {
-  const { wishlist, removeFromWishlist } = useWishlist();
+  const { wishlist, removeFromWishlist, isWishlisted, toggleWishlist } = useWishlist();
+  const [selectedProperty, setSelectedProperty] = useState(null);
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -28,7 +30,7 @@ export default function SavedScreen({ navigation }) {
 
       {wishlist.length === 0 ? (
         <View style={styles.emptyContainer}>
-          <Ionicons name="heart-dislike-outline" size={64} color={COLORS.muted} />
+          <HeartOff size={64} color={COLORS.muted} />
           <Text style={styles.emptyTitle}>No Saved Properties</Text>
           <Text style={styles.emptyText}>
             Tap the heart icon on any property to save it to your shortlists.
@@ -47,14 +49,22 @@ export default function SavedScreen({ navigation }) {
           showsVerticalScrollIndicator={false}
         >
           {wishlist.map((property) => (
-            <View key={property.id} style={styles.card}>
+            <TouchableOpacity
+              key={property.id}
+              style={styles.card}
+              activeOpacity={0.9}
+              onPress={() => setSelectedProperty(property)}
+            >
               <Image source={{ uri: property.image }} style={styles.cardImage} />
 
               <TouchableOpacity
                 style={styles.removeBtn}
-                onPress={() => removeFromWishlist(property.id)}
+                onPress={(e) => {
+                  e.stopPropagation();
+                  removeFromWishlist(property.id);
+                }}
               >
-                <Ionicons name="trash-outline" size={18} color={COLORS.danger} />
+                <Trash2 size={16} color={COLORS.danger} />
               </TouchableOpacity>
 
               <View style={styles.cardContent}>
@@ -70,7 +80,7 @@ export default function SavedScreen({ navigation }) {
                 </Text>
 
                 <View style={styles.locationRow}>
-                  <Ionicons name="location-outline" size={14} color={COLORS.textSecondary} />
+                  <MapPin size={13} color={COLORS.textSecondary} />
                   <Text style={styles.locationText} numberOfLines={1}>
                     {property.location}
                   </Text>
@@ -82,15 +92,25 @@ export default function SavedScreen({ navigation }) {
                   </Text>
 
                   <TouchableOpacity style={styles.contactBtn}>
-                    <Ionicons name="call-outline" size={14} color="#FFFFFF" style={{ marginRight: 4 }} />
+                    <Phone size={13} color="#FFFFFF" style={{ marginRight: 4 }} />
                     <Text style={styles.contactBtnText}>Contact</Text>
                   </TouchableOpacity>
                 </View>
               </View>
-            </View>
+            </TouchableOpacity>
           ))}
         </ScrollView>
       )}
+
+      {/* ================= PROPERTY DETAIL MODAL ================= */}
+      <PropertyDetailModal
+        visible={!!selectedProperty}
+        property={selectedProperty}
+        onClose={() => setSelectedProperty(null)}
+        onSelectProperty={(p) => setSelectedProperty(p)}
+        isWishlisted={isWishlisted}
+        onToggleWishlist={toggleWishlist}
+      />
     </SafeAreaView>
   );
 }

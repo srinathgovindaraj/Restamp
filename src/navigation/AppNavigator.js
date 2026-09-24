@@ -2,7 +2,7 @@ import React from "react";
 import { View, Text, StyleSheet, Platform } from "react-native";
 import { NavigationContainer } from "@react-navigation/native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-import { Ionicons } from "@expo/vector-icons";
+import { Home, Search, Heart, MessageSquare, User } from "lucide-react-native";
 
 import HomeScreen from "../screens/HomeScreen";
 import SearchScreen from "../screens/SearchScreen";
@@ -10,36 +10,28 @@ import SavedScreen from "../screens/SavedScreen";
 import EnquiriesScreen from "../screens/EnquiriesScreen";
 import MenuScreen from "../screens/MenuScreen";
 
-import COLORS from "../constants/colors";
-import TYPOGRAPHY from "../constants/typography";
-
 const Tab = createBottomTabNavigator();
 
 const tabConfig = {
   Home: {
     label: "Home",
-    activeIcon: "home",
-    inactiveIcon: "home-outline",
+    Icon: Home,
   },
   Search: {
     label: "Search",
-    activeIcon: "search",
-    inactiveIcon: "search-outline",
+    Icon: Search,
   },
   Saved: {
     label: "Saved",
-    activeIcon: "heart",
-    inactiveIcon: "heart-outline",
+    Icon: Heart,
   },
   Enquiries: {
     label: "Enquiries",
-    activeIcon: "chatbubble-ellipses",
-    inactiveIcon: "chatbubble-ellipses-outline",
+    Icon: MessageSquare,
   },
   Menu: {
     label: "Menu",
-    activeIcon: "person",
-    inactiveIcon: "person-outline",
+    Icon: User,
   },
 };
 
@@ -49,47 +41,70 @@ export default function AppNavigator() {
       <Tab.Navigator
         screenOptions={({ route }) => {
           const config = tabConfig[route.name] || tabConfig.Home;
+          const IconComponent = config.Icon;
 
           return {
             headerShown: false,
             tabBarShowLabel: false,
+            tabBarHideOnKeyboard: true,
+
+            tabBarItemStyle: {
+              justifyContent: "center",
+              alignItems: "center",
+              paddingHorizontal: 0,
+              marginHorizontal: 0,
+            },
+
+            tabBarIconStyle: {
+              width: "100%",
+              height: "100%",
+              justifyContent: "center",
+              alignItems: "center",
+            },
 
             tabBarStyle: {
               position: "absolute",
-              bottom: Platform.OS === "ios" ? 28 : 20,
-              left: 16,
-              right: 16,
-              height: 68,
+              bottom: Platform.OS === "ios" ? 24 : 16,
+              left: 12,
+              right: 12,
+              height: 64,
               backgroundColor: "#FFFFFF",
-              borderRadius: 40,
+              borderRadius: 32,
               borderTopWidth: 0,
               shadowColor: "#000000",
-              shadowOffset: { width: 0, height: 8 },
-              shadowOpacity: 0.1,
-              shadowRadius: 20,
+              shadowOffset: { width: 0, height: 6 },
+              shadowOpacity: 0.12,
+              shadowRadius: 16,
               elevation: 10,
-              paddingHorizontal: 12,
-              flexDirection: "row",
+              paddingHorizontal: 2,
+              paddingBottom: 0,
+              paddingTop: 0,
               alignItems: "center",
-              justifyContent: "space-around",
+              justifyContent: "center",
             },
 
             tabBarIcon: ({ focused }) => {
-              const iconName = focused ? config.activeIcon : config.inactiveIcon;
               const activeColor = "#111111";
               const inactiveColor = "#8E8E93";
+              const color = focused ? activeColor : inactiveColor;
+              const fill = route.name === "Saved" && focused ? "#111111" : "none";
 
               return (
                 <View style={styles.tabItemContainer}>
-                  <Ionicons
-                    name={iconName}
-                    size={23}
-                    color={focused ? activeColor : inactiveColor}
+                  <IconComponent
+                    size={20}
+                    color={color}
+                    fill={fill}
+                    strokeWidth={focused ? 2.2 : 1.8}
                   />
                   <Text
+                    numberOfLines={1}
+                    adjustsFontSizeToFit
+                    minimumFontScale={0.75}
+                    allowFontScaling={false}
                     style={[
                       styles.tabLabel,
-                      { color: focused ? activeColor : inactiveColor },
+                      { color },
                       focused && styles.tabLabelActive,
                     ]}
                   >
@@ -115,11 +130,17 @@ const styles = StyleSheet.create({
   tabItemContainer: {
     alignItems: "center",
     justifyContent: "center",
-    paddingVertical: 4,
+    width: "100%",
+    height: "100%",
+    paddingHorizontal: 1,
   },
   tabLabel: {
-    ...TYPOGRAPHY.bottomTab,
-    marginTop: 3,
+    fontSize: 10,
+    fontWeight: "500",
+    marginTop: 2,
+    textAlign: "center",
+    lineHeight: 12,
+    letterSpacing: -0.2,
   },
   tabLabelActive: {
     fontWeight: "600",

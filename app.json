@@ -2,23 +2,8 @@
   "expo": {
     "name": "Restamp",
     "slug": "restamp",
-    "version": "1.0.0",
-    "orientation": "portrait",
-    "userInterfaceStyle": "light",
-    "newArchEnabled": true,
-    "ios": {
-      "supportsTablet": true,
-      "bundleIdentifier": "com.tourvaa.app"
-    },
-    "android": {
-      "package": "com.tourvaa.app",
-      "edgeToEdgeEnabled": true
-    },
-    "extra": {
-      "eas": {
-        "projectId": "1f6d9164-5dbd-4879-9180-34768afd33d3"
-      }
-    },
-    "owner": "srinathgovindaraj"
+    "web": {
+      "output": "single"
+    }
   }
 }

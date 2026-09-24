@@ -8,7 +8,17 @@ import {
   Image,
   Pressable,
 } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import {
+  X,
+  Star,
+  MapPin,
+  Sun,
+  Calendar,
+  Banknote,
+  MessageSquare,
+  Compass,
+  Sparkles,
+} from "lucide-react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import COLORS from "../constants/colors";
 import TourCard from "./TourCard";
@@ -61,11 +71,11 @@ export default function DestinationDetailModal({
             {/* Top Floating Actions */}
             <SafeAreaView style={styles.heroHeaderActions}>
               <Pressable style={styles.floatingActionBtn} onPress={onClose}>
-                <Ionicons name="close" size={22} color={COLORS.textPrimary} />
+                <X size={20} color={COLORS.textPrimary} />
               </Pressable>
 
               <View style={styles.heroBadge}>
-                <Ionicons name="star" size={13} color="#FFB800" />
+                <Star size={13} color="#FFB800" fill="#FFB800" />
                 <Text style={styles.heroBadgeText}>{destination.rating}</Text>
               </View>
             </SafeAreaView>
@@ -73,7 +83,7 @@ export default function DestinationDetailModal({
             {/* Title & Country on Image */}
             <View style={styles.heroBottomInfo}>
               <View style={styles.countryPill}>
-                <Ionicons name="location-sharp" size={13} color={COLORS.white} />
+                <MapPin size={13} color={COLORS.white} />
                 <Text style={styles.countryPillText}>{destination.country}</Text>
               </View>
               <Text style={styles.heroTitle}>{destination.name}</Text>
@@ -82,10 +92,10 @@ export default function DestinationDetailModal({
 
           {/* MAIN BODY */}
           <View style={styles.body}>
-            {/* MINIMAL SPECS STRIP (Minimal Black Outline Icons) */}
+            {/* MINIMAL SPECS STRIP */}
             <View style={styles.specsStrip}>
               <View style={styles.specColumn}>
-                <Ionicons name="partly-sunny-outline" size={16} color="#111827" />
+                <Sun size={16} color="#111827" />
                 <Text style={styles.specValue}>{destination.weather || "24°C"}</Text>
                 <Text style={styles.specLabel}>Weather</Text>
               </View>
@@ -93,7 +103,7 @@ export default function DestinationDetailModal({
               <View style={styles.specDivider} />
 
               <View style={styles.specColumn}>
-                <Ionicons name="calendar-outline" size={16} color="#111827" />
+                <Calendar size={16} color="#111827" />
                 <Text style={styles.specValue} numberOfLines={1}>
                   {destination.bestTime || "All Year"}
                 </Text>
@@ -103,7 +113,7 @@ export default function DestinationDetailModal({
               <View style={styles.specDivider} />
 
               <View style={styles.specColumn}>
-                <Ionicons name="cash-outline" size={16} color="#111827" />
+                <Banknote size={16} color="#111827" />
                 <Text style={styles.specValue} numberOfLines={1}>
                   {destination.currency || "USD"}
                 </Text>
@@ -113,7 +123,7 @@ export default function DestinationDetailModal({
               <View style={styles.specDivider} />
 
               <View style={styles.specColumn}>
-                <Ionicons name="chatbubble-outline" size={16} color="#111827" />
+                <MessageSquare size={16} color="#111827" />
                 <Text style={styles.specValue} numberOfLines={1}>
                   {destination.language || "English"}
                 </Text>
@@ -136,11 +146,7 @@ export default function DestinationDetailModal({
                 <View style={styles.highlightsWrap}>
                   {destination.highlights.map((item, index) => (
                     <View key={index} style={styles.highlightChip}>
-                      <Ionicons
-                        name="compass-outline"
-                        size={15}
-                        color={COLORS.primary}
-                      />
+                      <Compass size={15} color={COLORS.primary} />
                       <Text style={styles.highlightText}>{item}</Text>
                     </View>
                   ))}
@@ -171,11 +177,7 @@ export default function DestinationDetailModal({
                 ))
               ) : (
                 <View style={styles.noToursBox}>
-                  <Ionicons
-                    name="sparkles-outline"
-                    size={32}
-                    color={COLORS.muted}
-                  />
+                  <Sparkles size={32} color={COLORS.muted} />
                   <Text style={styles.noToursText}>
                     Upcoming tours for {destination.name} will be announced soon!
                   </Text>

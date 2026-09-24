@@ -10,7 +10,21 @@ import {
   Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Ionicons } from "@expo/vector-icons";
+import {
+  Settings,
+  Check,
+  Pencil,
+  Plane,
+  FileText,
+  Award,
+  Bell,
+  MapPin,
+  Banknote,
+  CreditCard,
+  HelpCircle,
+  LogOut,
+  ChevronRight,
+} from "lucide-react-native";
 import COLORS from "../constants/colors";
 import { useWishlist } from "../context/WishlistContext";
 
@@ -52,7 +66,7 @@ export default function AccountScreen() {
             style={styles.settingsIconBtn}
             onPress={() => Alert.alert("Settings", "App version 1.0.0 (Tourvaa Pro)")}
           >
-            <Ionicons name="settings-outline" size={20} color={COLORS.textPrimary} />
+            <Settings size={18} color={COLORS.textPrimary} />
           </Pressable>
         </View>
 
@@ -67,7 +81,7 @@ export default function AccountScreen() {
                 style={styles.avatar}
               />
               <View style={styles.verifiedBadge}>
-                <Ionicons name="checkmark" size={10} color={COLORS.white} />
+                <Check size={10} color={COLORS.white} />
               </View>
             </View>
 
@@ -87,7 +101,7 @@ export default function AccountScreen() {
             style={styles.editProfileBtn}
             onPress={() => Alert.alert("Edit Profile", "Profile editing opened.")}
           >
-            <Ionicons name="pencil-outline" size={14} color={COLORS.primary} />
+            <Pencil size={14} color={COLORS.primary} />
             <Text style={styles.editProfileText}>Edit Profile</Text>
           </Pressable>
         </View>
@@ -121,13 +135,13 @@ export default function AccountScreen() {
               }
             >
               <View style={[styles.iconBox, { backgroundColor: "#E6F4FF" }]}>
-                <Ionicons name="airplane-outline" size={18} color={COLORS.primary} />
+                <Plane size={18} color={COLORS.primary} />
               </View>
               <Text style={styles.rowTitle}>My Bookings</Text>
               <View style={styles.upcomingBadge}>
                 <Text style={styles.upcomingBadgeText}>2 Upcoming</Text>
               </View>
-              <Ionicons name="chevron-forward" size={16} color={COLORS.muted} />
+              <ChevronRight size={16} color={COLORS.muted} />
             </Pressable>
 
             <View style={styles.rowDivider} />
@@ -137,10 +151,10 @@ export default function AccountScreen() {
               onPress={() => Alert.alert("Passports & Visas", "All documents verified.")}
             >
               <View style={[styles.iconBox, { backgroundColor: "#FFF7E6" }]}>
-                <Ionicons name="document-text-outline" size={18} color="#FA8C16" />
+                <FileText size={18} color="#FA8C16" />
               </View>
               <Text style={styles.rowTitle}>Travel Documents</Text>
-              <Ionicons name="chevron-forward" size={16} color={COLORS.muted} />
+              <ChevronRight size={16} color={COLORS.muted} />
             </Pressable>
 
             <View style={styles.rowDivider} />
@@ -150,11 +164,11 @@ export default function AccountScreen() {
               onPress={() => Alert.alert("Tourvaa Club", "Silver Tier Member: 15% off next booking")}
             >
               <View style={[styles.iconBox, { backgroundColor: "#F6FFED" }]}>
-                <Ionicons name="ribbon-outline" size={18} color={COLORS.success} />
+                <Award size={18} color={COLORS.success} />
               </View>
               <Text style={styles.rowTitle}>Reward Club</Text>
               <Text style={styles.rowValue}>Silver Tier</Text>
-              <Ionicons name="chevron-forward" size={16} color={COLORS.muted} />
+              <ChevronRight size={16} color={COLORS.muted} />
             </Pressable>
           </View>
         </View>
@@ -165,7 +179,7 @@ export default function AccountScreen() {
           <View style={styles.cardGroup}>
             <View style={styles.rowItem}>
               <View style={[styles.iconBox, { backgroundColor: "#F0F5FF" }]}>
-                <Ionicons name="notifications-outline" size={18} color="#2F54EB" />
+                <Bell size={18} color="#2F54EB" />
               </View>
               <Text style={styles.rowTitle}>Push Notifications</Text>
               <Switch
@@ -180,7 +194,7 @@ export default function AccountScreen() {
 
             <View style={styles.rowItem}>
               <View style={[styles.iconBox, { backgroundColor: "#FFF0F6" }]}>
-                <Ionicons name="location-outline" size={18} color="#EB2F96" />
+                <MapPin size={18} color="#EB2F96" />
               </View>
               <Text style={styles.rowTitle}>Location Services</Text>
               <Switch
@@ -195,11 +209,11 @@ export default function AccountScreen() {
 
             <Pressable style={styles.rowItem} onPress={handleCurrencyChange}>
               <View style={[styles.iconBox, { backgroundColor: "#E6FFFB" }]}>
-                <Ionicons name="cash-outline" size={18} color="#13C2C2" />
+                <Banknote size={18} color="#13C2C2" />
               </View>
               <Text style={styles.rowTitle}>Preferred Currency</Text>
               <Text style={styles.rowValue}>{currency}</Text>
-              <Ionicons name="chevron-forward" size={16} color={COLORS.muted} />
+              <ChevronRight size={16} color={COLORS.muted} />
             </Pressable>
           </View>
         </View>
@@ -213,11 +227,11 @@ export default function AccountScreen() {
               onPress={() => Alert.alert("Payment Methods", "Visa ending in •••• 4242")}
             >
               <View style={[styles.iconBox, { backgroundColor: "#FFF2E8" }]}>
-                <Ionicons name="card-outline" size={18} color="#FA541C" />
+                <CreditCard size={18} color="#FA541C" />
               </View>
               <Text style={styles.rowTitle}>Payment Methods</Text>
               <Text style={styles.rowValue}>•••• 4242</Text>
-              <Ionicons name="chevron-forward" size={16} color={COLORS.muted} />
+              <ChevronRight size={16} color={COLORS.muted} />
             </Pressable>
 
             <View style={styles.rowDivider} />
@@ -227,17 +241,17 @@ export default function AccountScreen() {
               onPress={() => Alert.alert("Help Center", "Connecting to 24/7 travel concierge...")}
             >
               <View style={[styles.iconBox, { backgroundColor: "#F9F0FF" }]}>
-                <Ionicons name="help-circle-outline" size={18} color="#722ED1" />
+                <HelpCircle size={18} color="#722ED1" />
               </View>
               <Text style={styles.rowTitle}>Help Center & FAQ</Text>
-              <Ionicons name="chevron-forward" size={16} color={COLORS.muted} />
+              <ChevronRight size={16} color={COLORS.muted} />
             </Pressable>
           </View>
         </View>
 
         {/* Log Out Button */}
         <Pressable style={styles.logoutBtn} onPress={handleLogout}>
-          <Ionicons name="log-out-outline" size={18} color={COLORS.danger} />
+          <LogOut size={18} color={COLORS.danger} />
           <Text style={styles.logoutText}>Log Out</Text>
         </Pressable>
 

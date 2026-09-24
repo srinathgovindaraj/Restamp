@@ -12,7 +12,26 @@ import {
   Dimensions,
   Modal,
 } from "react-native";
-import { Ionicons, Feather } from "@expo/vector-icons";
+import {
+  Home as HomeIcon,
+  Building2,
+  Building,
+  Briefcase,
+  LayoutGrid,
+  Bell,
+  Search,
+  XCircle,
+  Heart,
+  CheckCircle2,
+  Check,
+  Star,
+  MapPin,
+  Sparkles,
+  TrendingUp,
+  Tag,
+  Info,
+  X,
+} from "lucide-react-native";
 import COLORS from "../constants/colors";
 import TYPOGRAPHY from "../constants/typography";
 import {
@@ -26,6 +45,7 @@ import {
   DEMAND_DATA,
 } from "../data/properties";
 import { useWishlist } from "../context/WishlistContext";
+import PropertyDetailModal from "../components/PropertyDetailModal";
 
 const { width } = Dimensions.get("window");
 const CARD_WIDTH = width * 0.78;
@@ -56,11 +76,32 @@ const BUDGET_OPTIONS = [
 
 const BHK_OPTIONS = ["All BHK", "1 BHK", "2 BHK", "3 BHK", "4+ BHK"];
 
+const renderCategoryIcon = (iconName, isSelected) => {
+  const color = isSelected ? "#FFFFFF" : COLORS.primary;
+  switch (iconName) {
+    case "home":
+    case "home-sharp":
+      return <HomeIcon size={20} color={color} />;
+    case "business-outline":
+    case "business":
+      return <Building2 size={20} color={color} />;
+    case "briefcase":
+      return <Briefcase size={20} color={color} />;
+    case "grid":
+      return <LayoutGrid size={20} color={color} />;
+    default:
+      return <Building size={20} color={color} />;
+  }
+};
+
 export default function HomeScreen({ navigation }) {
   const [dealType, setDealType] = useState("Buy");
   const [selectedType, setSelectedType] = useState("apartment");
   const [searchQuery, setSearchQuery] = useState("");
   const { isWishlisted, toggleWishlist } = useWishlist();
+
+  // Selected Property for Detail Modal
+  const [selectedProperty, setSelectedProperty] = useState(null);
 
   // Search & Filter Modal States
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
@@ -149,8 +190,19 @@ export default function HomeScreen({ navigation }) {
       >
         {/* ================= HEADER BAR ================= */}
         <View style={styles.header}>
+          {/* Left Side Restamp Logotype */}
+          <View style={styles.logoContainer}>
+            <View style={styles.logoIconBg}>
+              <HomeIcon size={16} color="#FFFFFF" />
+            </View>
+            <Text style={styles.logoText}>
+              Res<Text style={styles.logoTextAccent}>tamp</Text>
+            </Text>
+          </View>
+
+          {/* Right Side Notification Action */}
           <TouchableOpacity style={styles.notificationBtn} activeOpacity={0.8}>
-            <Ionicons name="notifications-outline" size={22} color={COLORS.textDark} />
+            <Bell size={20} color={COLORS.textDark} />
             <View style={styles.notificationDot} />
           </TouchableOpacity>
         </View>
@@ -189,12 +241,12 @@ export default function HomeScreen({ navigation }) {
               activeOpacity={0.85}
               onPress={() => setIsSearchModalOpen(true)}
             >
-              <Ionicons name="search-outline" size={20} color="#94A3B8" style={styles.searchIcon} />
+              <Search size={18} color="#94A3B8" style={styles.searchIcon} />
               {selectedLocality ? (
                 <View style={styles.activeLocalityTag}>
                   <Text style={styles.activeLocalityTagText}>{selectedLocality}</Text>
                   <TouchableOpacity onPress={() => setSelectedLocality("")}>
-                    <Ionicons name="close-circle" size={16} color={COLORS.primary} style={{ marginLeft: 4 }} />
+                    <XCircle size={15} color={COLORS.primary} style={{ marginLeft: 4 }} />
                   </TouchableOpacity>
                 </View>
               ) : (
@@ -226,11 +278,7 @@ export default function HomeScreen({ navigation }) {
                       isSelected ? styles.circleIconBoxActive : styles.circleIconBoxInactive,
                     ]}
                   >
-                    <Ionicons
-                      name={pt.icon}
-                      size={24}
-                      color={isSelected ? "#FFFFFF" : COLORS.primary}
-                    />
+                    {renderCategoryIcon(pt.icon, isSelected)}
                   </View>
                   <Text
                     style={[
@@ -262,7 +310,12 @@ export default function HomeScreen({ navigation }) {
           {recList.map((property) => {
             const saved = isWishlisted(property.id);
             return (
-              <View key={property.id} style={styles.recommendedCard}>
+              <TouchableOpacity
+                key={property.id}
+                style={styles.recommendedCard}
+                activeOpacity={0.9}
+                onPress={() => setSelectedProperty(property)}
+              >
                 <View style={styles.recommendedImageContainer}>
                   <Image source={{ uri: property.image }} style={styles.recommendedImage} />
                   <View style={styles.verifiedGreenBadge}>
@@ -272,12 +325,15 @@ export default function HomeScreen({ navigation }) {
                     style={styles.floatingHeartBtn}
                     activeOpacity={0.8}
                     hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-                    onPress={() => toggleWishlist(property)}
+                    onPress={(e) => {
+                      e.stopPropagation();
+                      toggleWishlist(property);
+                    }}
                   >
-                    <Ionicons
-                      name="heart"
-                      size={22}
+                    <Heart
+                      size={20}
                       color={saved ? "#FF0000" : "#FFFFFF"}
+                      fill={saved ? "#FF0000" : "rgba(0,0,0,0.3)"}
                     />
                   </TouchableOpacity>
                 </View>
@@ -290,7 +346,7 @@ export default function HomeScreen({ navigation }) {
                     <Text style={styles.recommendedPrice}>{property.price}{property.pricePeriod}</Text> • {property.location}. {property.description}
                   </Text>
                 </View>
-              </View>
+              </TouchableOpacity>
             );
           })}
         </ScrollView>
@@ -300,7 +356,7 @@ export default function HomeScreen({ navigation }) {
           <View style={{ flexDirection: "row", alignItems: "center" }}>
             <Text style={styles.sectionTitle}>Verified Properties</Text>
             <View style={styles.verifiedTag}>
-              <Ionicons name="checkmark-circle" size={14} color="#16A34A" style={{ marginRight: 3 }} />
+              <CheckCircle2 size={13} color="#16A34A" style={{ marginRight: 3 }} />
               <Text style={styles.verifiedTagText}>99Verified</Text>
             </View>
           </View>
@@ -316,12 +372,17 @@ export default function HomeScreen({ navigation }) {
           {verList.map((property) => {
             const saved = isWishlisted(property.id);
             return (
-              <View key={property.id} style={styles.propertyCard}>
+              <TouchableOpacity
+                key={property.id}
+                style={styles.propertyCard}
+                activeOpacity={0.9}
+                onPress={() => setSelectedProperty(property)}
+              >
                 <View style={styles.cardImageContainer}>
                   <Image source={{ uri: property.image }} style={styles.cardImage} />
                   <View style={styles.badgeRow}>
                     <View style={styles.badgeVerified}>
-                      <Ionicons name="checkmark-circle" size={12} color="#FFFFFF" style={{ marginRight: 3 }} />
+                      <CheckCircle2 size={12} color="#FFFFFF" style={{ marginRight: 3 }} />
                       <Text style={styles.badgeTextWhite}>{property.badge}</Text>
                     </View>
                   </View>
@@ -329,12 +390,15 @@ export default function HomeScreen({ navigation }) {
                     style={styles.floatingHeartBtn}
                     activeOpacity={0.8}
                     hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-                    onPress={() => toggleWishlist(property)}
+                    onPress={(e) => {
+                      e.stopPropagation();
+                      toggleWishlist(property);
+                    }}
                   >
-                    <Ionicons
-                      name="heart"
-                      size={22}
+                    <Heart
+                      size={20}
                       color={saved ? "#FF0000" : "#FFFFFF"}
+                      fill={saved ? "#FF0000" : "rgba(0,0,0,0.3)"}
                     />
                   </TouchableOpacity>
                 </View>
@@ -343,7 +407,7 @@ export default function HomeScreen({ navigation }) {
                   <View style={styles.priceRow}>
                     <Text style={styles.priceText}>{property.price}{property.pricePeriod}</Text>
                     <View style={styles.ratingBadge}>
-                      <Ionicons name="star" size={13} color={COLORS.star} />
+                      <Star size={13} color={COLORS.star} fill={COLORS.star} />
                       <Text style={styles.ratingText}>{property.rating}</Text>
                     </View>
                   </View>
@@ -352,7 +416,7 @@ export default function HomeScreen({ navigation }) {
                     {property.title}
                   </Text>
                   <View style={styles.locationRow}>
-                    <Ionicons name="location-outline" size={14} color={COLORS.textSecondary} />
+                    <MapPin size={13} color={COLORS.textSecondary} />
                     <Text style={styles.locationAddress} numberOfLines={1}>
                       {property.location}
                     </Text>
@@ -366,7 +430,7 @@ export default function HomeScreen({ navigation }) {
                     <Text style={styles.specText}>📐 {property.sqft} sqft</Text>
                   </View>
                 </View>
-              </View>
+              </TouchableOpacity>
             );
           })}
         </ScrollView>
@@ -386,7 +450,12 @@ export default function HomeScreen({ navigation }) {
           {recAddedList.map((property) => {
             const saved = isWishlisted(property.id);
             return (
-              <View key={property.id} style={styles.propertyCard}>
+              <TouchableOpacity
+                key={property.id}
+                style={styles.propertyCard}
+                activeOpacity={0.9}
+                onPress={() => setSelectedProperty(property)}
+              >
                 <View style={styles.cardImageContainer}>
                   <Image source={{ uri: property.image }} style={styles.cardImage} />
                   <View style={styles.badgeRow}>
@@ -398,12 +467,15 @@ export default function HomeScreen({ navigation }) {
                     style={styles.floatingHeartBtn}
                     activeOpacity={0.8}
                     hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-                    onPress={() => toggleWishlist(property)}
+                    onPress={(e) => {
+                      e.stopPropagation();
+                      toggleWishlist(property);
+                    }}
                   >
-                    <Ionicons
-                      name="heart"
-                      size={22}
+                    <Heart
+                      size={20}
                       color={saved ? "#FF0000" : "#FFFFFF"}
+                      fill={saved ? "#FF0000" : "rgba(0,0,0,0.3)"}
                     />
                   </TouchableOpacity>
                 </View>
@@ -412,7 +484,7 @@ export default function HomeScreen({ navigation }) {
                   <View style={styles.priceRow}>
                     <Text style={styles.priceText}>{property.price}{property.pricePeriod}</Text>
                     <View style={styles.ratingBadge}>
-                      <Ionicons name="star" size={13} color={COLORS.star} />
+                      <Star size={13} color={COLORS.star} fill={COLORS.star} />
                       <Text style={styles.ratingText}>{property.rating}</Text>
                     </View>
                   </View>
@@ -421,7 +493,7 @@ export default function HomeScreen({ navigation }) {
                     {property.title}
                   </Text>
                   <View style={styles.locationRow}>
-                    <Ionicons name="location-outline" size={14} color={COLORS.textSecondary} />
+                    <MapPin size={13} color={COLORS.textSecondary} />
                     <Text style={styles.locationAddress} numberOfLines={1}>
                       {property.location}
                     </Text>
@@ -435,7 +507,7 @@ export default function HomeScreen({ navigation }) {
                     <Text style={styles.specText}>📐 {property.sqft} sqft</Text>
                   </View>
                 </View>
-              </View>
+              </TouchableOpacity>
             );
           })}
         </ScrollView>
@@ -443,7 +515,7 @@ export default function HomeScreen({ navigation }) {
         {/* ================= NEWLY LAUNCHED PROJECTS (SECTION 4) ================= */}
         <View style={styles.projectSectionHeader}>
           <View style={styles.projectHeaderBadge}>
-            <Ionicons name="sparkles" size={18} color="#D97706" />
+            <Sparkles size={18} color="#D97706" />
           </View>
           <View style={{ flex: 1, marginLeft: 12 }}>
             <Text style={styles.projectSectionTitle}>Newly launched projects</Text>
@@ -475,7 +547,7 @@ export default function HomeScreen({ navigation }) {
                   <View style={styles.projectThumbWrapper}>
                     <Image source={{ uri: proj.image }} style={styles.projectThumb} />
                     <View style={styles.reraBadge}>
-                      <Ionicons name="checkmark" size={10} color="#FFFFFF" style={{ marginRight: 2 }} />
+                      <Check size={10} color="#FFFFFF" style={{ marginRight: 2 }} />
                       <Text style={styles.reraText}>{proj.rera}</Text>
                     </View>
                   </View>
@@ -492,7 +564,7 @@ export default function HomeScreen({ navigation }) {
                       {proj.priceRange} <Text style={styles.projectTypeDivider}>|</Text> {proj.type}
                     </Text>
                     <View style={styles.growthRow}>
-                      <Ionicons name="caret-up" size={11} color="#16A34A" style={{ marginRight: 2 }} />
+                      <TrendingUp size={11} color="#16A34A" style={{ marginRight: 2 }} />
                       <Text style={styles.growthText}>{proj.growth.replace("▲ ", "")}</Text>
                     </View>
                   </View>
@@ -501,7 +573,7 @@ export default function HomeScreen({ navigation }) {
                 {/* Bottom Action Strip */}
                 <View style={styles.projectBottomStrip}>
                   <View style={styles.zeroBrokerageRow}>
-                    <Ionicons name="pricetag" size={14} color={COLORS.primary} style={{ marginRight: 6 }} />
+                    <Tag size={14} color={COLORS.primary} style={{ marginRight: 6 }} />
                     <Text style={styles.zeroBrokerageText}>
                       Get preferred options{"\n"}@zero brokerage
                     </Text>
@@ -530,7 +602,7 @@ export default function HomeScreen({ navigation }) {
             <View style={{ flexDirection: "row", alignItems: "center" }}>
               <Text style={styles.sectionTitle}>Demand in Chennai</Text>
               <TouchableOpacity activeOpacity={0.7} style={{ marginLeft: 6 }}>
-                <Ionicons name="information-circle-outline" size={18} color="#64748B" />
+                <Info size={18} color="#64748B" />
               </TouchableOpacity>
             </View>
             <Text style={styles.demandSubtitle}>
@@ -668,7 +740,7 @@ export default function HomeScreen({ navigation }) {
               style={styles.modalCloseBtn}
               onPress={() => setIsSearchModalOpen(false)}
             >
-              <Ionicons name="close" size={22} color="#0F172A" />
+              <X size={20} color="#0F172A" />
             </TouchableOpacity>
           </View>
 
@@ -681,7 +753,7 @@ export default function HomeScreen({ navigation }) {
             <View style={styles.modalCard}>
               <Text style={styles.modalSectionLabel}>Enter Locality in Chennai</Text>
               <View style={styles.modalInputRow}>
-                <Ionicons name="search-outline" size={18} color="#94A3B8" style={{ marginRight: 8 }} />
+                <Search size={18} color="#94A3B8" style={{ marginRight: 8 }} />
                 <TextInput
                   style={styles.modalTextInput}
                   placeholder="Search locality, project, landmark..."
@@ -694,7 +766,7 @@ export default function HomeScreen({ navigation }) {
                 />
                 {localityInput.length > 0 && (
                   <TouchableOpacity onPress={() => { setLocalityInput(""); setSelectedLocality(""); }}>
-                    <Ionicons name="close-circle" size={16} color="#94A3B8" />
+                    <XCircle size={16} color="#94A3B8" />
                   </TouchableOpacity>
                 )}
               </View>
@@ -806,6 +878,16 @@ export default function HomeScreen({ navigation }) {
           </View>
         </SafeAreaView>
       </Modal>
+
+      {/* ================= PROPERTY DETAIL MODAL ================= */}
+      <PropertyDetailModal
+        visible={!!selectedProperty}
+        property={selectedProperty}
+        onClose={() => setSelectedProperty(null)}
+        onSelectProperty={(property) => setSelectedProperty(property)}
+        isWishlisted={isWishlisted}
+        onToggleWishlist={toggleWishlist}
+      />
     </SafeAreaView>
   );
 }
@@ -827,11 +909,33 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "flex-end",
+    justifyContent: "space-between",
     paddingHorizontal: 20,
     paddingTop: 12,
     paddingBottom: 4,
     backgroundColor: "#F4F7FB",
+  },
+  logoContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  logoIconBg: {
+    width: 32,
+    height: 32,
+    borderRadius: 9,
+    backgroundColor: COLORS.primary,
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 8,
+  },
+  logoText: {
+    fontSize: 22,
+    fontWeight: "600",
+    color: "#0F172A",
+    letterSpacing: -0.5,
+  },
+  logoTextAccent: {
+    color: COLORS.primary,
   },
   notificationBtn: {
     width: 42,
@@ -981,7 +1085,7 @@ const styles = StyleSheet.create({
   },
   circleCategoryLabelActive: {
     color: COLORS.primary,
-    fontWeight: "700",
+    fontWeight: "500",
   },
 
   /* SECTION HEADERS */
@@ -1057,7 +1161,7 @@ const styles = StyleSheet.create({
   verifiedGreenBadgeText: {
     color: "#FFFFFF",
     fontSize: 10,
-    fontWeight: "600",
+    fontWeight: "500",
     textTransform: "lowercase",
   },
   floatingHeartBtn: {
@@ -1078,7 +1182,7 @@ const styles = StyleSheet.create({
   },
   recommendedTitle: {
     fontSize: 13,
-    fontWeight: "700",
+    fontWeight: "500",
     color: "#0F172A",
     lineHeight: 17,
     marginBottom: 4,
@@ -1091,7 +1195,7 @@ const styles = StyleSheet.create({
   },
   recommendedPrice: {
     color: COLORS.primary,
-    fontWeight: "600",
+    fontWeight: "500",
   },
 
   /* NEWLY LAUNCHED PROJECTS */

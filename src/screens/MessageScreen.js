@@ -12,7 +12,15 @@ import {
   Platform,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Ionicons } from "@expo/vector-icons";
+import {
+  SquarePen,
+  Search,
+  XCircle,
+  MessageSquare,
+  ArrowLeft,
+  Phone,
+  Send,
+} from "lucide-react-native";
 import COLORS from "../constants/colors";
 
 const INITIAL_CHATS = [
@@ -191,14 +199,14 @@ export default function MessageScreen() {
             alert("Starting a new inquiry with Tourvaa travel guides.");
           }}
         >
-          <Ionicons name="create-outline" size={20} color={COLORS.primary} />
+          <SquarePen size={18} color={COLORS.primary} />
         </Pressable>
       </View>
 
       {/* Search Bar */}
       <View style={styles.searchWrapper}>
         <View style={styles.searchBar}>
-          <Ionicons name="search-outline" size={17} color={COLORS.textSecondary} />
+          <Search size={16} color={COLORS.textSecondary} />
           <TextInput
             style={styles.searchInput}
             placeholder="Search guides or messages..."
@@ -208,7 +216,7 @@ export default function MessageScreen() {
           />
           {searchQuery.length > 0 && (
             <Pressable onPress={() => setSearchQuery("")}>
-              <Ionicons name="close-circle" size={16} color={COLORS.textSecondary} />
+              <XCircle size={16} color={COLORS.textSecondary} />
             </Pressable>
           )}
         </View>
@@ -291,7 +299,7 @@ export default function MessageScreen() {
         />
       ) : (
         <View style={styles.emptyContainer}>
-          <Ionicons name="chatbubbles-outline" size={40} color={COLORS.muted} />
+          <MessageSquare size={40} color={COLORS.muted} />
           <Text style={styles.emptyTitle}>No messages found</Text>
           <Text style={styles.emptySub}>
             Try changing your search query or filter tab.
@@ -314,7 +322,7 @@ export default function MessageScreen() {
                 style={styles.modalBackBtn}
                 onPress={() => setActiveChat(null)}
               >
-                <Ionicons name="chevron-back" size={24} color={COLORS.textPrimary} />
+                <ArrowLeft size={20} color={COLORS.textPrimary} />
               </Pressable>
 
               <View style={styles.modalHeaderInfo}>
@@ -338,7 +346,7 @@ export default function MessageScreen() {
                 style={styles.modalActionBtn}
                 onPress={() => alert(`Calling ${activeChat.name}...`)}
               >
-                <Ionicons name="call-outline" size={20} color={COLORS.primary} />
+                <Phone size={18} color={COLORS.primary} />
               </Pressable>
             </View>
 
@@ -407,8 +415,7 @@ export default function MessageScreen() {
                   ]}
                   onPress={handleSendMessage}
                 >
-                  <Ionicons
-                    name="send"
+                  <Send
                     size={16}
                     color={
                       inputMessage.trim().length > 0
