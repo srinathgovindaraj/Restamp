@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Text, StyleSheet, Platform } from "react-native";
+import { Platform, StyleSheet } from "react-native";
 import { NavigationContainer } from "@react-navigation/native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { Home, Search, Heart, MessageSquare, User } from "lucide-react-native";
@@ -45,28 +45,31 @@ export default function AppNavigator() {
 
           return {
             headerShown: false,
-            tabBarShowLabel: false,
+            tabBarShowLabel: true,
             tabBarHideOnKeyboard: true,
+            tabBarActiveTintColor: "#111111",
+            tabBarInactiveTintColor: "#8E8E93",
+
+            tabBarLabel: config.label,
+
+            tabBarLabelStyle: {
+              fontSize: 10,
+              fontWeight: "600",
+              marginTop: 2,
+              marginBottom: Platform.OS === "ios" ? 0 : 2,
+            },
 
             tabBarItemStyle: {
               justifyContent: "center",
               alignItems: "center",
-              paddingHorizontal: 0,
-              marginHorizontal: 0,
-            },
-
-            tabBarIconStyle: {
-              width: "100%",
-              height: "100%",
-              justifyContent: "center",
-              alignItems: "center",
+              paddingVertical: 6,
             },
 
             tabBarStyle: {
               position: "absolute",
               bottom: Platform.OS === "ios" ? 24 : 16,
-              left: 12,
-              right: 12,
+              left: 16,
+              right: 16,
               height: 64,
               backgroundColor: "#FFFFFF",
               borderRadius: 32,
@@ -76,41 +79,22 @@ export default function AppNavigator() {
               shadowOpacity: 0.12,
               shadowRadius: 16,
               elevation: 10,
-              paddingHorizontal: 2,
-              paddingBottom: 0,
-              paddingTop: 0,
-              alignItems: "center",
-              justifyContent: "center",
+              paddingBottom: Platform.OS === "ios" ? 8 : 6,
+              paddingTop: 6,
+              borderWidth: Platform.OS === "web" ? 1 : 0,
+              borderColor: "#F0F0F0",
             },
 
-            tabBarIcon: ({ focused }) => {
-              const activeColor = "#111111";
-              const inactiveColor = "#8E8E93";
-              const color = focused ? activeColor : inactiveColor;
-              const fill = route.name === "Saved" && focused ? "#111111" : "none";
+            tabBarIcon: ({ color, focused }) => {
+              const fill = route.name === "Saved" && focused ? color : "none";
 
               return (
-                <View style={styles.tabItemContainer}>
-                  <IconComponent
-                    size={20}
-                    color={color}
-                    fill={fill}
-                    strokeWidth={focused ? 2.2 : 1.8}
-                  />
-                  <Text
-                    numberOfLines={1}
-                    adjustsFontSizeToFit
-                    minimumFontScale={0.75}
-                    allowFontScaling={false}
-                    style={[
-                      styles.tabLabel,
-                      { color },
-                      focused && styles.tabLabelActive,
-                    ]}
-                  >
-                    {config.label}
-                  </Text>
-                </View>
+                <IconComponent
+                  size={20}
+                  color={color}
+                  fill={fill}
+                  strokeWidth={focused ? 2.3 : 1.8}
+                />
               );
             },
           };
@@ -125,24 +109,3 @@ export default function AppNavigator() {
     </NavigationContainer>
   );
 }
-
-const styles = StyleSheet.create({
-  tabItemContainer: {
-    alignItems: "center",
-    justifyContent: "center",
-    width: "100%",
-    height: "100%",
-    paddingHorizontal: 1,
-  },
-  tabLabel: {
-    fontSize: 10,
-    fontWeight: "500",
-    marginTop: 2,
-    textAlign: "center",
-    lineHeight: 12,
-    letterSpacing: -0.2,
-  },
-  tabLabelActive: {
-    fontWeight: "600",
-  },
-});
