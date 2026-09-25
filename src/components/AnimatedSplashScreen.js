@@ -9,6 +9,7 @@ import {
   Pressable,
 } from "react-native";
 import COLORS from "../constants/colors";
+import RestampLogo from "./RestampLogo";
 
 const { width, height } = Dimensions.get("window");
 
@@ -159,11 +160,7 @@ export default function AnimatedSplashScreen({ onAnimationComplete }) {
               },
             ]}
           >
-            <Image
-              source={require("../../assets/icon.png")}
-              style={styles.logoImage}
-              resizeMode="cover"
-            />
+            <RestampLogo size={68} />
           </Animated.View>
 
           {/* App Brand Name */}
@@ -245,6 +242,8 @@ const styles = StyleSheet.create({
     borderRadius: 26,
     overflow: "hidden",
     backgroundColor: "#FFFFFF",
+    alignItems: "center",
+    justifyContent: "center",
     shadowColor: COLORS.primary,
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.25,

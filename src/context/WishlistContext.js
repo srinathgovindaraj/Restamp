@@ -11,14 +11,14 @@ export function WishlistProvider({ children }) {
     return wishlist.some((item) => String(item.id) === String(id));
   };
 
-  const toggleWishlist = (tour) => {
-    if (!tour) return;
+  const toggleWishlist = (property) => {
+    if (!property) return;
     setWishlist((prev) => {
-      const exists = prev.some((item) => String(item.id) === String(tour.id));
+      const exists = prev.some((item) => String(item.id) === String(property.id));
       if (exists) {
-        return prev.filter((item) => String(item.id) !== String(tour.id));
+        return prev.filter((item) => String(item.id) !== String(property.id));
       } else {
-        return [tour, ...prev];
+        return [property, ...prev];
       }
     });
   };

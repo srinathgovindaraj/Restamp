@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -8,26 +8,54 @@ import {
   Image,
   TouchableOpacity,
   StatusBar,
+  Switch,
+  Alert,
+  Platform,
 } from "react-native";
 import {
   CheckCircle2,
   ArrowRight,
   Heart,
   MessageSquare,
-  Home,
+  Clock,
   Bell,
   HelpCircle,
   ChevronRight,
+  Globe,
+  Moon,
+  LogOut,
+  ShieldCheck,
 } from "lucide-react-native";
 import COLORS from "../constants/colors";
+import { useNavigation } from "@react-navigation/native";
+import { useWishlist } from "../context/WishlistContext";
 
 export default function ProfileScreen({ navigation }) {
+  const nav = useNavigation() || navigation;
+  const { wishlist } = useWishlist();
+  const [isDarkMode, setIsDarkMode] = useState(false);
+
+  const handleLogout = () => {
+    Alert.alert(
+      "Log Out",
+      "Are you sure you want to sign out of RESTAMP?",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Log Out",
+          style: "destructive",
+          onPress: () => Alert.alert("Signed Out", "You have been logged out successfully."),
+        },
+      ]
+    );
+  };
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
 
       <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-        {/* User Card */}
+        {/* User Profile Card */}
         <View style={styles.profileHeader}>
           <Image
             source={{
@@ -39,91 +67,131 @@ export default function ProfileScreen({ navigation }) {
             <Text style={styles.userName}>Jessica Taylor</Text>
             <Text style={styles.userEmail}>jessica.taylor@example.com</Text>
             <View style={styles.badgeBuyer}>
-              <CheckCircle2 size={14} color={COLORS.primary} style={{ marginRight: 4 }} />
+              <CheckCircle2 size={13} color={COLORS.primary} style={{ marginRight: 4 }} />
               <Text style={styles.badgeBuyerText}>Verified Buyer & Owner</Text>
             </View>
           </View>
         </View>
 
-        {/* Post Property Banner (Sell / Rent like 99acres) */}
+        {/* Post Property Banner */}
         <TouchableOpacity style={styles.postBanner} activeOpacity={0.9}>
           <View style={styles.postBannerContent}>
-            <Text style={styles.postBannerTitle}>Want to Sell or Rent your Property?</Text>
-            <Text style={styles.postBannerSub}>Post your property for FREE and reach thousands of buyers</Text>
+            <View style={{ flex: 1, marginRight: 12 }}>
+              <Text style={styles.postBannerTitle}>Post Property FREE</Text>
+              <Text style={styles.postBannerSub}>
+                Sell or Rent your property to thousands of buyers online
+              </Text>
+            </View>
             <View style={styles.postBtn}>
-              <Text style={styles.postBtnText}>Post Property FREE</Text>
-              <ArrowRight size={14} color="#FFFFFF" style={{ marginLeft: 4 }} />
+              <Text style={styles.postBtnText}>Post Now</Text>
+              <ArrowRight size={13} color="#FFFFFF" style={{ marginLeft: 4 }} />
             </View>
           </View>
         </TouchableOpacity>
 
-        {/* Quick Menu Options */}
+        {/* 1. Buyer & Tenant Services */}
         <View style={styles.menuSection}>
-          <Text style={styles.sectionTitle}>My Property Hub</Text>
+          <Text style={styles.sectionHeaderTitle}>Buyer & Tenant Services</Text>
 
           <TouchableOpacity
-            style={styles.menuItem}
-            onPress={() => navigation.navigate("Saved")}
+            style={styles.menuRow}
+            activeOpacity={0.65}
+            onPress={() => nav.navigate("Saved")}
           >
-            <View style={[styles.menuIconContainer, { backgroundColor: "#FFF0F0" }]}>
-              <Heart size={20} color={COLORS.heartRed} fill={COLORS.heartRed} />
+            <View style={styles.menuLeft}>
+              <Heart size={21} color="#334155" strokeWidth={1.8} style={styles.menuIcon} />
+              <Text style={styles.menuLabel}>Saved Shortlists</Text>
             </View>
-            <View style={styles.menuTextContainer}>
-              <Text style={styles.menuTitle}>Saved Shortlists</Text>
-              <Text style={styles.menuSub}>View saved villas, apartments & houses</Text>
+            <View style={{ flexDirection: "row", alignItems: "center" }}>
+              {wishlist?.length > 0 && (
+                <View style={styles.menuBadge}>
+                  <Text style={styles.menuBadgeText}>{wishlist.length}</Text>
+                </View>
+              )}
+              <ChevronRight size={18} color="#94A3B8" />
             </View>
-            <ChevronRight size={18} color={COLORS.muted} />
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.menuItem}>
-            <View style={[styles.menuIconContainer, { backgroundColor: "#EBF4FF" }]}>
-              <MessageSquare size={20} color={COLORS.primary} />
+          <TouchableOpacity
+            style={styles.menuRow}
+            activeOpacity={0.65}
+            onPress={() => nav.navigate("Search")}
+          >
+            <View style={styles.menuLeft}>
+              <Clock size={21} color="#334155" strokeWidth={1.8} style={styles.menuIcon} />
+              <Text style={styles.menuLabel}>Recent Searches</Text>
             </View>
-            <View style={styles.menuTextContainer}>
-              <Text style={styles.menuTitle}>My Enquiries & Leads</Text>
-              <Text style={styles.menuSub}>Recent calls and messages sent to agents</Text>
-            </View>
-            <ChevronRight size={18} color={COLORS.muted} />
-          </TouchableOpacity>
-
-          <TouchableOpacity style={styles.menuItem}>
-            <View style={[styles.menuIconContainer, { backgroundColor: "#F0FDF4" }]}>
-              <Home size={20} color="#16A34A" />
-            </View>
-            <View style={styles.menuTextContainer}>
-              <Text style={styles.menuTitle}>My Posted Properties</Text>
-              <Text style={styles.menuSub}>Manage active listings for sale or rent</Text>
-            </View>
-            <ChevronRight size={18} color={COLORS.muted} />
+            <ChevronRight size={18} color="#94A3B8" />
           </TouchableOpacity>
         </View>
 
-        {/* Settings & Support */}
+        <View style={styles.sectionDivider} />
+
+        {/* 2. Settings & Preferences */}
         <View style={styles.menuSection}>
-          <Text style={styles.sectionTitle}>Settings & Support</Text>
+          <Text style={styles.sectionHeaderTitle}>Settings & Preferences</Text>
 
-          <TouchableOpacity style={styles.menuItem}>
-            <View style={[styles.menuIconContainer, { backgroundColor: "#F8FAFC" }]}>
-              <Bell size={20} color={COLORS.textDark} />
+          <TouchableOpacity style={styles.menuRow} activeOpacity={0.65}>
+            <View style={styles.menuLeft}>
+              <Bell size={21} color="#334155" strokeWidth={1.8} style={styles.menuIcon} />
+              <Text style={styles.menuLabel}>Notification</Text>
             </View>
-            <View style={styles.menuTextContainer}>
-              <Text style={styles.menuTitle}>Property Alerts & Notifications</Text>
-              <Text style={styles.menuSub}>Price drop alerts & new matches</Text>
-            </View>
-            <ChevronRight size={18} color={COLORS.muted} />
+            <ChevronRight size={18} color="#94A3B8" />
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.menuItem}>
-            <View style={[styles.menuIconContainer, { backgroundColor: "#F8FAFC" }]}>
-              <HelpCircle size={20} color={COLORS.textDark} />
+          <TouchableOpacity style={styles.menuRow} activeOpacity={0.65}>
+            <View style={styles.menuLeft}>
+              <ShieldCheck size={21} color="#334155" strokeWidth={1.8} style={styles.menuIcon} />
+              <Text style={styles.menuLabel}>Security</Text>
             </View>
-            <View style={styles.menuTextContainer}>
-              <Text style={styles.menuTitle}>Help & Support</Text>
-              <Text style={styles.menuSub}>FAQ, customer care & feedback</Text>
+            <ChevronRight size={18} color="#94A3B8" />
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.menuRow} activeOpacity={0.65}>
+            <View style={styles.menuLeft}>
+              <Globe size={21} color="#334155" strokeWidth={1.8} style={styles.menuIcon} />
+              <Text style={styles.menuLabel}>Language</Text>
             </View>
-            <ChevronRight size={18} color={COLORS.muted} />
+            <View style={styles.menuRight}>
+              <Text style={styles.menuExtraText}>English (US)</Text>
+              <ChevronRight size={18} color="#94A3B8" />
+            </View>
+          </TouchableOpacity>
+
+          <View style={styles.menuRow}>
+            <View style={styles.menuLeft}>
+              <Moon size={21} color="#334155" strokeWidth={1.8} style={styles.menuIcon} />
+              <Text style={styles.menuLabel}>Dark Mode</Text>
+            </View>
+            <Switch
+              value={isDarkMode}
+              onValueChange={setIsDarkMode}
+              trackColor={{ false: "#E2E8F0", true: COLORS.primary }}
+              thumbColor={Platform.OS === "android" ? "#FFFFFF" : undefined}
+            />
+          </View>
+
+          <TouchableOpacity style={styles.menuRow} activeOpacity={0.65}>
+            <View style={styles.menuLeft}>
+              <HelpCircle size={21} color="#334155" strokeWidth={1.8} style={styles.menuIcon} />
+              <Text style={styles.menuLabel}>Help Center</Text>
+            </View>
+            <ChevronRight size={18} color="#94A3B8" />
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.menuRow, { borderBottomWidth: 0 }]}
+            activeOpacity={0.65}
+            onPress={handleLogout}
+          >
+            <View style={styles.menuLeft}>
+              <LogOut size={21} color="#EF4444" strokeWidth={1.8} style={styles.menuIcon} />
+              <Text style={[styles.menuLabel, { color: "#EF4444" }]}>Logout</Text>
+            </View>
           </TouchableOpacity>
         </View>
+
+        <View style={{ height: 40 }} />
       </ScrollView>
     </SafeAreaView>
   );
@@ -136,33 +204,33 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
-    backgroundColor: COLORS.background,
+    backgroundColor: "#FFFFFF",
   },
   profileHeader: {
     flexDirection: "row",
     alignItems: "center",
-    padding: 20,
+    paddingHorizontal: 20,
+    paddingTop: 16,
+    paddingBottom: 18,
     backgroundColor: "#FFFFFF",
-    borderBottomWidth: 1,
-    borderBottomColor: "#F1F5F9",
   },
   avatar: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    marginRight: 16,
+    width: 58,
+    height: 58,
+    borderRadius: 29,
+    marginRight: 14,
   },
   profileInfo: {
     flex: 1,
   },
   userName: {
     fontSize: 18,
-    fontWeight: "800",
-    color: COLORS.textDark,
+    fontWeight: "700",
+    color: "#0F172A",
   },
   userEmail: {
     fontSize: 13,
-    color: COLORS.textSecondary,
+    color: "#64748B",
     marginTop: 2,
     marginBottom: 6,
   },
@@ -172,93 +240,108 @@ const styles = StyleSheet.create({
     backgroundColor: "#EBF4FF",
     alignSelf: "flex-start",
     paddingHorizontal: 10,
-    paddingVertical: 4,
+    paddingVertical: 3.5,
     borderRadius: 12,
   },
   badgeBuyerText: {
     fontSize: 11,
-    fontWeight: "700",
+    fontWeight: "600",
     color: COLORS.primary,
   },
   postBanner: {
-    margin: 20,
-    backgroundColor: COLORS.primary,
-    borderRadius: 18,
-    padding: 18,
-    shadowColor: COLORS.primary,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.25,
-    shadowRadius: 8,
-    elevation: 3,
+    marginHorizontal: 20,
+    marginBottom: 16,
+    backgroundColor: "#0F172A",
+    borderRadius: 16,
+    padding: 16,
   },
   postBannerContent: {
-    alignItems: "flex-start",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
   },
   postBannerTitle: {
-    fontSize: 16,
-    fontWeight: "800",
+    fontSize: 15,
+    fontWeight: "700",
     color: "#FFFFFF",
-    marginBottom: 4,
+    marginBottom: 3,
   },
   postBannerSub: {
-    fontSize: 12,
-    color: "rgba(255, 255, 255, 0.88)",
-    marginBottom: 14,
-    lineHeight: 16,
+    fontSize: 11.5,
+    color: "#94A3B8",
+    lineHeight: 15,
   },
   postBtn: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "rgba(255, 255, 255, 0.22)",
-    paddingHorizontal: 16,
+    backgroundColor: COLORS.primary,
+    paddingHorizontal: 14,
     paddingVertical: 8,
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.4)",
+    borderRadius: 12,
   },
   postBtnText: {
     fontSize: 12,
     fontWeight: "700",
     color: "#FFFFFF",
   },
+  sectionDivider: {
+    height: 1,
+    backgroundColor: "#F1F5F9",
+    marginHorizontal: 20,
+    marginVertical: 4,
+  },
   menuSection: {
-    backgroundColor: "#FFFFFF",
     paddingHorizontal: 20,
-    paddingVertical: 16,
-    marginBottom: 14,
+    paddingVertical: 4,
   },
-  sectionTitle: {
-    fontSize: 16,
+  sectionHeaderTitle: {
+    fontSize: 12.5,
     fontWeight: "700",
-    color: COLORS.textDark,
-    marginBottom: 14,
+    color: "#94A3B8",
+    textTransform: "uppercase",
+    letterSpacing: 0.6,
+    marginTop: 8,
+    marginBottom: 4,
   },
-  menuItem: {
+  menuRow: {
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: "#F8FAFC",
+    justifyContent: "space-between",
+    paddingVertical: 14,
   },
-  menuIconContainer: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    justifyContent: "center",
+  menuLeft: {
+    flexDirection: "row",
     alignItems: "center",
-    marginRight: 14,
-  },
-  menuTextContainer: {
     flex: 1,
   },
-  menuTitle: {
-    fontSize: 14,
-    fontWeight: "700",
-    color: COLORS.textDark,
+  menuIcon: {
+    marginRight: 16,
   },
-  menuSub: {
-    fontSize: 12,
-    color: COLORS.textSecondary,
-    marginTop: 2,
+  menuLabel: {
+    fontSize: 15,
+    fontWeight: "500",
+    color: "#1E293B",
+  },
+  menuRight: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  menuExtraText: {
+    fontSize: 13.5,
+    color: "#64748B",
+    marginRight: 8,
+    fontWeight: "400",
+  },
+  menuBadge: {
+    backgroundColor: COLORS.primary,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 10,
+    marginRight: 8,
+  },
+  menuBadgeText: {
+    fontSize: 11,
+    fontWeight: "700",
+    color: "#FFFFFF",
   },
 });

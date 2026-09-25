@@ -14,7 +14,7 @@ import {
   Settings,
   Check,
   Pencil,
-  Plane,
+  Building2,
   FileText,
   Award,
   Bell,
@@ -32,9 +32,9 @@ export default function AccountScreen() {
   const { wishlist } = useWishlist();
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [locationEnabled, setLocationEnabled] = useState(true);
-  const [currency, setCurrency] = useState("USD ($)");
+  const [currency, setCurrency] = useState("INR (₹)");
 
-  const currencies = ["USD ($)", "EUR (€)", "INR (₹)", "GBP (£)"];
+  const currencies = ["INR (₹)", "USD ($)", "EUR (€)", "AED (د.إ)"];
 
   const handleCurrencyChange = () => {
     const currentIndex = currencies.indexOf(currency);
@@ -43,7 +43,7 @@ export default function AccountScreen() {
   };
 
   const handleLogout = () => {
-    Alert.alert("Log Out", "Are you sure you want to sign out of Tourvaa?", [
+    Alert.alert("Log Out", "Are you sure you want to sign out of RESTAMP?", [
       { text: "Cancel", style: "cancel" },
       {
         text: "Log Out",
@@ -64,7 +64,7 @@ export default function AccountScreen() {
           <Text style={styles.headerTitle}>Account</Text>
           <Pressable
             style={styles.settingsIconBtn}
-            onPress={() => Alert.alert("Settings", "App version 1.0.0 (Tourvaa Pro)")}
+            onPress={() => Alert.alert("Settings", "App version 1.0.0 (RESTAMP Pro)")}
           >
             <Settings size={18} color={COLORS.textPrimary} />
           </Pressable>
@@ -89,11 +89,11 @@ export default function AccountScreen() {
               <View style={styles.nameRow}>
                 <Text style={styles.name}>Alex Morgan</Text>
                 <View style={styles.proPill}>
-                  <Text style={styles.proPillText}>Explorer</Text>
+                  <Text style={styles.proPillText}>Verified Buyer</Text>
                 </View>
               </View>
-              <Text style={styles.email}>alex.morgan@tourvaa.com</Text>
-              <Text style={styles.bio}>Passport stamped in 14 countries 🌍</Text>
+              <Text style={styles.email}>alex.morgan@restamp.app</Text>
+              <Text style={styles.bio}>Active property buyer & real estate investor 🏡</Text>
             </View>
           </View>
 
@@ -110,34 +110,37 @@ export default function AccountScreen() {
         <View style={styles.statsCard}>
           <View style={styles.statItem}>
             <Text style={styles.statNumber}>12</Text>
-            <Text style={styles.statLabel}>Trips Taken</Text>
+            <Text style={styles.statLabel}>Site Visits</Text>
           </View>
           <View style={styles.statDivider} />
           <View style={styles.statItem}>
             <Text style={styles.statNumber}>{wishlist.length}</Text>
-            <Text style={styles.statLabel}>Saved Tours</Text>
+            <Text style={styles.statLabel}>Saved Properties</Text>
           </View>
           <View style={styles.statDivider} />
           <View style={styles.statItem}>
-            <Text style={styles.statNumber}>2,450</Text>
-            <Text style={styles.statLabel}>Tour Points</Text>
+            <Text style={styles.statNumber}>4</Text>
+            <Text style={styles.statLabel}>Enquiries</Text>
           </View>
         </View>
 
-        {/* Section 1: Travel & Activity */}
+        {/* Section 1: Property Activity */}
         <View style={styles.section}>
-          <Text style={styles.sectionHeader}>Travel & Activity</Text>
+          <Text style={styles.sectionHeader}>Property Activity</Text>
           <View style={styles.cardGroup}>
             <Pressable
               style={styles.rowItem}
               onPress={() =>
-                Alert.alert("My Bookings", "1. Bali Paradise Escape (May 18)\n2. Swiss Alps Rail (June 04)")
+                Alert.alert(
+                  "Scheduled Site Visits",
+                  "1. Emerald Heights Luxury 3BHK (Tomorrow, 11:00 AM)\n2. Sea Breeze Beach Villa (Saturday, 4:00 PM)"
+                )
               }
             >
               <View style={[styles.iconBox, { backgroundColor: "#E6F4FF" }]}>
-                <Plane size={18} color={COLORS.primary} />
+                <Building2 size={18} color={COLORS.primary} />
               </View>
-              <Text style={styles.rowTitle}>My Bookings</Text>
+              <Text style={styles.rowTitle}>Scheduled Site Visits</Text>
               <View style={styles.upcomingBadge}>
                 <Text style={styles.upcomingBadgeText}>2 Upcoming</Text>
               </View>
@@ -148,12 +151,14 @@ export default function AccountScreen() {
 
             <Pressable
               style={styles.rowItem}
-              onPress={() => Alert.alert("Passports & Visas", "All documents verified.")}
+              onPress={() =>
+                Alert.alert("Property Documents", "All title deeds & verification documents loaded.")
+              }
             >
               <View style={[styles.iconBox, { backgroundColor: "#FFF7E6" }]}>
                 <FileText size={18} color="#FA8C16" />
               </View>
-              <Text style={styles.rowTitle}>Travel Documents</Text>
+              <Text style={styles.rowTitle}>Property Documents</Text>
               <ChevronRight size={16} color={COLORS.muted} />
             </Pressable>
 
@@ -161,13 +166,18 @@ export default function AccountScreen() {
 
             <Pressable
               style={styles.rowItem}
-              onPress={() => Alert.alert("Tourvaa Club", "Silver Tier Member: 15% off next booking")}
+              onPress={() =>
+                Alert.alert(
+                  "RESTAMP Prime",
+                  "Prime Tier Member: Priority access to new project launches and zero brokerage benefits."
+                )
+              }
             >
               <View style={[styles.iconBox, { backgroundColor: "#F6FFED" }]}>
                 <Award size={18} color={COLORS.success} />
               </View>
-              <Text style={styles.rowTitle}>Reward Club</Text>
-              <Text style={styles.rowValue}>Silver Tier</Text>
+              <Text style={styles.rowTitle}>RESTAMP Prime</Text>
+              <Text style={styles.rowValue}>Prime Member</Text>
               <ChevronRight size={16} color={COLORS.muted} />
             </Pressable>
           </View>
@@ -238,7 +248,9 @@ export default function AccountScreen() {
 
             <Pressable
               style={styles.rowItem}
-              onPress={() => Alert.alert("Help Center", "Connecting to 24/7 travel concierge...")}
+              onPress={() =>
+                Alert.alert("Help Center", "Connecting to RESTAMP 24/7 Property Support...")
+              }
             >
               <View style={[styles.iconBox, { backgroundColor: "#F9F0FF" }]}>
                 <HelpCircle size={18} color="#722ED1" />
@@ -255,7 +267,7 @@ export default function AccountScreen() {
           <Text style={styles.logoutText}>Log Out</Text>
         </Pressable>
 
-        <Text style={styles.appVersion}>Tourvaa v1.0.0 • Built with Expo SDK 57</Text>
+        <Text style={styles.appVersion}>RESTAMP v1.0.0 • Built with Expo SDK 57</Text>
       </ScrollView>
     </SafeAreaView>
   );
@@ -285,10 +297,10 @@ const styles = StyleSheet.create({
   settingsIconBtn: {
     width: 38,
     height: 38,
-    borderRadius: 19,
+    borderRadius: 12,
     backgroundColor: COLORS.white,
-    alignItems: "center",
     justifyContent: "center",
+    alignItems: "center",
     borderWidth: 1,
     borderColor: COLORS.border,
   },
@@ -299,19 +311,26 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: COLORS.border,
     marginBottom: 14,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 6,
+    elevation: 2,
   },
   profileTopRow: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 14,
+    marginBottom: 14,
   },
   avatarWrapper: {
     position: "relative",
+    marginRight: 14,
   },
   avatar: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: COLORS.cardBg,
   },
   verifiedBadge: {
     position: "absolute",
@@ -321,8 +340,8 @@ const styles = StyleSheet.create({
     height: 18,
     borderRadius: 9,
     backgroundColor: COLORS.primary,
-    alignItems: "center",
     justifyContent: "center",
+    alignItems: "center",
     borderWidth: 2,
     borderColor: COLORS.white,
   },
@@ -333,89 +352,91 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 8,
+    marginBottom: 2,
   },
   name: {
-    fontSize: 16,
+    fontSize: 17,
     fontWeight: "700",
     color: COLORS.textPrimary,
   },
   proPill: {
-    backgroundColor: COLORS.primaryLight,
+    backgroundColor: "#EFF6FF",
     paddingHorizontal: 8,
     paddingVertical: 2,
-    borderRadius: 10,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "#BFDBFE",
   },
   proPillText: {
-    fontSize: 10,
+    fontSize: 10.5,
     fontWeight: "600",
     color: COLORS.primary,
   },
   email: {
     fontSize: 12,
     color: COLORS.textSecondary,
-    marginTop: 2,
+    marginBottom: 3,
   },
   bio: {
-    fontSize: 11,
+    fontSize: 11.5,
     color: COLORS.muted,
-    marginTop: 4,
   },
   editProfileBtn: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    gap: 6,
-    backgroundColor: "#F6F8FA",
-    borderRadius: 10,
     paddingVertical: 8,
-    marginTop: 14,
+    borderRadius: 10,
+    backgroundColor: "#F0F7FF",
+    gap: 6,
   },
   editProfileText: {
-    fontSize: 12,
+    fontSize: 12.5,
     fontWeight: "600",
     color: COLORS.primary,
   },
   statsCard: {
     flexDirection: "row",
     backgroundColor: COLORS.white,
-    borderRadius: 16,
+    borderRadius: 14,
     paddingVertical: 14,
-    paddingHorizontal: 10,
+    paddingHorizontal: 8,
     borderWidth: 1,
     borderColor: COLORS.border,
     marginBottom: 20,
+    alignItems: "center",
   },
   statItem: {
     flex: 1,
     alignItems: "center",
   },
   statNumber: {
-    fontSize: 16,
+    fontSize: 17,
     fontWeight: "700",
     color: COLORS.textPrimary,
+    marginBottom: 2,
   },
   statLabel: {
     fontSize: 11,
     color: COLORS.textSecondary,
-    marginTop: 2,
+    fontWeight: "500",
   },
   statDivider: {
     width: 1,
-    height: "80%",
+    height: 28,
     backgroundColor: COLORS.border,
-    alignSelf: "center",
   },
   section: {
-    marginBottom: 18,
+    marginBottom: 20,
   },
   sectionHeader: {
     fontSize: 13,
-    fontWeight: "600",
+    fontWeight: "700",
     color: COLORS.textSecondary,
-    marginBottom: 8,
-    marginLeft: 4,
     textTransform: "uppercase",
-    letterSpacing: 0.5,
+    letterSpacing: 0.6,
+    marginBottom: 10,
+    marginLeft: 4,
   },
   cardGroup: {
     backgroundColor: COLORS.white,
@@ -428,65 +449,65 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     paddingHorizontal: 14,
-    paddingVertical: 12,
-    gap: 12,
+    paddingVertical: 13,
   },
   iconBox: {
     width: 32,
     height: 32,
-    borderRadius: 8,
-    alignItems: "center",
+    borderRadius: 10,
     justifyContent: "center",
+    alignItems: "center",
+    marginRight: 12,
   },
   rowTitle: {
     flex: 1,
-    fontSize: 13,
+    fontSize: 13.5,
     fontWeight: "500",
     color: COLORS.textPrimary,
   },
   rowValue: {
-    fontSize: 12,
+    fontSize: 12.5,
     color: COLORS.textSecondary,
-    marginRight: 4,
+    marginRight: 6,
   },
   upcomingBadge: {
-    backgroundColor: "#FFF0F6",
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 8,
-    marginRight: 4,
+    backgroundColor: "#EFF6FF",
+    paddingHorizontal: 7,
+    paddingVertical: 2,
+    borderRadius: 6,
+    marginRight: 6,
   },
   upcomingBadgeText: {
-    color: "#EB2F96",
-    fontSize: 11,
+    fontSize: 10.5,
     fontWeight: "600",
+    color: COLORS.primary,
   },
   rowDivider: {
     height: 1,
-    backgroundColor: "#F5F5F5",
+    backgroundColor: COLORS.border,
     marginLeft: 58,
   },
   logoutBtn: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    gap: 8,
-    backgroundColor: "#FFF1F0",
+    backgroundColor: COLORS.white,
     borderRadius: 14,
-    paddingVertical: 13,
-    marginTop: 6,
+    paddingVertical: 14,
     borderWidth: 1,
     borderColor: "#FFCCC7",
+    gap: 8,
+    marginTop: 6,
+    marginBottom: 16,
   },
   logoutText: {
-    fontSize: 13,
+    fontSize: 14,
     fontWeight: "600",
     color: COLORS.danger,
   },
   appVersion: {
-    textAlign: "center",
     fontSize: 11,
     color: COLORS.muted,
-    marginTop: 18,
+    textAlign: "center",
   },
 });

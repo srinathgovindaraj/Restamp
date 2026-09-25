@@ -8,51 +8,49 @@ import {
   Image,
   Pressable,
   ScrollView,
-  Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Search, XCircle, Heart, Star } from "lucide-react-native";
+import { Search, XCircle, Heart, Star, MapPin } from "lucide-react-native";
 import COLORS from "../constants/colors";
-import toursData from "../data/tours";
+import ALL_PROPERTIES, { RECOMMENDED_PROPERTIES } from "../data/properties";
 import { useWishlist } from "../context/WishlistContext";
+import PropertyDetailModal from "../components/PropertyDetailModal";
 
 export default function ExploreScreen() {
   const { isWishlisted, toggleWishlist } = useWishlist();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [sortBy, setSortBy] = useState("recommended"); // 'recommended' | 'rating' | 'price'
+  const [selectedProperty, setSelectedProperty] = useState(null);
 
   const categories = [
-    { id: "All", label: "All", icon: "compass-outline" },
-    { id: "Beach", label: "Beach", icon: "sunny-outline" },
-    { id: "Mountain", label: "Mountain", icon: "triangle-outline" },
-    { id: "Culture", label: "Culture", icon: "color-palette-outline" },
-    { id: "City", label: "City", icon: "business-outline" },
-    { id: "Adventure", label: "Adventure", icon: "trail-sign-outline" },
+    { id: "All", label: "All Properties" },
+    { id: "Apartment", label: "Apartments" },
+    { id: "Villa", label: "Villas" },
+    { id: "House", label: "Houses" },
+    { id: "Commercial", label: "Commercial" },
+    { id: "Plot", label: "Plots" },
   ];
 
-  const featuredTours = useMemo(() => {
-    return toursData.filter((t) => t.featured);
+  const featuredProperties = useMemo(() => {
+    return RECOMMENDED_PROPERTIES.slice(0, 6);
   }, []);
 
-  const filteredAndSortedTours = useMemo(() => {
-    let result = toursData.filter((tour) => {
+  const filteredAndSortedProperties = useMemo(() => {
+    let result = ALL_PROPERTIES.filter((property) => {
       const matchesSearch =
-        tour.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        tour.location.toLowerCase().includes(searchQuery.toLowerCase());
+        property.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        property.location.toLowerCase().includes(searchQuery.toLowerCase());
       const matchesCategory =
-        selectedCategory === "All" || tour.category === selectedCategory;
+        selectedCategory === "All" ||
+        property.type.toLowerCase() === selectedCategory.toLowerCase();
       return matchesSearch && matchesCategory;
     });
 
     if (sortBy === "rating") {
-      result.sort((a, b) => parseFloat(b.rating) - parseFloat(a.rating));
+      result.sort((a, b) => (b.rating || 0) - (a.rating || 0));
     } else if (sortBy === "price") {
-      result.sort((a, b) => {
-        const pA = parseInt(a.price.replace(/[^0-9]/g, ""), 10);
-        const pB = parseInt(b.price.replace(/[^0-9]/g, ""), 10);
-        return pA - pB;
-      });
+      result.sort((a, b) => (a.rawPrice || 0) - (b.rawPrice || 0));
     }
 
     return result;
@@ -62,14 +60,14 @@ export default function ExploreScreen() {
     <SafeAreaView style={styles.container}>
       {/* Search Header */}
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Explore</Text>
-        <Text style={styles.headerSubtitle}>Discover curated world travels</Text>
+        <Text style={styles.headerTitle}>Explore Properties</Text>
+        <Text style={styles.headerSubtitle}>Discover verified properties across Chennai</Text>
 
         <View style={styles.searchBar}>
           <Search size={18} color={COLORS.textSecondary} />
           <TextInput
             style={styles.searchInput}
-            placeholder="Search by destination or title..."
+            placeholder="Search by location or property..."
             placeholderTextColor={COLORS.muted}
             value={searchQuery}
             onChangeText={setSearchQuery}
@@ -115,18 +113,18 @@ export default function ExploreScreen() {
           />
         </View>
 
-        {/* Featured Section (when no search query) */}
+        {/* Featured Properties (when no search query) */}
         {!searchQuery && selectedCategory === "All" && (
           <View style={styles.featuredSection}>
             <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>Featured Journeys</Text>
+              <Text style={styles.sectionTitle}>Featured Properties</Text>
               <Text style={styles.featuredCount}>Top Picks</Text>
             </View>
 
             <FlatList
               horizontal
               showsHorizontalScrollIndicator={false}
-              data={featuredTours}
+              data={featuredProperties}
               keyExtractor={(item) => `feat-${item.id}`}
               contentContainerStyle={styles.featuredList}
               renderItem={({ item }) => {
@@ -134,9 +132,7 @@ export default function ExploreScreen() {
                 return (
                   <Pressable
                     style={styles.featuredCard}
-                    onPress={() =>
-                      Alert.alert(item.title, `${item.description}\n\nPrice: ${item.price}`)
-                    }
+                    onPress={() => setSelectedProperty(item)}
                   >
                     <Image source={{ uri: item.image }} style={styles.featuredImage} />
                     <View style={styles.featuredOverlay} />
@@ -168,7 +164,9 @@ export default function ExploreScreen() {
                         <Text style={styles.featuredLocation} numberOfLines={1}>
                           {item.location}
                         </Text>
-                        <Text style={styles.featuredPrice}>{item.price}</Text>
+                        <Text style={styles.featuredPrice}>
+                          {item.price}{item.pricePeriod}
+                        </Text>
                       </View>
                     </View>
                   </Pressable>
@@ -181,7 +179,7 @@ export default function ExploreScreen() {
         {/* Sort Filter Bar */}
         <View style={styles.sortBar}>
           <Text style={styles.resultsCount}>
-            {filteredAndSortedTours.length} {filteredAndSortedTours.length === 1 ? "Tour" : "Tours"} Available
+            {filteredAndSortedProperties.length} {filteredAndSortedProperties.length === 1 ? "Property" : "Properties"} Available
           </Text>
 
           <View style={styles.sortOptions}>
@@ -208,7 +206,7 @@ export default function ExploreScreen() {
                   sortBy === "rating" && styles.sortPillTextActive,
                 ]}
               >
-                ★ Top
+                ★ Top Rated
               </Text>
             </Pressable>
             <Pressable
@@ -221,27 +219,22 @@ export default function ExploreScreen() {
                   sortBy === "price" && styles.sortPillTextActive,
                 ]}
               >
-                $ Low
+                ₹ Price Low
               </Text>
             </Pressable>
           </View>
         </View>
 
-        {/* All Destinations Grid / List */}
-        {filteredAndSortedTours.length > 0 ? (
+        {/* All Properties Grid / List */}
+        {filteredAndSortedProperties.length > 0 ? (
           <View style={styles.gridContainer}>
-            {filteredAndSortedTours.map((item) => {
+            {filteredAndSortedProperties.map((item) => {
               const saved = isWishlisted(item.id);
               return (
                 <Pressable
                   key={item.id}
                   style={styles.gridCard}
-                  onPress={() =>
-                    Alert.alert(
-                      item.title,
-                      `${item.description || item.location}\n\nPrice: ${item.price}\nDuration: ${item.duration}`
-                    )
-                  }
+                  onPress={() => setSelectedProperty(item)}
                 >
                   <View style={styles.gridImageBox}>
                     <Image source={{ uri: item.image }} style={styles.gridImage} />
@@ -269,13 +262,18 @@ export default function ExploreScreen() {
                     <Text style={styles.gridTitle} numberOfLines={1}>
                       {item.title}
                     </Text>
-                    <Text style={styles.gridLocation} numberOfLines={1}>
-                      {item.location}
-                    </Text>
+                    <View style={styles.locationRow}>
+                      <MapPin size={11} color={COLORS.textSecondary} />
+                      <Text style={styles.gridLocation} numberOfLines={1}>
+                        {item.location}
+                      </Text>
+                    </View>
 
                     <View style={styles.gridPriceRow}>
-                      <Text style={styles.gridDuration}>{item.duration}</Text>
-                      <Text style={styles.gridPrice}>{item.price}</Text>
+                      <Text style={styles.gridArea}>{item.sqft} sqft</Text>
+                      <Text style={styles.gridPrice}>
+                        {item.price}{item.pricePeriod}
+                      </Text>
                     </View>
                   </View>
                 </Pressable>
@@ -285,13 +283,23 @@ export default function ExploreScreen() {
         ) : (
           <View style={styles.emptySearch}>
             <Search size={36} color={COLORS.muted} />
-            <Text style={styles.emptySearchTitle}>No destinations found</Text>
+            <Text style={styles.emptySearchTitle}>No properties found</Text>
             <Text style={styles.emptySearchSub}>
-              We couldn't find matches for "{searchQuery}". Try a different keyword.
+              We couldn't find matches for "{searchQuery}". Try a different location or keyword.
             </Text>
           </View>
         )}
       </ScrollView>
+
+      {/* Property Detail Modal */}
+      <PropertyDetailModal
+        visible={!!selectedProperty}
+        property={selectedProperty}
+        onClose={() => setSelectedProperty(null)}
+        onSelectProperty={(p) => setSelectedProperty(p)}
+        isWishlisted={isWishlisted}
+        onToggleWishlist={toggleWishlist}
+      />
     </SafeAreaView>
   );
 }
@@ -332,7 +340,6 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 13,
     color: COLORS.textPrimary,
-    outlineStyle: "none",
   },
   scrollContent: {
     paddingBottom: 30,
@@ -345,11 +352,8 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   categoryChip: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-    paddingVertical: 7,
     paddingHorizontal: 14,
+    paddingVertical: 8,
     borderRadius: 20,
     backgroundColor: COLORS.white,
     borderWidth: 1,
@@ -360,7 +364,7 @@ const styles = StyleSheet.create({
     borderColor: COLORS.primary,
   },
   categoryChipText: {
-    fontSize: 12,
+    fontSize: 12.5,
     fontWeight: "500",
     color: COLORS.textSecondary,
   },
@@ -379,8 +383,8 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   sectionTitle: {
-    fontSize: 12,
-    fontWeight: "400",
+    fontSize: 16,
+    fontWeight: "700",
     color: COLORS.textPrimary,
   },
   featuredCount: {
@@ -394,10 +398,11 @@ const styles = StyleSheet.create({
   },
   featuredCard: {
     width: 240,
-    height: 180,
+    height: 160,
     borderRadius: 16,
     overflow: "hidden",
     position: "relative",
+    backgroundColor: COLORS.cardBg,
   },
   featuredImage: {
     width: "100%",
@@ -405,21 +410,21 @@ const styles = StyleSheet.create({
   },
   featuredOverlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: "rgba(0,0,0,0.32)",
+    backgroundColor: "rgba(0,0,0,0.35)",
   },
   featuredHeartBtn: {
     position: "absolute",
     top: 10,
     right: 10,
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
     backgroundColor: "rgba(0,0,0,0.35)",
-    alignItems: "center",
     justifyContent: "center",
+    alignItems: "center",
   },
   featuredHeartBtnActive: {
-    backgroundColor: "rgba(255,255,255,0.92)",
+    backgroundColor: COLORS.white,
   },
   featuredInfo: {
     position: "absolute",
@@ -430,40 +435,40 @@ const styles = StyleSheet.create({
   featuredRatingBadge: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "rgba(0,0,0,0.55)",
-    paddingHorizontal: 7,
-    paddingVertical: 3,
-    borderRadius: 8,
     alignSelf: "flex-start",
-    gap: 4,
-    marginBottom: 6,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 6,
+    gap: 3,
+    marginBottom: 4,
   },
   featuredRatingText: {
-    color: COLORS.white,
     fontSize: 11,
     fontWeight: "600",
+    color: COLORS.white,
   },
   featuredTitle: {
-    color: COLORS.white,
-    fontSize: 15,
+    fontSize: 14,
     fontWeight: "700",
+    color: COLORS.white,
+    marginBottom: 2,
   },
   featuredBottomRow: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginTop: 4,
   },
   featuredLocation: {
-    color: "rgba(255,255,255,0.85)",
-    fontSize: 12,
+    fontSize: 11,
+    color: "rgba(255,255,255,0.8)",
     flex: 1,
-    marginRight: 6,
+    marginRight: 8,
   },
   featuredPrice: {
-    color: COLORS.white,
-    fontSize: 14,
+    fontSize: 12,
     fontWeight: "700",
+    color: COLORS.white,
   },
   sortBar: {
     flexDirection: "row",
@@ -473,7 +478,7 @@ const styles = StyleSheet.create({
     marginBottom: 14,
   },
   resultsCount: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: "600",
     color: COLORS.textPrimary,
   },
@@ -482,13 +487,16 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   sortPill: {
-    paddingVertical: 4,
     paddingHorizontal: 10,
+    paddingVertical: 4,
     borderRadius: 12,
-    backgroundColor: "#EEEEEE",
+    backgroundColor: COLORS.white,
+    borderWidth: 1,
+    borderColor: COLORS.border,
   },
   sortPillActive: {
-    backgroundColor: COLORS.primaryLight,
+    backgroundColor: COLORS.primary,
+    borderColor: COLORS.primary,
   },
   sortPillText: {
     fontSize: 11,
@@ -496,7 +504,7 @@ const styles = StyleSheet.create({
     color: COLORS.textSecondary,
   },
   sortPillTextActive: {
-    color: COLORS.primary,
+    color: COLORS.white,
     fontWeight: "600",
   },
   gridContainer: {
@@ -504,15 +512,20 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     flexWrap: "wrap",
     justifyContent: "space-between",
-    gap: 14,
   },
   gridCard: {
     width: "48%",
     backgroundColor: COLORS.white,
     borderRadius: 14,
     overflow: "hidden",
+    marginBottom: 14,
     borderWidth: 1,
     borderColor: COLORS.border,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.04,
+    shadowRadius: 4,
+    elevation: 1,
   },
   gridImageBox: {
     height: 110,
@@ -526,15 +539,15 @@ const styles = StyleSheet.create({
     position: "absolute",
     top: 8,
     right: 8,
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: "rgba(0,0,0,0.4)",
-    alignItems: "center",
+    width: 26,
+    height: 26,
+    borderRadius: 13,
+    backgroundColor: "rgba(0,0,0,0.35)",
     justifyContent: "center",
+    alignItems: "center",
   },
   gridHeartBtnActive: {
-    backgroundColor: "rgba(255,255,255,0.92)",
+    backgroundColor: COLORS.white,
   },
   gridRating: {
     position: "absolute",
@@ -542,42 +555,45 @@ const styles = StyleSheet.create({
     left: 6,
     flexDirection: "row",
     alignItems: "center",
-    gap: 3,
     backgroundColor: "rgba(0,0,0,0.6)",
-    paddingHorizontal: 6,
+    paddingHorizontal: 5,
     paddingVertical: 2,
     borderRadius: 6,
+    gap: 3,
   },
   gridRatingText: {
-    color: COLORS.white,
     fontSize: 10,
     fontWeight: "600",
+    color: COLORS.white,
   },
   gridDetails: {
     padding: 10,
   },
   gridTitle: {
-    fontSize: 13,
-    fontWeight: "700",
+    fontSize: 12.5,
+    fontWeight: "600",
     color: COLORS.textPrimary,
+    marginBottom: 2,
+  },
+  locationRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 6,
+    gap: 2,
   },
   gridLocation: {
-    fontSize: 11,
+    fontSize: 10.5,
     color: COLORS.textSecondary,
-    marginTop: 2,
+    flex: 1,
   },
   gridPriceRow: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginTop: 8,
-    paddingTop: 6,
-    borderTopWidth: 1,
-    borderTopColor: "#F4F4F4",
   },
-  gridDuration: {
-    fontSize: 10,
-    color: COLORS.textSecondary,
+  gridArea: {
+    fontSize: 10.5,
+    color: COLORS.muted,
   },
   gridPrice: {
     fontSize: 12,
@@ -586,19 +602,20 @@ const styles = StyleSheet.create({
   },
   emptySearch: {
     alignItems: "center",
-    paddingHorizontal: 30,
-    marginTop: 40,
+    paddingVertical: 48,
+    paddingHorizontal: 32,
   },
   emptySearchTitle: {
     fontSize: 16,
-    fontWeight: "700",
+    fontWeight: "600",
     color: COLORS.textPrimary,
-    marginTop: 10,
+    marginTop: 12,
+    marginBottom: 6,
   },
   emptySearchSub: {
-    fontSize: 12,
+    fontSize: 12.5,
     color: COLORS.textSecondary,
     textAlign: "center",
-    marginTop: 4,
+    lineHeight: 18,
   },
 });

@@ -26,67 +26,70 @@ import COLORS from "../constants/colors";
 const INITIAL_CHATS = [
   {
     id: "1",
-    name: "Wayan Sudra",
-    role: "Bali Tour Guide",
+    name: "Ramesh Kumar",
+    role: "Property Consultant",
+    agency: "Chennai Prime Realty",
     avatar:
-      "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80",
+      "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=200&q=80",
     online: true,
-    category: "Guides",
-    lastMessage: "Looking forward to showing you the Ubud rice terraces tomorrow!",
+    category: "Agents",
+    lastMessage: "Looking forward to showing you Emerald Heights Luxury 3BHK tomorrow!",
     time: "10:42 AM",
     unread: 2,
     messages: [
-      { id: "m1", sender: "them", text: "Om Swastiastu! Welcome to Bali! 🌴", time: "10:30 AM" },
-      { id: "m2", sender: "me", text: "Hi Wayan! What time will we meet tomorrow?", time: "10:35 AM" },
-      { id: "m3", sender: "them", text: "I will pick you up at your villa at 8:00 AM sharp.", time: "10:40 AM" },
-      { id: "m4", sender: "them", text: "Looking forward to showing you the Ubud rice terraces tomorrow!", time: "10:42 AM" },
+      { id: "m1", sender: "them", text: "Hello! Welcome to RESTAMP Property Services 🏡", time: "10:30 AM" },
+      { id: "m2", sender: "me", text: "Hi Ramesh! What time is our site visit tomorrow?", time: "10:35 AM" },
+      { id: "m3", sender: "them", text: "I will meet you at the property gate at 11:00 AM sharp.", time: "10:40 AM" },
+      { id: "m4", sender: "them", text: "Looking forward to showing you Emerald Heights Luxury 3BHK tomorrow!", time: "10:42 AM" },
     ],
   },
   {
     id: "2",
-    name: "Stefan Keller",
-    role: "Swiss Alps Expedition",
+    name: "Sriya Sundaram",
+    role: "Luxury Estates Specialist",
+    agency: "ECR Luxury Estates",
     avatar:
-      "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=200&q=80",
+      "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=200&q=80",
     online: true,
-    category: "Guides",
-    lastMessage: "The mountain weather is clear for the Jungfrau rail trek.",
+    category: "Agents",
+    lastMessage: "The owner is open to negotiation on token advance for Sea Breeze Villa.",
     time: "Yesterday",
     unread: 0,
     messages: [
-      { id: "m1", sender: "them", text: "Hello! Don't forget your warm layers for tomorrow.", time: "Yesterday" },
-      { id: "m2", sender: "them", text: "The mountain weather is clear for the Jungfrau rail trek.", time: "Yesterday" },
+      { id: "m1", sender: "them", text: "Hello Alex! I received your inquiry for the ECR Beach Road Villa.", time: "Yesterday" },
+      { id: "m2", sender: "them", text: "The owner is open to negotiation on token advance for Sea Breeze Villa.", time: "Yesterday" },
     ],
   },
   {
     id: "3",
-    name: "Tourvaa Concierge",
-    role: "24/7 Premium Support",
+    name: "RESTAMP Support",
+    role: "24/7 Verified Support",
     avatar:
-      "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=200&q=80",
+      "https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=200&q=80",
     online: false,
     category: "Support",
-    lastMessage: "Your flight transfer confirmation has been sent to your email.",
+    lastMessage: "Your property title deed verification request #RS-8821 is complete.",
     time: "2 days ago",
     unread: 0,
     messages: [
-      { id: "m1", sender: "them", text: "Hi Alex, your booking #TV-8821 is confirmed!", time: "2 days ago" },
-      { id: "m2", sender: "them", text: "Your flight transfer confirmation has been sent to your email.", time: "2 days ago" },
+      { id: "m1", sender: "them", text: "Hi Alex, your enquiry #RS-8821 has been verified!", time: "2 days ago" },
+      { id: "m2", sender: "them", text: "Your property title deed verification request #RS-8821 is complete.", time: "2 days ago" },
     ],
   },
   {
     id: "4",
-    name: "Elena Rostova",
-    role: "Kyoto Heritage Host",
+    name: "Karthik Raja",
+    role: "Property Owner",
+    agency: "Besant Nagar Garden Duplex",
     avatar:
-      "https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=200&q=80",
+      "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=200&q=80",
     online: false,
-    category: "Guides",
-    lastMessage: "I reserved our traditional matcha tea ceremony seats.",
+    category: "Owners",
+    lastMessage: "I have shared the floor plan and video walkthrough for the duplex.",
     time: "3 days ago",
     unread: 0,
     messages: [
-      { id: "m1", sender: "them", text: "Konnichiwa! I reserved our traditional matcha tea ceremony seats.", time: "3 days ago" },
+      { id: "m1", sender: "them", text: "Hi! I have shared the floor plan and video walkthrough for the duplex.", time: "3 days ago" },
     ],
   },
 ];
@@ -98,7 +101,7 @@ export default function MessageScreen() {
   const [activeChat, setActiveChat] = useState(null);
   const [inputMessage, setInputMessage] = useState("");
 
-  const filters = ["All", "Guides", "Support", "Unread"];
+  const filters = ["All", "Agents", "Owners", "Support", "Unread"];
 
   const filteredChats = chats.filter((chat) => {
     const matchesSearch =
@@ -144,12 +147,12 @@ export default function MessageScreen() {
     );
     setInputMessage("");
 
-    // Realistic auto-reply from guide after 1 second
+    // Realistic auto-reply from property consultant after 1 second
     setTimeout(() => {
       const replies = [
-        "Got it! Let me know if you need any other recommendations.",
-        "Perfect, I've noted that down for your itinerary!",
-        "Sounds great! Looking forward to an amazing experience together.",
+        "Got it! Let me check the property availability and get back to you shortly.",
+        "Perfect, I've noted down your preferred time for the site visit!",
+        "Sounds great! I will share the property brochure and pricing breakup.",
       ];
       const randomReply = replies[Math.floor(Math.random() * replies.length)];
       const replyMsg = {
@@ -196,7 +199,7 @@ export default function MessageScreen() {
         <Pressable
           style={styles.newChatBtn}
           onPress={() => {
-            alert("Starting a new inquiry with Tourvaa travel guides.");
+            alert("Starting a new enquiry with a RESTAMP property consultant.");
           }}
         >
           <SquarePen size={18} color={COLORS.primary} />
@@ -209,7 +212,7 @@ export default function MessageScreen() {
           <Search size={16} color={COLORS.textSecondary} />
           <TextInput
             style={styles.searchInput}
-            placeholder="Search guides or messages..."
+            placeholder="Search agents, owners or messages..."
             placeholderTextColor={COLORS.muted}
             value={searchQuery}
             onChangeText={setSearchQuery}

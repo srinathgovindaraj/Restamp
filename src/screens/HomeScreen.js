@@ -19,6 +19,7 @@ import {
   Briefcase,
   LayoutGrid,
   Bell,
+  Menu,
   Search,
   XCircle,
   Heart,
@@ -31,6 +32,8 @@ import {
   Tag,
   Info,
   X,
+  ChevronDown,
+  SlidersHorizontal,
 } from "lucide-react-native";
 import COLORS from "../constants/colors";
 import TYPOGRAPHY from "../constants/typography";
@@ -46,6 +49,8 @@ import {
 } from "../data/properties";
 import { useWishlist } from "../context/WishlistContext";
 import PropertyDetailModal from "../components/PropertyDetailModal";
+import RestampLogo from "../components/RestampLogo";
+import SearchPropertyModal from "../components/SearchPropertyModal";
 
 const { width } = Dimensions.get("window");
 const CARD_WIDTH = width * 0.78;
@@ -72,6 +77,59 @@ const BUDGET_OPTIONS = [
   "₹50L - ₹1Cr",
   "₹1Cr - ₹2Cr",
   "₹2Cr+",
+];
+
+const BUY_MIN_BUDGETS = [
+  { label: "Min Amount", value: 0 },
+  { label: "₹20 Lacs", value: 2000000 },
+  { label: "₹40 Lacs", value: 4000000 },
+  { label: "₹60 Lacs", value: 6000000 },
+  { label: "₹80 Lacs", value: 8000000 },
+  { label: "₹1 Crore", value: 10000000 },
+  { label: "₹1.5 Crore", value: 15000000 },
+  { label: "₹2 Crore", value: 20000000 },
+  { label: "₹3 Crore", value: 30000000 },
+  { label: "₹5 Crore", value: 50000000 },
+];
+
+const BUY_MAX_BUDGETS = [
+  { label: "High / Max Amount", value: Infinity },
+  { label: "₹40 Lacs", value: 4000000 },
+  { label: "₹60 Lacs", value: 6000000 },
+  { label: "₹80 Lacs", value: 8000000 },
+  { label: "₹1 Crore", value: 10000000 },
+  { label: "₹1.5 Crore", value: 15000000 },
+  { label: "₹2 Crore", value: 20000000 },
+  { label: "₹3 Crore", value: 30000000 },
+  { label: "₹5 Crore", value: 50000000 },
+  { label: "₹10 Crore+", value: 100000000 },
+];
+
+const RENT_MIN_BUDGETS = [
+  { label: "Min Amount", value: 0 },
+  { label: "₹10,000", value: 10000 },
+  { label: "₹20,000", value: 20000 },
+  { label: "₹35,000", value: 35000 },
+  { label: "₹50,000", value: 50000 },
+  { label: "₹75,000", value: 75000 },
+  { label: "₹1 Lakh", value: 100000 },
+];
+
+const RENT_MAX_BUDGETS = [
+  { label: "High / Max Amount", value: Infinity },
+  { label: "₹25,000", value: 25000 },
+  { label: "₹50,000", value: 50000 },
+  { label: "₹75,000", value: 75000 },
+  { label: "₹1 Lakh", value: 100000 },
+  { label: "₹1.5 Lakh", value: 150000 },
+  { label: "₹2 Lakh+", value: 200000 },
+];
+
+const CONSTRUCTION_STATUS_OPTIONS = [
+  "All Status",
+  "Ready to move",
+  "Under Construction",
+  "New Launch",
 ];
 
 const BHK_OPTIONS = ["All BHK", "1 BHK", "2 BHK", "3 BHK", "4+ BHK"];
@@ -109,12 +167,61 @@ export default function HomeScreen({ navigation }) {
   const [localityInput, setLocalityInput] = useState("");
   const [modalType, setModalType] = useState("Apartment");
   const [modalBudget, setModalBudget] = useState("All Budgets");
+  const [minBudget, setMinBudget] = useState(0);
+  const [maxBudget, setMaxBudget] = useState(Infinity);
+  const [isMinDropdownOpen, setIsMinDropdownOpen] = useState(false);
+  const [isMaxDropdownOpen, setIsMaxDropdownOpen] = useState(false);
+  const [constructionStatus, setConstructionStatus] = useState("All Status");
   const [modalBhk, setModalBhk] = useState("All BHK");
 
   // Demand & Newly Launched States
   const [demandRegion, setDemandRegion] = useState("Chennai South");
-  const [demandFeedback, setDemandFeedback] = useState(null);
   const [revealedProjectPhone, setRevealedProjectPhone] = useState(null);
+
+  const isRentDeal = dealType === "Rent" || dealType === "Lease";
+  const currentMinList = isRentDeal ? RENT_MIN_BUDGETS : BUY_MIN_BUDGETS;
+  const currentMaxList = isRentDeal ? RENT_MAX_BUDGETS : BUY_MAX_BUDGETS;
+
+  const formatBudgetDisplay = (val) => {
+    if (val === 0) return "Min";
+    if (val === Infinity) return "Max";
+    if (isRentDeal) {
+      return `₹${val.toLocaleString("en-IN")}`;
+    }
+    if (val >= 10000000) {
+      return `₹${val / 10000000} Cr`;
+    }
+    return `₹${val / 100000} L`;
+  };
+
+  const budgetSummaryText = useMemo(() => {
+    if (minBudget === 0 && maxBudget === Infinity) return "All Budgets";
+    if (minBudget === 0) return `Up to ${formatBudgetDisplay(maxBudget)}`;
+    if (maxBudget === Infinity) return `${formatBudgetDisplay(minBudget)}+`;
+    return `${formatBudgetDisplay(minBudget)} - ${formatBudgetDisplay(maxBudget)}`;
+  }, [minBudget, maxBudget, isRentDeal]);
+
+  const handleSelectBudgetPreset = (bg) => {
+    setModalBudget(bg);
+    setIsMinDropdownOpen(false);
+    setIsMaxDropdownOpen(false);
+    if (bg === "All Budgets") {
+      setMinBudget(0);
+      setMaxBudget(Infinity);
+    } else if (bg === "Under ₹50L") {
+      setMinBudget(0);
+      setMaxBudget(5000000);
+    } else if (bg === "₹50L - ₹1Cr") {
+      setMinBudget(5000000);
+      setMaxBudget(10000000);
+    } else if (bg === "₹1Cr - ₹2Cr") {
+      setMinBudget(10000000);
+      setMaxBudget(20000000);
+    } else if (bg === "₹2Cr+") {
+      setMinBudget(20000000);
+      setMaxBudget(Infinity);
+    }
+  };
 
   const filterProperties = (list) => {
     return list.filter((item) => {
@@ -138,6 +245,18 @@ export default function HomeScreen({ navigation }) {
         } else if (item.beds !== num) {
           return false;
         }
+      }
+
+      // Budget Min / High filter
+      if (item.rawPrice) {
+        if (minBudget > 0 && item.rawPrice < minBudget) return false;
+        if (maxBudget < Infinity && item.rawPrice > maxBudget) return false;
+      }
+
+      // Construction Status filter
+      if (constructionStatus && constructionStatus !== "All Status") {
+        const itemStatus = item.constructionStatus || (item.badge === "New Launch" || item.type === "Plot" ? "New Launch" : "Ready to move");
+        if (itemStatus.toLowerCase() !== constructionStatus.toLowerCase()) return false;
       }
 
       // Text query
@@ -165,19 +284,52 @@ export default function HomeScreen({ navigation }) {
       if (selectedLocality && !item.location.toLowerCase().includes(selectedLocality.toLowerCase())) {
         return false;
       }
+      if (modalBhk && modalBhk !== "All BHK") {
+        const num = parseInt(modalBhk);
+        if (modalBhk === "4+ BHK") {
+          if (item.beds < 4) return false;
+        } else if (item.beds !== num) {
+          return false;
+        }
+      }
+      if (item.rawPrice) {
+        if (minBudget > 0 && item.rawPrice < minBudget) return false;
+        if (maxBudget < Infinity && item.rawPrice > maxBudget) return false;
+      }
+      if (constructionStatus && constructionStatus !== "All Status") {
+        const itemStatus = item.constructionStatus || (item.badge === "New Launch" || item.type === "Plot" ? "New Launch" : "Ready to move");
+        if (itemStatus.toLowerCase() !== constructionStatus.toLowerCase()) return false;
+      }
       return true;
     }).length || ALL_PROPERTIES.length;
-  }, [dealType, selectedLocality]);
+  }, [dealType, selectedLocality, modalBhk, minBudget, maxBudget, constructionStatus]);
 
   const handleApplyModalFilters = () => {
+    setIsMinDropdownOpen(false);
+    setIsMaxDropdownOpen(false);
     setIsSearchModalOpen(false);
+    navigation.navigate("Search", {
+      locality: selectedLocality || localityInput || "",
+      dealType: dealType,
+      propertyType: modalType,
+      bhk: modalBhk,
+      budgetMin: minBudget,
+      budgetMax: maxBudget,
+      constructionStatus: constructionStatus,
+    });
   };
 
   const handleClearModalFilters = () => {
     setSelectedLocality("");
     setLocalityInput("");
+    setModalType("Apartment");
     setModalBudget("All Budgets");
+    setMinBudget(0);
+    setMaxBudget(Infinity);
+    setIsMinDropdownOpen(false);
+    setIsMaxDropdownOpen(false);
     setModalBhk("All BHK");
+    setConstructionStatus("All Status");
   };
 
   return (
@@ -193,18 +345,28 @@ export default function HomeScreen({ navigation }) {
           {/* Left Side Restamp Logotype */}
           <View style={styles.logoContainer}>
             <View style={styles.logoIconBg}>
-              <HomeIcon size={16} color="#FFFFFF" />
+              <RestampLogo size={28} />
             </View>
             <Text style={styles.logoText}>
               Res<Text style={styles.logoTextAccent}>tamp</Text>
             </Text>
           </View>
 
-          {/* Right Side Notification Action */}
-          <TouchableOpacity style={styles.notificationBtn} activeOpacity={0.8}>
-            <Bell size={20} color={COLORS.textDark} />
-            <View style={styles.notificationDot} />
-          </TouchableOpacity>
+          {/* Right Side Header Actions: Notification Bell + Menu Button */}
+          <View style={styles.headerRightActions}>
+            <TouchableOpacity style={styles.notificationBtn} activeOpacity={0.8}>
+              <Bell size={20} color={COLORS.textDark} />
+              <View style={styles.notificationDot} />
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.menuHeaderBtn}
+              activeOpacity={0.8}
+              onPress={() => navigation.navigate("Menu")}
+            >
+              <Menu size={22} color={COLORS.textDark} />
+            </TouchableOpacity>
+          </View>
         </View>
 
         {/* ================= TOP SECTION (BUY / RENT / LEASE, SEARCH, CHIPS) ================= */}
@@ -234,7 +396,7 @@ export default function HomeScreen({ navigation }) {
             })}
           </View>
 
-          {/* 2. SEARCH BAR (CLICK OPENS LOCALITY & DOWN FILTER MODAL) */}
+          {/* 2. SEARCH BAR (INBUILT FILTER, CLICK ASKS FILTER) */}
           <View style={styles.searchRow}>
             <TouchableOpacity
               style={styles.searchInputContainer}
@@ -242,12 +404,32 @@ export default function HomeScreen({ navigation }) {
               onPress={() => setIsSearchModalOpen(true)}
             >
               <Search size={18} color="#94A3B8" style={styles.searchIcon} />
-              {selectedLocality ? (
-                <View style={styles.activeLocalityTag}>
-                  <Text style={styles.activeLocalityTagText}>{selectedLocality}</Text>
-                  <TouchableOpacity onPress={() => setSelectedLocality("")}>
-                    <XCircle size={15} color={COLORS.primary} style={{ marginLeft: 4 }} />
-                  </TouchableOpacity>
+              {selectedLocality || (minBudget > 0 || maxBudget < Infinity) || (constructionStatus !== "All Status") ? (
+                <View style={{ flexDirection: "row", alignItems: "center", flexWrap: "wrap", gap: 6, flex: 1 }}>
+                  {selectedLocality ? (
+                    <View style={styles.activeLocalityTag}>
+                      <Text style={styles.activeLocalityTagText}>{selectedLocality}</Text>
+                      <TouchableOpacity onPress={() => setSelectedLocality("")}>
+                        <XCircle size={15} color={COLORS.primary} style={{ marginLeft: 4 }} />
+                      </TouchableOpacity>
+                    </View>
+                  ) : null}
+                  {(minBudget > 0 || maxBudget < Infinity) ? (
+                    <View style={styles.activeLocalityTag}>
+                      <Text style={styles.activeLocalityTagText}>{budgetSummaryText}</Text>
+                      <TouchableOpacity onPress={() => { setMinBudget(0); setMaxBudget(Infinity); setModalBudget("All Budgets"); }}>
+                        <XCircle size={15} color={COLORS.primary} style={{ marginLeft: 4 }} />
+                      </TouchableOpacity>
+                    </View>
+                  ) : null}
+                  {constructionStatus !== "All Status" ? (
+                    <View style={styles.activeLocalityTag}>
+                      <Text style={styles.activeLocalityTagText}>{constructionStatus}</Text>
+                      <TouchableOpacity onPress={() => setConstructionStatus("All Status")}>
+                        <XCircle size={15} color={COLORS.primary} style={{ marginLeft: 4 }} />
+                      </TouchableOpacity>
+                    </View>
+                  ) : null}
                 </View>
               ) : (
                 <Text style={styles.searchPlaceholderText}>
@@ -270,7 +452,14 @@ export default function HomeScreen({ navigation }) {
                   key={pt.id}
                   style={styles.circleCategoryItem}
                   activeOpacity={0.8}
-                  onPress={() => setSelectedType(isSelected ? "" : pt.id)}
+                  onPress={() => {
+                    setSelectedType(pt.id);
+                    navigation.navigate("Search", {
+                      propertyType: pt.name,
+                      dealType: dealType,
+                      locality: selectedLocality || "",
+                    });
+                  }}
                 >
                   <View
                     style={[
@@ -357,7 +546,7 @@ export default function HomeScreen({ navigation }) {
             <Text style={styles.sectionTitle}>Verified Properties</Text>
             <View style={styles.verifiedTag}>
               <CheckCircle2 size={13} color="#16A34A" style={{ marginRight: 3 }} />
-              <Text style={styles.verifiedTagText}>99Verified</Text>
+              <Text style={styles.verifiedTagText}>Verified</Text>
             </View>
           </View>
         </View>
@@ -420,14 +609,6 @@ export default function HomeScreen({ navigation }) {
                     <Text style={styles.locationAddress} numberOfLines={1}>
                       {property.location}
                     </Text>
-                  </View>
-
-                  <View style={styles.specsRow}>
-                    <Text style={styles.specText}>🛏️ {property.beds} Beds</Text>
-                    <Text style={styles.specDot}>•</Text>
-                    <Text style={styles.specText}>🚿 {property.baths} Baths</Text>
-                    <Text style={styles.specDot}>•</Text>
-                    <Text style={styles.specText}>📐 {property.sqft} sqft</Text>
                   </View>
                 </View>
               </TouchableOpacity>
@@ -497,14 +678,6 @@ export default function HomeScreen({ navigation }) {
                     <Text style={styles.locationAddress} numberOfLines={1}>
                       {property.location}
                     </Text>
-                  </View>
-
-                  <View style={styles.specsRow}>
-                    <Text style={styles.specText}>🛏️ {property.beds} Beds</Text>
-                    <Text style={styles.specDot}>•</Text>
-                    <Text style={styles.specText}>🚿 {property.baths} Baths</Text>
-                    <Text style={styles.specDot}>•</Text>
-                    <Text style={styles.specText}>📐 {property.sqft} sqft</Text>
                   </View>
                 </View>
               </TouchableOpacity>
@@ -674,24 +847,6 @@ export default function HomeScreen({ navigation }) {
           ))}
         </ScrollView>
 
-        {/* Feedback Row */}
-        <View style={styles.feedbackRow}>
-          <Text style={styles.feedbackPrompt}>Is this helpful?</Text>
-          <TouchableOpacity
-            style={[styles.feedbackBtn, demandFeedback === "yes" && styles.feedbackBtnActive]}
-            activeOpacity={0.8}
-            onPress={() => setDemandFeedback(demandFeedback === "yes" ? null : "yes")}
-          >
-            <Text style={styles.feedbackBtnText}>Yes 👍</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.feedbackBtn, demandFeedback === "no" && styles.feedbackBtnActive]}
-            activeOpacity={0.8}
-            onPress={() => setDemandFeedback(demandFeedback === "no" ? null : "no")}
-          >
-            <Text style={styles.feedbackBtnText}>No 👎</Text>
-          </TouchableOpacity>
-        </View>
 
         {/* ================= EXPLORE BY LOCATION ================= */}
         <View style={styles.sectionHeader}>
@@ -709,7 +864,7 @@ export default function HomeScreen({ navigation }) {
               style={styles.locationCard}
               activeOpacity={0.85}
               onPress={() => {
-                setSelectedLocality(loc.name.split(" ")[0]);
+                setSelectedLocality(loc.name);
               }}
             >
               <Image source={{ uri: loc.image }} style={styles.locationCardImage} />
@@ -723,161 +878,41 @@ export default function HomeScreen({ navigation }) {
         </ScrollView>
       </ScrollView>
 
-      {/* ========================================================================= */}
-      {/* SEARCH CLICK POPUP: ASK LOCALITY AND SHOW DOWN THE FILTER                */}
-      {/* ========================================================================= */}
-      <Modal
+      {/* ================= SEARCH PROPERTY FILTER MODAL ================= */}
+      <SearchPropertyModal
         visible={isSearchModalOpen}
-        animationType="slide"
-        transparent={false}
-        onRequestClose={() => setIsSearchModalOpen(false)}
-      >
-        <SafeAreaView style={styles.modalSafeArea}>
-          {/* Modal Header */}
-          <View style={styles.modalHeader}>
-            <Text style={styles.modalHeaderTitle}>Search Property</Text>
-            <TouchableOpacity
-              style={styles.modalCloseBtn}
-              onPress={() => setIsSearchModalOpen(false)}
-            >
-              <X size={20} color="#0F172A" />
-            </TouchableOpacity>
-          </View>
+        onClose={() => setIsSearchModalOpen(false)}
+        onApply={(filters) => {
+          setIsSearchModalOpen(false);
+          setSelectedLocality(filters.locality);
+          setLocalityInput(filters.locality);
+          setModalType(filters.propertyType);
+          setModalBhk(filters.bhk);
+          setMinBudget(filters.budgetMin);
+          setMaxBudget(filters.budgetMax);
+          setConstructionStatus(filters.constructionStatus);
+          if (filters.modalBudget) setModalBudget(filters.modalBudget);
 
-          <ScrollView
-            style={styles.modalScroll}
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={styles.modalScrollContent}
-          >
-            {/* 1. ASK LOCALITY INPUT */}
-            <View style={styles.modalCard}>
-              <Text style={styles.modalSectionLabel}>Enter Locality in Chennai</Text>
-              <View style={styles.modalInputRow}>
-                <Search size={18} color="#94A3B8" style={{ marginRight: 8 }} />
-                <TextInput
-                  style={styles.modalTextInput}
-                  placeholder="Search locality, project, landmark..."
-                  placeholderTextColor="#94A3B8"
-                  value={localityInput}
-                  onChangeText={(text) => {
-                    setLocalityInput(text);
-                    setSelectedLocality(text);
-                  }}
-                />
-                {localityInput.length > 0 && (
-                  <TouchableOpacity onPress={() => { setLocalityInput(""); setSelectedLocality(""); }}>
-                    <XCircle size={16} color="#94A3B8" />
-                  </TouchableOpacity>
-                )}
-              </View>
-
-              {/* Popular Localities Chips */}
-              <Text style={styles.modalSubLabel}>Popular Localities</Text>
-              <View style={styles.chipsWrap}>
-                {LOCALITY_LIST.filter((loc) =>
-                  loc.toLowerCase().includes(localityInput.toLowerCase())
-                ).map((loc) => {
-                  const isLocSelected = selectedLocality.toLowerCase() === loc.toLowerCase();
-                  return (
-                    <TouchableOpacity
-                      key={loc}
-                      style={[styles.localityChip, isLocSelected && styles.localityChipSelected]}
-                      onPress={() => {
-                        setSelectedLocality(loc);
-                        setLocalityInput(loc);
-                      }}
-                    >
-                      <Text style={[styles.localityChipText, isLocSelected && styles.localityChipTextSelected]}>
-                        {isLocSelected ? "✓ " : "+ "}{loc}
-                      </Text>
-                    </TouchableOpacity>
-                  );
-                })}
-              </View>
-            </View>
-
-            {/* 2. DOWN THE FILTER: PROPERTY TYPE */}
-            <View style={styles.modalCard}>
-              <Text style={styles.modalSectionLabel}>Property Type</Text>
-              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
-                {["Apartment", "Villa", "House", "Commercial", "Plot"].map((type) => {
-                  const isSelected = modalType === type;
-                  return (
-                    <TouchableOpacity
-                      key={type}
-                      style={[styles.modalFilterChip, isSelected && styles.modalFilterChipActive]}
-                      onPress={() => setModalType(type)}
-                    >
-                      <Text style={[styles.modalFilterChipText, isSelected && styles.modalFilterChipTextActive]}>
-                        {type}
-                      </Text>
-                    </TouchableOpacity>
-                  );
-                })}
-              </ScrollView>
-            </View>
-
-            {/* 3. DOWN THE FILTER: BUDGET */}
-            <View style={styles.modalCard}>
-              <Text style={styles.modalSectionLabel}>Budget</Text>
-              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
-                {BUDGET_OPTIONS.map((bg) => {
-                  const isSelected = modalBudget === bg;
-                  return (
-                    <TouchableOpacity
-                      key={bg}
-                      style={[styles.modalFilterChip, isSelected && styles.modalFilterChipActive]}
-                      onPress={() => setModalBudget(bg)}
-                    >
-                      <Text style={[styles.modalFilterChipText, isSelected && styles.modalFilterChipTextActive]}>
-                        {bg}
-                      </Text>
-                    </TouchableOpacity>
-                  );
-                })}
-              </ScrollView>
-            </View>
-
-            {/* 4. DOWN THE FILTER: BHK */}
-            <View style={styles.modalCard}>
-              <Text style={styles.modalSectionLabel}>Bedrooms (BHK)</Text>
-              <View style={styles.bhkRow}>
-                {BHK_OPTIONS.map((bhk) => {
-                  const isSelected = modalBhk === bhk;
-                  return (
-                    <TouchableOpacity
-                      key={bhk}
-                      style={[styles.bhkPill, isSelected && styles.bhkPillActive]}
-                      onPress={() => setModalBhk(bhk)}
-                    >
-                      <Text style={[styles.bhkPillText, isSelected && styles.bhkPillTextActive]}>
-                        {bhk}
-                      </Text>
-                    </TouchableOpacity>
-                  );
-                })}
-              </View>
-            </View>
-          </ScrollView>
-
-          {/* Modal Bottom Action Bar */}
-          <View style={styles.modalBottomBar}>
-            <TouchableOpacity style={styles.modalResetBtn} onPress={handleClearModalFilters}>
-              <Text style={styles.modalResetText}>Clear All</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={styles.modalShowBtn}
-              activeOpacity={0.85}
-              onPress={handleApplyModalFilters}
-            >
-              <Text style={styles.modalShowBtnText}>
-                Show {modalMatchedCount} Properties
-              </Text>
-            </TouchableOpacity>
-          </View>
-        </SafeAreaView>
-      </Modal>
+          navigation.navigate("Search", {
+            locality: filters.locality,
+            dealType: dealType,
+            propertyType: filters.propertyType,
+            bhk: filters.bhk,
+            budgetMin: filters.budgetMin,
+            budgetMax: filters.budgetMax,
+            constructionStatus: filters.constructionStatus,
+            openFilterModal: false,
+          });
+        }}
+        dealType={dealType}
+        initialLocality={selectedLocality}
+        initialPropertyType={modalType}
+        initialBhk={modalBhk}
+        initialStatus={constructionStatus}
+        initialMinBudget={minBudget}
+        initialMaxBudget={maxBudget}
+        initialBudgetPreset={modalBudget}
+      />
 
       {/* ================= PROPERTY DETAIL MODAL ================= */}
       <PropertyDetailModal
@@ -922,11 +957,9 @@ const styles = StyleSheet.create({
   logoIconBg: {
     width: 32,
     height: 32,
-    borderRadius: 9,
-    backgroundColor: COLORS.primary,
     alignItems: "center",
     justifyContent: "center",
-    marginRight: 8,
+    marginRight: 6,
   },
   logoText: {
     fontSize: 22,
@@ -961,6 +994,24 @@ const styles = StyleSheet.create({
     backgroundColor: "#EF4444",
     borderWidth: 1.5,
     borderColor: "#FFFFFF",
+  },
+  headerRightActions: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  menuHeaderBtn: {
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    backgroundColor: "#FFFFFF",
+    justifyContent: "center",
+    alignItems: "center",
+    shadowColor: "#000000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 6,
+    elevation: 2,
   },
 
   /* TOP SECTION */
@@ -1015,20 +1066,23 @@ const styles = StyleSheet.create({
     backgroundColor: "#FFFFFF",
     borderRadius: 28,
     paddingHorizontal: 16,
-    height: 50,
+    height: 52,
     shadowColor: "#000000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.04,
     shadowRadius: 8,
     elevation: 2,
+    borderWidth: 1,
+    borderColor: "#F1F5F9",
   },
   searchIcon: {
-    marginRight: 8,
+    marginRight: 10,
   },
   searchPlaceholderText: {
     ...TYPOGRAPHY.inputText,
     color: "#94A3B8",
     fontSize: 14,
+    flex: 1,
   },
   activeLocalityTag: {
     flexDirection: "row",
@@ -1111,7 +1165,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#DCFCE7",
     paddingHorizontal: 8,
     paddingVertical: 3,
-    borderRadius: 10,
+    borderRadius: 4,
     marginLeft: 8,
   },
   verifiedTagText: {
@@ -1539,13 +1593,13 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(16, 185, 129, 0.9)",
     paddingHorizontal: 10,
     paddingVertical: 4,
-    borderRadius: 12,
+    borderRadius: 4,
   },
   badgeBlue: {
     backgroundColor: "rgba(59, 130, 246, 0.9)",
     paddingHorizontal: 10,
     paddingVertical: 4,
-    borderRadius: 12,
+    borderRadius: 4,
   },
   badgeVerified: {
     flexDirection: "row",
@@ -1553,13 +1607,13 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(22, 163, 74, 0.95)",
     paddingHorizontal: 10,
     paddingVertical: 4,
-    borderRadius: 12,
+    borderRadius: 4,
   },
   badgeOrange: {
     backgroundColor: "rgba(249, 115, 22, 0.9)",
     paddingHorizontal: 10,
     paddingVertical: 4,
-    borderRadius: 12,
+    borderRadius: 4,
   },
   badgeTextWhite: {
     color: "#FFFFFF",
@@ -1593,10 +1647,6 @@ const styles = StyleSheet.create({
   ratingBadge: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#FFFBEB",
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 10,
   },
   ratingText: {
     ...TYPOGRAPHY.propertyMeta,
@@ -1611,7 +1661,7 @@ const styles = StyleSheet.create({
   locationRow: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 10,
+    marginBottom: 0,
   },
   locationAddress: {
     ...TYPOGRAPHY.location,
@@ -1837,6 +1887,135 @@ const styles = StyleSheet.create({
     color: "#475569",
   },
   bhkPillTextActive: {
+    color: "#FFFFFF",
+    fontWeight: "600",
+  },
+  budgetHeaderRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 12,
+  },
+  selectedBudgetText: {
+    ...TYPOGRAPHY.smallHelperText,
+    color: COLORS.primary,
+    fontWeight: "600",
+  },
+  budgetDropdownRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 12,
+  },
+  budgetDropdownBtn: {
+    flex: 1,
+    backgroundColor: "#F8FAFC",
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 9,
+  },
+  budgetDropdownBtnActive: {
+    borderColor: COLORS.primary,
+    backgroundColor: "#F0F7FF",
+  },
+  budgetDropdownLabel: {
+    fontSize: 10,
+    color: "#94A3B8",
+    fontWeight: "600",
+    textTransform: "uppercase",
+    marginBottom: 3,
+  },
+  budgetDropdownValueRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  budgetDropdownValText: {
+    fontSize: 13,
+    fontWeight: "600",
+    color: "#0F172A",
+    flex: 1,
+    marginRight: 4,
+  },
+  budgetToText: {
+    marginHorizontal: 10,
+    color: "#94A3B8",
+    fontSize: 13,
+    fontWeight: "600",
+  },
+  dropdownMenu: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#CBD5E1",
+    marginBottom: 12,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 5,
+    overflow: "hidden",
+  },
+  dropdownMenuHeader: {
+    fontSize: 11,
+    fontWeight: "700",
+    color: "#64748B",
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    backgroundColor: "#F8FAFC",
+    borderBottomWidth: 1,
+    borderBottomColor: "#F1F5F9",
+  },
+  dropdownMenuItem: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: "#F1F5F9",
+  },
+  dropdownMenuItemActive: {
+    backgroundColor: "#F0F7FF",
+  },
+  dropdownMenuText: {
+    fontSize: 13,
+    color: "#334155",
+    fontWeight: "500",
+  },
+  dropdownMenuTextActive: {
+    color: COLORS.primary,
+    fontWeight: "700",
+  },
+  statusChipsRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+  },
+  statusFilterChip: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
+    backgroundColor: "#F8FAFC",
+  },
+  statusFilterChipActive: {
+    backgroundColor: COLORS.primary,
+    borderColor: COLORS.primary,
+  },
+  statusFilterChipText: {
+    ...TYPOGRAPHY.smallHelperText,
+    color: "#475569",
+    fontWeight: "500",
+  },
+  statusFilterChipTextActive: {
     color: "#FFFFFF",
     fontWeight: "600",
   },

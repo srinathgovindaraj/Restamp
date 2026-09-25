@@ -1,294 +1,1674 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   View,
   Text,
   StyleSheet,
-  SafeAreaView,
   ScrollView,
-  Image,
   TouchableOpacity,
   StatusBar,
+  TextInput,
+  Alert,
+  Platform,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
-  CheckCircle2,
-  ArrowRight,
-  Heart,
-  MessageSquare,
-  Clock,
+  X,
+  Building,
   Home,
+  Briefcase,
+  TrendingUp,
   Calculator,
-  Bell,
-  HelpCircle,
   ChevronRight,
+  ShieldCheck,
+  Check,
+  Search,
+  Layers,
+  Sparkles,
+  Crown,
+  Plus,
+  Minus,
+  ChevronDown,
+  ArrowUpRight,
+  MapPin,
 } from "lucide-react-native";
 import COLORS from "../constants/colors";
+import RestampLogo from "../components/RestampLogo";
+
+const VERTICAL_TABS = [
+  { id: "owner", label: "Owner Plan", icon: Crown },
+  { id: "agent", label: "Agent Plan", icon: Briefcase },
+  { id: "price", label: "Price", icon: Calculator },
+  { id: "insights", label: "Insights", icon: TrendingUp },
+];
+
+const RESIDENTIAL_TYPES = [
+  {
+    name: "Apartment / Flat",
+    count: "12,450+ Active",
+    avgRate: "₹7,200/sqft",
+    icon: Building,
+  },
+  {
+    name: "Independent House",
+    count: "4,820+ Active",
+    avgRate: "₹9,800/sqft",
+    icon: Home,
+  },
+  {
+    name: "Residential Plot",
+    count: "3,150+ Active",
+    avgRate: "₹4,500/sqft",
+    icon: Layers,
+  },
+  {
+    name: "Luxury Penthouse",
+    count: "620+ Active",
+    avgRate: "₹14,500/sqft",
+    icon: Sparkles,
+  },
+];
+
+const COMMERCIAL_TYPES = [
+  {
+    name: "Tech Park & Office",
+    count: "2,400+ Units",
+    avgRate: "₹85/sqft rent",
+    icon: Briefcase,
+  },
+  {
+    name: "Retail Showroom",
+    count: "1,850+ Units",
+    avgRate: "₹140/sqft rent",
+    icon: Building,
+  },
+  {
+    name: "Commercial Building",
+    count: "540+ Units",
+    avgRate: "₹18,500/sqft buy",
+    icon: Layers,
+  },
+  {
+    name: "Warehouse / Logistics",
+    count: "780+ Units",
+    avgRate: "₹28/sqft rent",
+    icon: Building,
+  },
+];
+
+/* 3 Compact Owner Plans */
+const OWNER_PLANS = {
+  residential: [
+    {
+      id: "owner-basic",
+      name: "Basic",
+      titleColor: "#0F172A",
+      price: "₹0",
+      priceSub1: "free forever",
+      priceSub2: "zero brokerage assurance",
+      isPopular: false,
+      buttonText: "Get started",
+      features: [
+        "30 Days listing visibility",
+        "Direct buyer in-app inquiries",
+        "Zero brokerage assurance",
+      ],
+    },
+    {
+      id: "owner-gold",
+      name: "Gold Assist",
+      titlePrefix: "Gold ",
+      titlePrefixColor: "#2563EB",
+      titleColor: "#EA580C",
+      price: "₹1,999",
+      priceSub1: "for 90 days validity",
+      priceSub2: "+ GST • verified owner tag",
+      isPopular: true,
+      buttonText: "Get started",
+      features: [
+        "90 Days top search placement",
+        "Verified Owner badge ⭐",
+        "Direct WhatsApp & instant phone leads",
+      ],
+    },
+    {
+      id: "owner-titanium",
+      name: "Titanium VIP",
+      titlePrefix: "Titanium ",
+      titlePrefixColor: "#7C3AED",
+      titleColor: "#0F172A",
+      price: "₹4,999",
+      priceSub1: "until deal closed",
+      priceSub2: "full managed advisory",
+      isPopular: false,
+      buttonText: "Get started",
+      features: [
+        "Listing live until sold or rented",
+        "Dedicated relationship manager",
+        "Professional photoshoot & legal drafting",
+      ],
+    },
+  ],
+  commercial: [
+    {
+      id: "owner-comm-basic",
+      name: "Commercial Free",
+      titleColor: "#0F172A",
+      price: "₹0",
+      priceSub1: "free forever",
+      priceSub2: "office & retail category",
+      isPopular: false,
+      buttonText: "Get started",
+      features: [
+        "30 Days commercial visibility",
+        "Direct in-app corporate leads",
+        "Zero brokerage assurance",
+      ],
+    },
+    {
+      id: "owner-comm-pro",
+      name: "Corporate Boost",
+      titlePrefix: "Corporate ",
+      titlePrefixColor: "#2563EB",
+      titleColor: "#059669",
+      price: "₹3,499",
+      priceSub1: "for 90 days validity",
+      priceSub2: "+ GST • full tax credit",
+      isPopular: true,
+      buttonText: "Get started",
+      features: [
+        "90 Days prime corporate visibility",
+        "Verified Commercial Unit badge",
+        "Targeted outreach to GCCs & startups",
+      ],
+    },
+    {
+      id: "owner-comm-vip",
+      name: "Enterprise Managed",
+      titlePrefix: "Enterprise ",
+      titlePrefixColor: "#7C3AED",
+      titleColor: "#0F172A",
+      price: "₹8,999",
+      priceSub1: "until leased / sold",
+      priceSub2: "corporate advisory mandate",
+      isPopular: false,
+      buttonText: "Get started",
+      features: [
+        "Dedicated commercial account manager",
+        "Tenant KYC & due diligence",
+        "Commercial lease drafting & drone tour",
+      ],
+    },
+  ],
+};
+
+/* 3 Compact Agent Plans */
+const AGENT_PLANS = {
+  residential: [
+    {
+      id: "agent-starter",
+      name: "Agent Starter",
+      titleColor: "#0F172A",
+      price: "₹2,999",
+      priceSub1: "per broker / month",
+      priceSub2: "billed monthly + GST",
+      isPopular: false,
+      buttonText: "Get started",
+      features: [
+        "15 Active property listings",
+        "40 Verified buyer contacts",
+        "Lead management CRM dashboard",
+      ],
+    },
+    {
+      id: "agent-pro",
+      name: "Pro Broker",
+      titlePrefix: "Pro ",
+      titlePrefixColor: "#2563EB",
+      titleColor: "#EA580C",
+      price: "₹6,999",
+      priceSub1: "per broker / month",
+      priceSub2: "micromarket boost included",
+      isPopular: true,
+      buttonText: "Get started",
+      features: [
+        "50 Active property listings",
+        "150 Verified buyer contacts",
+        "Micromarket boost & WhatsApp alerts",
+      ],
+    },
+    {
+      id: "agent-agency",
+      name: "Elite Agency",
+      titlePrefix: "Elite ",
+      titlePrefixColor: "#7C3AED",
+      titleColor: "#0F172A",
+      price: "₹14,999",
+      priceSub1: "per agency / month",
+      priceSub2: "unlimited listings + CRM",
+      isPopular: false,
+      buttonText: "Get started",
+      features: [
+        "Unlimited property listings",
+        "500+ Verified HNI contacts",
+        "5 Sub-broker logins & CRM sync",
+      ],
+    },
+  ],
+  commercial: [
+    {
+      id: "comm-agent-starter",
+      name: "Commercial Broker",
+      titleColor: "#0F172A",
+      price: "₹4,999",
+      priceSub1: "per broker / month",
+      priceSub2: "billed monthly + GST",
+      isPopular: false,
+      buttonText: "Get started",
+      features: [
+        "20 Commercial units listing",
+        "60 Verified tenant contacts",
+        "Commercial lead CRM",
+      ],
+    },
+    {
+      id: "comm-agent-pro",
+      name: "Corporate Partner",
+      titlePrefix: "Corporate ",
+      titlePrefixColor: "#2563EB",
+      titleColor: "#059669",
+      price: "₹9,999",
+      priceSub1: "per partner / month",
+      priceSub2: "top IT corridor slots",
+      isPopular: true,
+      buttonText: "Get started",
+      features: [
+        "60 Commercial property listings",
+        "200+ Corporate tenant contacts",
+        "Top category placement for IT hubs",
+      ],
+    },
+    {
+      id: "comm-agent-elite",
+      name: "Developer Mandate",
+      titlePrefix: "Developer ",
+      titlePrefixColor: "#7C3AED",
+      titleColor: "#0F172A",
+      price: "₹19,999",
+      priceSub1: "per mandate / month",
+      priceSub2: "exclusive project marketing",
+      isPopular: false,
+      buttonText: "Get started",
+      features: [
+        "Unlimited commercial inventory",
+        "600+ Institutional HNI leads",
+        "End-to-end legal & marketing deck",
+      ],
+    },
+  ],
+};
+
+const CHENNAI_PRICE_TRENDS = [
+  {
+    locality: "Anna Nagar",
+    avgPrice: "₹12,800/sqft",
+    change: "+8.4%",
+    rentYield: "3.8%",
+  },
+  {
+    locality: "OMR IT Corridor",
+    avgPrice: "₹6,850/sqft",
+    change: "+11.2%",
+    rentYield: "4.6%",
+  },
+  {
+    locality: "Adyar & Besant Nagar",
+    avgPrice: "₹14,500/sqft",
+    change: "+6.1%",
+    rentYield: "3.2%",
+  },
+  {
+    locality: "Velachery",
+    avgPrice: "₹8,200/sqft",
+    change: "+9.0%",
+    rentYield: "4.2%",
+  },
+  {
+    locality: "ECR Coastal Strip",
+    avgPrice: "₹10,200/sqft",
+    change: "+13.5%",
+    rentYield: "5.1%",
+  },
+  {
+    locality: "Porur & West Chennai",
+    avgPrice: "₹6,100/sqft",
+    change: "+7.8%",
+    rentYield: "4.4%",
+  },
+];
+
+const MARKET_INSIGHTS = [
+  {
+    title: "Chennai Metro Phase 2 Impact",
+    summary:
+      "Corridors near Porur and OMR Sholinganallur seeing 15% increase in capital appreciation ahead of metro line completion.",
+    tag: "High Growth",
+  },
+  {
+    title: "Commercial Grade-A Tech Parks",
+    summary:
+      "Record 4.2 million sq ft gross absorption in Chennai tech parks driven by Global Capability Centers (GCCs).",
+    tag: "Commercial Demand",
+  },
+  {
+    title: "CMDA & DTCP Approval Guide",
+    summary:
+      "Essential checklist to verify layout regularization, parent deeds, and RERA registration before buying land in Tamil Nadu.",
+    tag: "Legal Guide",
+  },
+];
+
+const PROPERTY_TYPE_OPTIONS = [
+  "Apartment / Flat",
+  "Independent House",
+  "Residential Plot",
+  "Commercial Office",
+];
 
 export default function MenuScreen({ navigation }) {
+  const insets = useSafeAreaInsets();
+
+  // Vertical Tab state: 'owner' | 'agent' | 'price' | 'insights'
+  const [activeVerticalTab, setActiveVerticalTab] = useState("owner");
+
+  // Category: 'residential' | 'commercial'
+  const [propertyCategory, setPropertyCategory] = useState("residential");
+
+  // Price Estimator state (Modular Reference Style)
+  const [estLocality, setEstLocality] = useState("OMR");
+  const [estSqft, setEstSqft] = useState("1500");
+  const [priceDealType, setPriceDealType] = useState("Buy"); // "Buy" | "Rent" | "Lease"
+  const [pricePropertyType, setPricePropertyType] =
+    useState("Apartment / Flat");
+
+  const getLocalityData = () => {
+    switch (estLocality) {
+      case "Anna Nagar":
+        return { rate: 12800, yield: "3.8%", change: "+8.4%" };
+      case "Adyar":
+        return { rate: 14500, yield: "3.2%", change: "+6.1%" };
+      case "Velachery":
+        return { rate: 8200, yield: "4.2%", change: "+9.0%" };
+      case "ECR":
+        return { rate: 10200, yield: "5.1%", change: "+13.5%" };
+      case "Porur":
+        return { rate: 6100, yield: "4.4%", change: "+7.8%" };
+      default:
+        return { rate: 6850, yield: "4.6%", change: "+11.2%" };
+    }
+  };
+
+  const calculateEstimate = () => {
+    const sqftNum = parseInt(estSqft) || 1200;
+    const data = getLocalityData();
+    if (priceDealType === "Rent") {
+      const yieldPct = parseFloat(data.yield) / 100;
+      const monthlyRent = Math.round((sqftNum * data.rate * yieldPct) / 12);
+      return `₹${monthlyRent.toLocaleString("en-IN")}/mo`;
+    } else if (priceDealType === "Lease") {
+      const leaseAmt = Math.round(sqftNum * data.rate * 0.22);
+      return `₹${(leaseAmt / 100000).toFixed(1)} Lakhs`;
+    } else {
+      const totalPrice = sqftNum * data.rate;
+      if (totalPrice >= 10000000) {
+        return `₹${(totalPrice / 10000000).toFixed(2)} Cr`;
+      }
+      return `₹${(totalPrice / 100000).toFixed(1)} Lakhs`;
+    }
+  };
+
+  const handleDecrementSqft = () => {
+    const current = parseInt(estSqft) || 1200;
+    setEstSqft(Math.max(300, current - 100).toString());
+  };
+
+  const handleIncrementSqft = () => {
+    const current = parseInt(estSqft) || 1200;
+    setEstSqft((current + 100).toString());
+  };
+
+  const cyclePriceDealType = () => {
+    if (priceDealType === "Buy") setPriceDealType("Rent");
+    else if (priceDealType === "Rent") setPriceDealType("Lease");
+    else setPriceDealType("Buy");
+  };
+
+  const cyclePropertyType = () => {
+    const idx = PROPERTY_TYPE_OPTIONS.indexOf(pricePropertyType);
+    const nextIdx = (idx + 1) % PROPERTY_TYPE_OPTIONS.length;
+    setPricePropertyType(PROPERTY_TYPE_OPTIONS[nextIdx]);
+  };
+
+  const handleNavigateToSearch = (params = {}) => {
+    navigation.navigate("MainTabs", {
+      screen: "Search",
+      params: {
+        locality: estLocality,
+        dealType: priceDealType,
+        category:
+          propertyCategory === "commercial" ? "Commercial" : "Residential",
+        ...params,
+      },
+    });
+  };
+
+  const handleSelectPlan = (plan, planRole) => {
+    Alert.alert(
+      `${plan.name} Selected`,
+      `Proceed with ${plan.name} (${plan.price}) for your ${propertyCategory} property as an ${planRole}?`,
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Proceed",
+          onPress: () => {
+            Alert.alert(
+              "Success",
+              "Our dedicated listing manager will contact you within 15 minutes.",
+            );
+          },
+        },
+      ],
+    );
+  };
+
+  // Determine current active plans array
+  const currentPlans =
+    activeVerticalTab === "owner"
+      ? propertyCategory === "residential"
+        ? OWNER_PLANS.residential
+        : OWNER_PLANS.commercial
+      : propertyCategory === "residential"
+        ? AGENT_PLANS.residential
+        : AGENT_PLANS.commercial;
+
+  const safeTopPadding = Math.max(insets.top, Platform.OS === "ios" ? 48 : 14);
+  const currentLocData = getLocalityData();
+
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+    <View style={styles.screenRoot}>
+      <StatusBar barStyle="dark-content" backgroundColor="#F4F7FB" />
 
-      <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-        {/* User Card */}
-        <View style={styles.profileHeader}>
-          <Image
-            source={{
-              uri: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=80",
-            }}
-            style={styles.avatar}
-          />
-          <View style={styles.profileInfo}>
-            <Text style={styles.userName}>Jessica Taylor</Text>
-            <Text style={styles.userEmail}>jessica.taylor@example.com</Text>
-            <View style={styles.badgeBuyer}>
-              <CheckCircle2 size={14} color={COLORS.primary} style={{ marginRight: 4 }} />
-              <Text style={styles.badgeBuyerText}>Verified Buyer & Owner</Text>
-            </View>
+      {/* ================= HEADER BAR ================= */}
+      <View style={[styles.header, { paddingTop: safeTopPadding }]}>
+        <View style={styles.logoContainer}>
+          <View style={styles.logoIconBg}>
+            <RestampLogo size={26} />
+          </View>
+          <Text style={styles.logoText}>
+            Res<Text style={styles.logoTextAccent}>tamp</Text>
+          </Text>
+          <View style={styles.hubBadge}>
+            <Text style={styles.hubBadgeText}>SERVICES</Text>
           </View>
         </View>
 
-        {/* Post Property Banner (Sell / Rent like 99acres) */}
-        <TouchableOpacity style={styles.postBanner} activeOpacity={0.9}>
-          <View style={styles.postBannerContent}>
-            <Text style={styles.postBannerTitle}>Post Property FREE</Text>
-            <Text style={styles.postBannerSub}>Sell or Rent your property to thousands of buyers online</Text>
-            <View style={styles.postBtn}>
-              <Text style={styles.postBtnText}>Post Now</Text>
-              <ArrowRight size={14} color="#FFFFFF" style={{ marginLeft: 4 }} />
-            </View>
-          </View>
+        <TouchableOpacity
+          style={styles.closeBtn}
+          activeOpacity={0.8}
+          onPress={() => navigation.goBack()}
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+        >
+          <X size={18} color="#0F172A" />
         </TouchableOpacity>
+      </View>
 
-        {/* Buyer Services */}
-        <View style={styles.menuSection}>
-          <Text style={styles.sectionTitle}>Buyer & Tenant Services</Text>
-
-          <TouchableOpacity
-            style={styles.menuItem}
-            onPress={() => navigation.navigate("Saved")}
+      {/* ================= MAIN TWO-COLUMN VERTICAL TAB LAYOUT ================= */}
+      <View style={styles.mainLayoutContainer}>
+        {/* ================= LEFT COLUMN: VERTICAL TAB RAIL ================= */}
+        <View style={styles.verticalTabRail}>
+          <ScrollView
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={styles.railContent}
           >
-            <View style={[styles.menuIconContainer, { backgroundColor: "#FFF0F0" }]}>
-              <Heart size={20} color={COLORS.heartRed} fill={COLORS.heartRed} />
-            </View>
-            <View style={styles.menuTextContainer}>
-              <Text style={styles.menuTitle}>Saved Shortlists</Text>
-              <Text style={styles.menuSub}>View saved villas, apartments & houses</Text>
-            </View>
-            <ChevronRight size={18} color={COLORS.muted} />
-          </TouchableOpacity>
+            {VERTICAL_TABS.map((tab) => {
+              const isActive = activeVerticalTab === tab.id;
+              const Icon = tab.icon;
 
-          <TouchableOpacity
-            style={styles.menuItem}
-            onPress={() => navigation.navigate("Enquiries")}
-          >
-            <View style={[styles.menuIconContainer, { backgroundColor: "#EBF4FF" }]}>
-              <MessageSquare size={20} color={COLORS.primary} />
-            </View>
-            <View style={styles.menuTextContainer}>
-              <Text style={styles.menuTitle}>My Enquiries & Leads</Text>
-              <Text style={styles.menuSub}>Recent calls and messages sent to agents</Text>
-            </View>
-            <ChevronRight size={18} color={COLORS.muted} />
-          </TouchableOpacity>
+              return (
+                <TouchableOpacity
+                  key={tab.id}
+                  style={[styles.railItem, isActive && styles.railItemActive]}
+                  onPress={() => setActiveVerticalTab(tab.id)}
+                  activeOpacity={0.75}
+                >
+                  {/* Left Active Indicator Bar */}
+                  {isActive && <View style={styles.activeBarIndicator} />}
 
-          <TouchableOpacity style={styles.menuItem}>
-            <View style={[styles.menuIconContainer, { backgroundColor: "#FEF3C7" }]}>
-              <Clock size={20} color="#D97706" />
-            </View>
-            <View style={styles.menuTextContainer}>
-              <Text style={styles.menuTitle}>Recent Searches</Text>
-              <Text style={styles.menuSub}>New York, Manhattan, Apartments & Villas</Text>
-            </View>
-            <ChevronRight size={18} color={COLORS.muted} />
-          </TouchableOpacity>
+                  <View
+                    style={[
+                      styles.railIconWrap,
+                      isActive && styles.railIconWrapActive,
+                    ]}
+                  >
+                    <Icon
+                      size={18}
+                      color={isActive ? COLORS.primary : "#64748B"}
+                    />
+                  </View>
+                  <Text
+                    style={[
+                      styles.railItemText,
+                      isActive && styles.railItemTextActive,
+                    ]}
+                  >
+                    {tab.label}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </ScrollView>
         </View>
 
-        {/* Owner / Seller Services */}
-        <View style={styles.menuSection}>
-          <Text style={styles.sectionTitle}>Owner & Seller Hub</Text>
+        {/* ================= RIGHT COLUMN: SCROLLABLE CONTENT PANE ================= */}
+        <ScrollView
+          style={styles.contentPane}
+          contentContainerStyle={styles.contentPaneScroll}
+          showsVerticalScrollIndicator={false}
+        >
+          {/* ================= PANE 1 & 2: OWNER PLAN / AGENT PLAN ================= */}
+          {(activeVerticalTab === "owner" || activeVerticalTab === "agent") && (
+            <View>
+              {/* Header Info */}
+              <View style={styles.paneHeader}>
+                <View style={styles.headerRoleRow}>
+                  <Text style={styles.paneMainTitle}>
+                    {activeVerticalTab === "owner"
+                      ? "Owner Plans"
+                      : "Agent Plans"}
+                  </Text>
+                  <View
+                    style={[
+                      styles.roleBadge,
+                      activeVerticalTab === "owner"
+                        ? styles.roleBadgeOwner
+                        : styles.roleBadgeAgent,
+                    ]}
+                  >
+                    <Text
+                      style={[
+                        styles.roleBadgeText,
+                        activeVerticalTab === "owner"
+                          ? styles.roleBadgeTextOwner
+                          : styles.roleBadgeTextAgent,
+                      ]}
+                    >
+                      {activeVerticalTab === "owner" ? "Individual" : "Partner"}
+                    </Text>
+                  </View>
+                </View>
+                <Text style={styles.paneSubtitle}>
+                  {activeVerticalTab === "owner"
+                    ? "Direct buyer inquiries • 0% brokerage in Chennai"
+                    : "Micromarket boost • Verified corporate & HNI leads"}
+                </Text>
+              </View>
 
-          <TouchableOpacity style={styles.menuItem}>
-            <View style={[styles.menuIconContainer, { backgroundColor: "#F0FDF4" }]}>
-              <Home size={20} color="#16A34A" />
-            </View>
-            <View style={styles.menuTextContainer}>
-              <Text style={styles.menuTitle}>My Posted Properties</Text>
-              <Text style={styles.menuSub}>Manage active listings for sale or rent</Text>
-            </View>
-            <ChevronRight size={18} color={COLORS.muted} />
-          </TouchableOpacity>
+              {/* Minimal Category Filter Pills */}
+              <View style={styles.categoryPillsRow}>
+                <TouchableOpacity
+                  style={[
+                    styles.categoryPill,
+                    propertyCategory === "residential" &&
+                      styles.categoryPillActive,
+                  ]}
+                  onPress={() => setPropertyCategory("residential")}
+                  activeOpacity={0.8}
+                >
+                  <Home
+                    size={13}
+                    color={
+                      propertyCategory === "residential" ? "#0F172A" : "#64748B"
+                    }
+                    style={{ marginRight: 5 }}
+                  />
+                  <Text
+                    style={[
+                      styles.categoryPillText,
+                      propertyCategory === "residential" &&
+                        styles.categoryPillTextActive,
+                    ]}
+                  >
+                    Residential
+                  </Text>
+                </TouchableOpacity>
 
-          <TouchableOpacity style={styles.menuItem}>
-            <View style={[styles.menuIconContainer, { backgroundColor: "#F3E8FF" }]}>
-              <Calculator size={20} color="#9333EA" />
-            </View>
-            <View style={styles.menuTextContainer}>
-              <Text style={styles.menuTitle}>Property Valuation</Text>
-              <Text style={styles.menuSub}>Check estimated market valuation of your house</Text>
-            </View>
-            <ChevronRight size={18} color={COLORS.muted} />
-          </TouchableOpacity>
-        </View>
+                <TouchableOpacity
+                  style={[
+                    styles.categoryPill,
+                    propertyCategory === "commercial" &&
+                      styles.categoryPillActive,
+                  ]}
+                  onPress={() => setPropertyCategory("commercial")}
+                  activeOpacity={0.8}
+                >
+                  <Building
+                    size={13}
+                    color={
+                      propertyCategory === "commercial" ? "#0F172A" : "#64748B"
+                    }
+                    style={{ marginRight: 5 }}
+                  />
+                  <Text
+                    style={[
+                      styles.categoryPillText,
+                      propertyCategory === "commercial" &&
+                        styles.categoryPillTextActive,
+                    ]}
+                  >
+                    Commercial
+                  </Text>
+                </TouchableOpacity>
+              </View>
 
-        {/* Account & App Settings */}
-        <View style={styles.menuSection}>
-          <Text style={styles.sectionTitle}>Settings & Preferences</Text>
+              {/* Section Header */}
+              <View style={styles.sectionHeaderRow}>
+                <Text style={styles.paneSectionHeader}>
+                  CHOOSE A PLAN • 3 TIERS
+                </Text>
+              </View>
 
-          <TouchableOpacity style={styles.menuItem}>
-            <View style={[styles.menuIconContainer, { backgroundColor: "#F8FAFC" }]}>
-              <Bell size={20} color={COLORS.textDark} />
-            </View>
-            <View style={styles.menuTextContainer}>
-              <Text style={styles.menuTitle}>Notifications & Alerts</Text>
-              <Text style={styles.menuSub}>Price drop alerts & new listing matches</Text>
-            </View>
-            <ChevronRight size={18} color={COLORS.muted} />
-          </TouchableOpacity>
+              {/* ================= COMPACT & SHORT REFERENCE PRICING CARDS ================= */}
+              {currentPlans.map((plan) => (
+                <View
+                  key={plan.id}
+                  style={[
+                    styles.refCard,
+                    plan.isPopular && styles.refCardPopular,
+                  ]}
+                >
+                  {/* 1. Header: Plan Name + Popular badge */}
+                  <View style={styles.refCardHeader}>
+                    <Text style={styles.refPlanTitle}>
+                      {plan.titlePrefix ? (
+                        <Text
+                          style={{ color: plan.titlePrefixColor || "#2563EB" }}
+                        >
+                          {plan.titlePrefix}
+                        </Text>
+                      ) : null}
+                      <Text style={{ color: plan.titleColor || "#0F172A" }}>
+                        {plan.titlePrefix
+                          ? plan.name
+                              .replace(plan.titlePrefix.trim(), "")
+                              .trim()
+                          : plan.name}
+                      </Text>
+                    </Text>
 
-          <TouchableOpacity style={styles.menuItem}>
-            <View style={[styles.menuIconContainer, { backgroundColor: "#F8FAFC" }]}>
-              <HelpCircle size={20} color={COLORS.textDark} />
+                    {plan.isPopular && (
+                      <View style={styles.refBadgePopular}>
+                        <Sparkles
+                          size={8.5}
+                          color="#1D4ED8"
+                          style={{ marginRight: 3 }}
+                        />
+                        <Text style={styles.refBadgePopularText}>POPULAR</Text>
+                      </View>
+                    )}
+                  </View>
+
+                  {/* 2. Big Price + 2-line Subtext */}
+                  <View style={styles.refPriceRow}>
+                    <Text style={styles.refPriceBig}>{plan.price}</Text>
+                    <View style={styles.refPriceSubBox}>
+                      <Text style={styles.refPriceSub1}>{plan.priceSub1}</Text>
+                      <Text style={styles.refPriceSub2}>{plan.priceSub2}</Text>
+                    </View>
+                  </View>
+
+                  {/* 3. Compact CTA Button */}
+                  <TouchableOpacity
+                    style={[
+                      styles.refCtaBtn,
+                      plan.isPopular
+                        ? styles.refCtaBtnPopular
+                        : styles.refCtaBtnDefault,
+                    ]}
+                    activeOpacity={0.82}
+                    onPress={() =>
+                      handleSelectPlan(
+                        plan,
+                        activeVerticalTab === "owner" ? "Owner" : "Agent",
+                      )
+                    }
+                  >
+                    <Text
+                      style={[
+                        styles.refCtaBtnText,
+                        plan.isPopular
+                          ? styles.refCtaBtnTextPopular
+                          : styles.refCtaBtnTextDefault,
+                      ]}
+                    >
+                      {plan.buttonText || "Get started"}
+                    </Text>
+                  </TouchableOpacity>
+
+                  {/* 4. Full-Width Edge-to-Edge Divider */}
+                  <View style={styles.refDivider} />
+
+                  {/* 5. Minimalist 3-Point Checklist */}
+                  <View style={styles.refFeaturesList}>
+                    {plan.features.map((feature, fIdx) => (
+                      <View key={fIdx} style={styles.refFeatureRow}>
+                        <Check
+                          size={14}
+                          color="#0F172A"
+                          strokeWidth={2.4}
+                          style={styles.refCheckIcon}
+                        />
+                        <Text style={styles.refFeatureText}>{feature}</Text>
+                      </View>
+                    ))}
+                  </View>
+                </View>
+              ))}
             </View>
-            <View style={styles.menuTextContainer}>
-              <Text style={styles.menuTitle}>Help & Support</Text>
-              <Text style={styles.menuSub}>24/7 customer care & FAQs</Text>
+          )}
+
+          {/* ================= PANE 3: PRICE ESTIMATOR & RATES (MODULAR FLIGHT-STYLE BLOCKS) ================= */}
+          {activeVerticalTab === "price" && (
+            <View>
+              <View style={styles.paneHeader}>
+                <Text style={styles.paneMainTitle}>
+                  Price Estimator & Rates
+                </Text>
+                <Text style={styles.paneSubtitle}>
+                  Real-time micro-market valuation and sqft rates across Chennai
+                </Text>
+              </View>
+
+              {/* Modular Stack matching reference design */}
+              <View style={styles.flightModuleStack}>
+                {/* 1. Dark Block: Estimated Valuation Output */}
+                <View style={styles.flightDarkCard}>
+                  <View style={styles.flightCardHeaderRow}>
+                    <Text style={styles.flightCardLabel}>
+                      CHENNAI, TN • VALUATION RESULT
+                    </Text>
+                    <TrendingUp size={16} color={COLORS.primary} />
+                  </View>
+                  <Text style={styles.flightDarkValueText}>
+                    {calculateEstimate()}
+                  </Text>
+                  <Text style={styles.flightDarkSubText}>
+                    Based on {estSqft} sqft • {priceDealType} in {estLocality}
+                  </Text>
+                </View>
+
+                {/* 2. Dark Block: Micro-Market Locality */}
+                <View style={[styles.flightDarkCard, styles.flightDarkCardAlt]}>
+                  <View style={styles.flightCardHeaderRow}>
+                    <Text style={styles.flightCardLabel}>
+                      MICRO-MARKET LOCALITY
+                    </Text>
+                    <MapPin size={16} color={COLORS.primary} />
+                  </View>
+                  <Text style={styles.flightDarkValueText}>
+                    {estLocality.toUpperCase()}
+                  </Text>
+
+                  {/* Horizontal Locality Switcher */}
+                  <ScrollView
+                    horizontal
+                    showsHorizontalScrollIndicator={false}
+                    style={styles.flightLocalityChipsRow}
+                  >
+                    {[
+                      "OMR",
+                      "Anna Nagar",
+                      "Adyar",
+                      "Velachery",
+                      "ECR",
+                      "Porur",
+                    ].map((loc) => (
+                      <TouchableOpacity
+                        key={loc}
+                        style={[
+                          styles.flightLocChip,
+                          estLocality === loc && styles.flightLocChipActive,
+                        ]}
+                        onPress={() => setEstLocality(loc)}
+                      >
+                        <Text
+                          style={[
+                            styles.flightLocChipText,
+                            estLocality === loc &&
+                              styles.flightLocChipTextActive,
+                          ]}
+                        >
+                          {loc}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                  </ScrollView>
+                </View>
+
+                {/* 3. Light Block: Valuation Mode (Tap to switch) */}
+                <TouchableOpacity
+                  style={styles.flightLightCard}
+                  activeOpacity={0.8}
+                  onPress={cyclePriceDealType}
+                >
+                  <Text style={styles.flightCardLabelLight}>
+                    VALUATION TYPE
+                  </Text>
+                  <View style={styles.flightLightValueRow}>
+                    <Text style={styles.flightLightValueText}>
+                      {priceDealType === "Buy"
+                        ? "BUY / SALE VALUE"
+                        : priceDealType === "Rent"
+                          ? "MONTHLY RENT"
+                          : "LONG LEASE VALUE"}
+                    </Text>
+                    <ChevronDown size={18} color="#64748B" />
+                  </View>
+                </TouchableOpacity>
+
+                {/* 4. Light Block: Property Type (Tap to switch) */}
+                <TouchableOpacity
+                  style={styles.flightLightCard}
+                  activeOpacity={0.8}
+                  onPress={cyclePropertyType}
+                >
+                  <Text style={styles.flightCardLabelLight}>PROPERTY TYPE</Text>
+                  <View style={styles.flightLightValueRow}>
+                    <Text style={styles.flightLightValueText}>
+                      {pricePropertyType.toUpperCase()}
+                    </Text>
+                    <ChevronDown size={18} color="#64748B" />
+                  </View>
+                </TouchableOpacity>
+
+                {/* 5 & 6. Side-by-Side Split Cards (Rate & Yield) */}
+                <View style={styles.flightSplitRow}>
+                  <View style={styles.flightSplitCard}>
+                    <Text style={styles.flightCardLabelLight}>
+                      AVG SQ FT RATE
+                    </Text>
+                    <Text style={styles.flightSplitValue}>
+                      ₹{currentLocData.rate}/sqft
+                    </Text>
+                  </View>
+
+                  <View style={styles.flightSplitCard}>
+                    <Text style={styles.flightCardLabelLight}>
+                      RENTAL YIELD
+                    </Text>
+                    <Text style={styles.flightSplitValue}>
+                      {currentLocData.yield} AVG
+                    </Text>
+                  </View>
+                </View>
+
+                {/* 7. Stepper Counter Block (Built-Up Area [ - ] [ + ]) */}
+                <View style={styles.flightStepperCard}>
+                  <Text style={styles.flightCardLabelLight}>BUILT-UP AREA</Text>
+                  <View style={styles.flightStepperValueRow}>
+                    <Text style={styles.flightStepperValueText}>
+                      {estSqft} SQ FT
+                    </Text>
+
+                    <View style={styles.flightStepperControls}>
+                      <TouchableOpacity
+                        style={styles.flightStepBtn}
+                        onPress={handleDecrementSqft}
+                        activeOpacity={0.7}
+                      >
+                        <Minus size={16} color="#0F172A" />
+                      </TouchableOpacity>
+
+                      <TouchableOpacity
+                        style={styles.flightStepBtn}
+                        onPress={handleIncrementSqft}
+                        activeOpacity={0.7}
+                      >
+                        <Plus size={16} color="#0F172A" />
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                </View>
+
+                {/* 8. Full-Width Action Button (App Original Color) */}
+                <TouchableOpacity
+                  style={styles.flightSearchActionBtn}
+                  activeOpacity={0.85}
+                  onPress={() => handleNavigateToSearch()}
+                >
+                  <Text style={styles.flightSearchActionBtnText}>
+                    Search in {estLocality}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+
+              {/* Rates Table */}
+              <View style={styles.sectionHeaderRow}>
+                <Text style={styles.paneSectionHeader}>
+                  CHENNAI LOCALITY RATES
+                </Text>
+              </View>
+              <View style={styles.ratesCard}>
+                {CHENNAI_PRICE_TRENDS.map((trend, tIdx) => (
+                  <View
+                    key={trend.locality}
+                    style={[
+                      styles.rateItemRow,
+                      tIdx < CHENNAI_PRICE_TRENDS.length - 1 &&
+                        styles.rateItemBorder,
+                    ]}
+                  >
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.rateLocalityText}>
+                        {trend.locality}
+                      </Text>
+                      <Text style={styles.rateYieldText}>
+                        Yield: {trend.rentYield}
+                      </Text>
+                    </View>
+                    <View style={{ alignItems: "flex-end" }}>
+                      <Text style={styles.ratePriceText}>{trend.avgPrice}</Text>
+                      <Text style={styles.rateGrowthText}>{trend.change}</Text>
+                    </View>
+                  </View>
+                ))}
+              </View>
             </View>
-            <ChevronRight size={18} color={COLORS.muted} />
-          </TouchableOpacity>
-        </View>
-      </ScrollView>
-    </SafeAreaView>
+          )}
+
+          {/* ================= PANE 4: CHENNAI INSIGHTS ================= */}
+          {activeVerticalTab === "insights" && (
+            <View>
+              <View style={styles.paneHeader}>
+                <Text style={styles.paneMainTitle}>
+                  Chennai Market Insights
+                </Text>
+                <Text style={styles.paneSubtitle}>
+                  Market intelligence, growth corridors, and CMDA approval
+                  checklists
+                </Text>
+              </View>
+
+              {MARKET_INSIGHTS.map((insight, idx) => (
+                <View key={idx} style={styles.insightBox}>
+                  <View style={styles.insightTagBadge}>
+                    <Text style={styles.insightTagBadgeText}>
+                      {insight.tag}
+                    </Text>
+                  </View>
+                  <Text style={styles.insightTitleText}>{insight.title}</Text>
+                  <Text style={styles.insightDescText}>{insight.summary}</Text>
+                  <TouchableOpacity
+                    style={styles.insightLink}
+                    onPress={() => handleNavigateToSearch()}
+                  >
+                    <Text style={styles.insightLinkText}>
+                      Explore Properties
+                    </Text>
+                    <ChevronRight size={13} color={COLORS.primary} />
+                  </TouchableOpacity>
+                </View>
+              ))}
+
+              <View style={styles.shieldCard}>
+                <ShieldCheck
+                  size={20}
+                  color="#16A34A"
+                  style={{ marginRight: 10 }}
+                />
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.shieldTitle}>CMDA & RERA Verified</Text>
+                  <Text style={styles.shieldSub}>
+                    RESTAMP inspects parent title deeds and approval layouts
+                    before listing.
+                  </Text>
+                </View>
+              </View>
+            </View>
+          )}
+
+          <View style={{ height: 40 }} />
+        </ScrollView>
+      </View>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
+  screenRoot: {
     flex: 1,
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#F4F7FB",
   },
-  container: {
-    flex: 1,
-    backgroundColor: COLORS.background,
-  },
-  profileHeader: {
+
+  /* ================= HEADER BAR ================= */
+  header: {
     flexDirection: "row",
     alignItems: "center",
-    padding: 20,
+    justifyContent: "space-between",
+    paddingHorizontal: 18,
+    paddingBottom: 12,
+    backgroundColor: "#F4F7FB",
+    borderBottomWidth: 1,
+    borderBottomColor: "#E2E8F0",
+  },
+  logoContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  logoIconBg: {
+    width: 30,
+    height: 30,
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 6,
+  },
+  logoText: {
+    fontSize: 21,
+    fontWeight: "700",
+    color: "#0F172A",
+    letterSpacing: -0.5,
+  },
+  logoTextAccent: {
+    color: COLORS.primary,
+  },
+  hubBadge: {
+    backgroundColor: "#EFF6FF",
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 5,
+    marginLeft: 8,
+    borderWidth: 1,
+    borderColor: "#DBEAFE",
+  },
+  hubBadgeText: {
+    fontSize: 9,
+    fontWeight: "800",
+    color: COLORS.primary,
+    letterSpacing: 0.6,
+  },
+  closeBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     backgroundColor: "#FFFFFF",
+    justifyContent: "center",
+    alignItems: "center",
+    shadowColor: "#000000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.08,
+    shadowRadius: 4,
+    elevation: 2,
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
+  },
+
+  /* ================= MAIN TWO-COLUMN VERTICAL TAB LAYOUT ================= */
+  mainLayoutContainer: {
+    flex: 1,
+    flexDirection: "row",
+    backgroundColor: "#F4F7FB",
+  },
+
+  /* Left Column: Vertical Tab Rail */
+  verticalTabRail: {
+    width: 82,
+    backgroundColor: "#FFFFFF",
+    borderRightWidth: 1,
+    borderRightColor: "#E2E8F0",
+  },
+  railContent: {
+    paddingVertical: 10,
+  },
+  railItem: {
+    paddingVertical: 15,
+    alignItems: "center",
+    justifyContent: "center",
+    position: "relative",
+    paddingHorizontal: 4,
+  },
+  railItemActive: {
+    backgroundColor: "#F8FAFC",
+  },
+  activeBarIndicator: {
+    position: "absolute",
+    left: 0,
+    top: 10,
+    bottom: 10,
+    width: 3,
+    borderRadius: 2,
+    backgroundColor: COLORS.primary,
+  },
+  railIconWrap: {
+    width: 38,
+    height: 38,
+    borderRadius: 12,
+    backgroundColor: "#F8FAFC",
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 4,
+  },
+  railIconWrapActive: {
+    backgroundColor: "#EFF6FF",
+  },
+  railItemText: {
+    fontSize: 10.5,
+    fontWeight: "600",
+    color: "#64748B",
+    textAlign: "center",
+    lineHeight: 14,
+  },
+  railItemTextActive: {
+    color: COLORS.primary,
+    fontWeight: "700",
+  },
+
+  /* Right Column: Content Pane */
+  contentPane: {
+    flex: 1,
+    backgroundColor: "#F4F7FB",
+  },
+  contentPaneScroll: {
+    padding: 12,
+    paddingBottom: 50,
+  },
+
+  /* Pane Header */
+  paneHeader: {
+    marginBottom: 10,
+  },
+  headerRoleRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  paneMainTitle: {
+    fontSize: 17,
+    fontWeight: "700",
+    color: "#0F172A",
+    letterSpacing: -0.3,
+    flex: 1,
+  },
+  roleBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 2.5,
+    borderRadius: 6,
+  },
+  roleBadgeOwner: {
+    backgroundColor: "#EFF6FF",
+  },
+  roleBadgeAgent: {
+    backgroundColor: "#FEF3C7",
+  },
+  roleBadgeText: {
+    fontSize: 10,
+    fontWeight: "700",
+  },
+  roleBadgeTextOwner: {
+    color: COLORS.primary,
+  },
+  roleBadgeTextAgent: {
+    color: "#B45309",
+  },
+  paneSubtitle: {
+    fontSize: 11.5,
+    color: "#64748B",
+    marginTop: 2,
+    lineHeight: 16,
+  },
+
+  /* Minimal Category Filter Pills */
+  categoryPillsRow: {
+    flexDirection: "row",
+    gap: 8,
+    marginBottom: 10,
+  },
+  categoryPill: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#FFFFFF",
+    paddingHorizontal: 12,
+    paddingVertical: 5.5,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
+  },
+  categoryPillActive: {
+    backgroundColor: "#FFFFFF",
+    borderColor: "#0F172A",
+    borderWidth: 1.5,
+  },
+  categoryPillText: {
+    fontSize: 11.5,
+    fontWeight: "600",
+    color: "#64748B",
+  },
+  categoryPillTextActive: {
+    color: "#0F172A",
+    fontWeight: "700",
+  },
+
+  sectionHeaderRow: {
+    marginBottom: 8,
+  },
+  paneSectionHeader: {
+    fontSize: 10,
+    fontWeight: "800",
+    color: "#64748B",
+    letterSpacing: 0.7,
+  },
+
+  /* ================= COMPACT & SHORT REFERENCE PRICING CARDS ================= */
+  refCard: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 18,
+    padding: 15,
+    borderWidth: 1,
+    borderColor: "#E5E7EB",
+    marginBottom: 10,
+    shadowColor: "#000000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.03,
+    shadowRadius: 6,
+    elevation: 1,
+  },
+  refCardPopular: {
+    borderColor: "#93C5FD",
+    borderWidth: 1.5,
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+  },
+  refCardHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 2,
+  },
+  refPlanTitle: {
+    fontSize: 18,
+    fontWeight: "800",
+    letterSpacing: -0.3,
+  },
+  refBadgePopular: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#EFF6FF",
+    paddingHorizontal: 7,
+    paddingVertical: 2,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "#BFDBFE",
+  },
+  refBadgePopularText: {
+    fontSize: 9,
+    fontWeight: "800",
+    color: "#1D4ED8",
+    letterSpacing: 0.5,
+  },
+  refPriceRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: 3,
+    marginBottom: 10,
+  },
+  refPriceBig: {
+    fontSize: 27,
+    fontWeight: "800",
+    color: "#0F172A",
+    letterSpacing: -0.8,
+  },
+  refPriceSubBox: {
+    marginLeft: 8,
+    justifyContent: "center",
+  },
+  refPriceSub1: {
+    fontSize: 11,
+    color: "#475569",
+    fontWeight: "600",
+    lineHeight: 14,
+  },
+  refPriceSub2: {
+    fontSize: 10,
+    color: "#94A3B8",
+    fontWeight: "400",
+    lineHeight: 13,
+  },
+  refCtaBtn: {
+    height: 38,
+    borderRadius: 10,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  refCtaBtnDefault: {
+    backgroundColor: "#F1F5F9",
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
+  },
+  refCtaBtnPopular: {
+    backgroundColor: "#0F172A",
+  },
+  refCtaBtnText: {
+    fontSize: 13,
+    fontWeight: "700",
+  },
+  refCtaBtnTextDefault: {
+    color: "#0F172A",
+  },
+  refCtaBtnTextPopular: {
+    color: "#FFFFFF",
+  },
+  refDivider: {
+    height: 1,
+    backgroundColor: "#F1F5F9",
+    marginHorizontal: -15,
+    marginTop: 10,
+    marginBottom: 10,
+  },
+  refFeaturesList: {
+    gap: 6,
+  },
+  refFeatureRow: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  refCheckIcon: {
+    marginRight: 8,
+  },
+  refFeatureText: {
+    fontSize: 12,
+    color: "#1E293B",
+    fontWeight: "500",
+    lineHeight: 16,
+    flex: 1,
+  },
+
+  /* ================= FLIGHT-STYLE MODULAR BLOCKS FOR PRICE ESTIMATOR ================= */
+  flightModuleStack: {
+    gap: 10,
+    marginBottom: 16,
+  },
+  flightDarkCard: {
+    backgroundColor: "#0F172A",
+    borderRadius: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    borderWidth: 1,
+    borderColor: "#1E293B",
+  },
+  flightDarkCardAlt: {
+    backgroundColor: "#1E293B",
+    borderColor: "#334155",
+  },
+  flightCardHeaderRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 4,
+  },
+  flightCardLabel: {
+    fontSize: 10,
+    fontWeight: "700",
+    color: "#94A3B8",
+    letterSpacing: 0.8,
+    textTransform: "uppercase",
+  },
+  flightDarkValueText: {
+    fontSize: 25,
+    fontWeight: "800",
+    color: "#FFFFFF",
+    letterSpacing: -0.5,
+  },
+  flightDarkSubText: {
+    fontSize: 11.5,
+    color: "#94A3B8",
+    marginTop: 2,
+  },
+  flightLocalityChipsRow: {
+    marginTop: 10,
+  },
+  flightLocChip: {
+    paddingHorizontal: 10,
+    paddingVertical: 4.5,
+    borderRadius: 12,
+    backgroundColor: "#334155",
+    marginRight: 6,
+  },
+  flightLocChipActive: {
+    backgroundColor: COLORS.primary,
+  },
+  flightLocChipText: {
+    fontSize: 11,
+    fontWeight: "600",
+    color: "#CBD5E1",
+  },
+  flightLocChipTextActive: {
+    color: "#FFFFFF",
+    fontWeight: "700",
+  },
+
+  /* Light Cards with Chevron */
+  flightLightCard: {
+    backgroundColor: "#F1F5F9",
+    borderRadius: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
+  },
+  flightCardLabelLight: {
+    fontSize: 10,
+    fontWeight: "700",
+    color: "#64748B",
+    letterSpacing: 0.8,
+    textTransform: "uppercase",
+  },
+  flightLightValueRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginTop: 2,
+  },
+  flightLightValueText: {
+    fontSize: 15,
+    fontWeight: "800",
+    color: "#0F172A",
+    letterSpacing: -0.2,
+  },
+
+  /* Split Cards Row */
+  flightSplitRow: {
+    flexDirection: "row",
+    gap: 10,
+  },
+  flightSplitCard: {
+    flex: 1,
+    backgroundColor: "#F1F5F9",
+    borderRadius: 16,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
+  },
+  flightSplitValue: {
+    fontSize: 15,
+    fontWeight: "800",
+    color: "#0F172A",
+    marginTop: 2,
+  },
+
+  /* Stepper Counter Card */
+  flightStepperCard: {
+    backgroundColor: "#F1F5F9",
+    borderRadius: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
+  },
+  flightStepperValueRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginTop: 2,
+  },
+  flightStepperValueText: {
+    fontSize: 19,
+    fontWeight: "800",
+    color: "#0F172A",
+  },
+  flightStepperControls: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  flightStepBtn: {
+    width: 32,
+    height: 32,
+    borderRadius: 8,
+    backgroundColor: "#E2E8F0",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  /* Big Search Button (Original App Color) */
+  flightSearchActionBtn: {
+    height: 48,
+    borderRadius: 14,
+    backgroundColor: COLORS.primary,
+    alignItems: "center",
+    justifyContent: "center",
+    shadowColor: COLORS.primary,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+    elevation: 3,
+    marginTop: 2,
+  },
+  flightSearchActionBtnText: {
+    fontSize: 15,
+    fontWeight: "700",
+    color: "#FFFFFF",
+  },
+
+  /* Rates Table */
+  ratesCard: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 16,
+    paddingHorizontal: 14,
+    paddingVertical: 4,
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
+    shadowColor: "#000000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 8,
+    elevation: 1,
+  },
+  rateItemRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingVertical: 10,
+  },
+  rateItemBorder: {
     borderBottomWidth: 1,
     borderBottomColor: "#F1F5F9",
   },
-  avatar: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    marginRight: 14,
-  },
-  profileInfo: {
-    flex: 1,
-  },
-  userName: {
-    fontSize: 18,
-    fontWeight: "800",
-    color: COLORS.textDark,
-  },
-  userEmail: {
+  rateLocalityText: {
     fontSize: 13,
-    color: COLORS.textSecondary,
-    marginTop: 2,
+    fontWeight: "700",
+    color: "#0F172A",
+  },
+  rateYieldText: {
+    fontSize: 10.5,
+    color: "#64748B",
+  },
+  ratePriceText: {
+    fontSize: 13,
+    fontWeight: "700",
+    color: "#0F172A",
+  },
+  rateGrowthText: {
+    fontSize: 10.5,
+    fontWeight: "700",
+    color: "#16A34A",
+  },
+
+  /* Insights Box */
+  insightBox: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 16,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
+    marginBottom: 10,
+    shadowColor: "#000000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 8,
+    elevation: 1,
+  },
+  insightTagBadge: {
+    alignSelf: "flex-start",
+    backgroundColor: "#EFF6FF",
+    paddingHorizontal: 7,
+    paddingVertical: 2.5,
+    borderRadius: 5,
     marginBottom: 6,
   },
-  badgeBuyer: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#EBF4FF",
-    alignSelf: "flex-start",
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 12,
-  },
-  badgeBuyerText: {
-    fontSize: 11,
+  insightTagBadgeText: {
+    fontSize: 10,
     fontWeight: "700",
     color: COLORS.primary,
   },
-  postBanner: {
-    margin: 20,
-    backgroundColor: "#111111",
-    borderRadius: 18,
-    padding: 18,
-    shadowColor: "#000000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 8,
-    elevation: 3,
-  },
-  postBannerContent: {
-    alignItems: "flex-start",
-  },
-  postBannerTitle: {
-    fontSize: 16,
-    fontWeight: "800",
-    color: "#FFFFFF",
+  insightTitleText: {
+    fontSize: 13.5,
+    fontWeight: "700",
+    color: "#0F172A",
     marginBottom: 4,
   },
-  postBannerSub: {
-    fontSize: 12,
-    color: "rgba(255, 255, 255, 0.8)",
-    marginBottom: 14,
+  insightDescText: {
+    fontSize: 11.5,
+    color: "#475569",
     lineHeight: 16,
+    marginBottom: 8,
   },
-  postBtn: {
+  insightLink: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: COLORS.primary,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
+  },
+  insightLinkText: {
+    fontSize: 11.5,
+    fontWeight: "700",
+    color: COLORS.primary,
+    marginRight: 2,
+  },
+  shieldCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#F0FDF4",
+    padding: 14,
     borderRadius: 14,
+    borderWidth: 1,
+    borderColor: "#DCFCE7",
+    marginTop: 12,
   },
-  postBtnText: {
-    fontSize: 12,
+  shieldTitle: {
+    fontSize: 12.5,
     fontWeight: "700",
-    color: "#FFFFFF",
+    color: "#15803D",
   },
-  menuSection: {
-    backgroundColor: "#FFFFFF",
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    marginBottom: 14,
-  },
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: "700",
-    color: COLORS.textDark,
-    marginBottom: 14,
-  },
-  menuItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: "#F8FAFC",
-  },
-  menuIconContainer: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    justifyContent: "center",
-    alignItems: "center",
-    marginRight: 14,
-  },
-  menuTextContainer: {
-    flex: 1,
-  },
-  menuTitle: {
-    fontSize: 14,
-    fontWeight: "700",
-    color: COLORS.textDark,
-  },
-  menuSub: {
-    fontSize: 12,
-    color: COLORS.textSecondary,
+  shieldSub: {
+    fontSize: 11,
+    color: "#166534",
     marginTop: 2,
+    lineHeight: 15,
   },
 });
