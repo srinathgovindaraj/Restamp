@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import AppNavigator from "./src/navigation/AppNavigator";
 import { WishlistProvider } from "./src/context/WishlistContext";
+import { OwnerProvider } from "./src/context/OwnerContext";
 import AnimatedSplashScreen from "./src/components/AnimatedSplashScreen";
 
 export default function App() {
@@ -10,12 +11,14 @@ export default function App() {
   return (
     <SafeAreaProvider>
       <WishlistProvider>
-        <AppNavigator />
-        {isSplashVisible && (
-          <AnimatedSplashScreen
-            onAnimationComplete={() => setIsSplashVisible(false)}
-          />
-        )}
+        <OwnerProvider>
+          <AppNavigator />
+          {isSplashVisible && (
+            <AnimatedSplashScreen
+              onAnimationComplete={() => setIsSplashVisible(false)}
+            />
+          )}
+        </OwnerProvider>
       </WishlistProvider>
     </SafeAreaProvider>
   );

@@ -462,6 +462,21 @@ export default function MenuScreen({ navigation }) {
   };
 
   const handleSelectPlan = (plan, planRole) => {
+    if (planRole === "Owner") {
+      navigation.navigate("OwnerPlanConfirm", {
+        plan: {
+          id: plan.id,
+          name: plan.name,
+          price: plan.price,
+          priceNumeric: parseInt(plan.price?.replace(/[^0-9]/g, "")) || 2999,
+          validity: plan.priceSub1?.includes("90") ? "3 Months (90 Days)" : "1 Month",
+          listingLimit: plan.id?.includes("vip") || plan.id?.includes("titanium") ? 10 : 5,
+          category: propertyCategory,
+        },
+      });
+      return;
+    }
+
     Alert.alert(
       `${plan.name} Selected`,
       `Proceed with ${plan.name} (${plan.price}) for your ${propertyCategory} property as an ${planRole}?`,
@@ -479,6 +494,7 @@ export default function MenuScreen({ navigation }) {
       ],
     );
   };
+
 
   // Determine current active plans array
   const currentPlans =

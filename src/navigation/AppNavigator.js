@@ -12,6 +12,15 @@ import EnquiriesScreen from "../screens/EnquiriesScreen";
 import ProfileScreen from "../screens/ProfileScreen";
 import MenuScreen from "../screens/MenuScreen";
 
+import OwnerNavigator from "./OwnerNavigator";
+import OwnerPlansScreen from "../screens/owner/OwnerPlansScreen";
+import OwnerPlanConfirmScreen from "../screens/owner/OwnerPlanConfirmScreen";
+import OwnerPaymentScreen from "../screens/owner/OwnerPaymentScreen";
+import OwnerPaymentSuccessScreen from "../screens/owner/OwnerPaymentSuccessScreen";
+import OwnerPaymentFailedScreen from "../screens/owner/OwnerPaymentFailedScreen";
+import OwnerPublishSuccessScreen from "../screens/owner/OwnerPublishSuccessScreen";
+import OwnerLeadDetailScreen from "../screens/owner/OwnerLeadDetailScreen";
+
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
 
@@ -134,7 +143,18 @@ export default function AppNavigator() {
             animation: "slide_from_bottom",
           }}
         />
+
+        {/* OWNER FLOW (Entry, Subscription, Payment, Success/Failed, Navigator) */}
+        <Stack.Screen name="OwnerPlans" component={OwnerPlansScreen} />
+        <Stack.Screen name="OwnerPlanConfirm" component={OwnerPlanConfirmScreen} />
+        <Stack.Screen name="OwnerPayment" component={OwnerPaymentScreen} />
+        <Stack.Screen name="OwnerPaymentSuccess" component={OwnerPaymentSuccessScreen} />
+        <Stack.Screen name="OwnerPaymentFailed" component={OwnerPaymentFailedScreen} />
+        <Stack.Screen name="OwnerNavigator" component={OwnerNavigator} />
+        <Stack.Screen name="OwnerPublishSuccess" component={OwnerPublishSuccessScreen} />
+        <Stack.Screen name="OwnerLeadDetail" component={OwnerLeadDetailScreen} />
       </Stack.Navigator>
+
     </NavigationContainer>
   );
 }

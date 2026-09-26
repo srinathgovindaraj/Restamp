@@ -439,49 +439,46 @@ export default function HomeScreen({ navigation }) {
             </TouchableOpacity>
           </View>
 
-          {/* 3. CATEGORY CIRCLE ICONS WITH LABELS UNDERNEATH */}
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.circleCategoryScroll}
-          >
-            {PROPERTY_TYPES.map((pt) => {
-              const isSelected = selectedType === pt.id;
-              return (
-                <TouchableOpacity
-                  key={pt.id}
-                  style={styles.circleCategoryItem}
-                  activeOpacity={0.8}
-                  onPress={() => {
-                    setSelectedType(pt.id);
-                    navigation.navigate("Search", {
-                      propertyType: pt.name,
-                      dealType: dealType,
-                      locality: selectedLocality || "",
-                    });
-                  }}
-                >
-                  <View
-                    style={[
-                      styles.circleIconBox,
-                      isSelected ? styles.circleIconBoxActive : styles.circleIconBoxInactive,
-                    ]}
-                  >
-                    {renderCategoryIcon(pt.icon, isSelected)}
-                  </View>
-                  <Text
-                    style={[
-                      styles.circleCategoryLabel,
-                      isSelected ? styles.circleCategoryLabelActive : styles.circleCategoryLabelInactive,
-                    ]}
-                    numberOfLines={1}
-                  >
-                    {pt.name}
-                  </Text>
-                </TouchableOpacity>
-              );
-            })}
-          </ScrollView>
+          {/* 3. CATEGORY PILL SELECTOR (MATCHING NEW DESIGN SYSTEM) */}
+          <View style={styles.categoryPillWrapper}>
+            <View style={styles.categoryPillContainer}>
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.categoryPillScroll}
+              >
+                {PROPERTY_TYPES.map((pt) => {
+                  const isSelected = selectedType === pt.id;
+                  return (
+                    <TouchableOpacity
+                      key={pt.id}
+                      style={styles.categoryPillItem}
+                      activeOpacity={0.75}
+                      onPress={() => {
+                        setSelectedType(pt.id);
+                        navigation.navigate("Search", {
+                          propertyType: pt.name,
+                          dealType: dealType,
+                          locality: selectedLocality || "",
+                        });
+                      }}
+                    >
+                      <Text
+                        style={[
+                          styles.categoryPillText,
+                          isSelected
+                            ? styles.categoryPillTextActive
+                            : styles.categoryPillTextInactive,
+                        ]}
+                      >
+                        {pt.name}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </ScrollView>
+            </View>
+          </View>
         </View>
 
         {/* ================= RECOMMENDED PROPERTIES (SINGLE ROW SLIDER) ================= */}
@@ -1098,47 +1095,45 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
 
-  /* 3. CATEGORY CIRCLE ICONS WITH LABELS UNDERNEATH */
-  circleCategoryScroll: {
+  /* 3. CATEGORY PILL SELECTOR (MATCHING NEW DESIGN SYSTEM) */
+  categoryPillWrapper: {
     paddingHorizontal: 20,
-    paddingTop: 4,
-    paddingBottom: 8,
+    marginTop: 4,
+    marginBottom: 14,
   },
-  circleCategoryItem: {
-    alignItems: "center",
-    marginRight: 18,
-    width: 66,
-  },
-  circleIconBox: {
-    width: 54,
-    height: 54,
-    borderRadius: 27,
-    justifyContent: "center",
-    alignItems: "center",
-    marginBottom: 6,
-  },
-  circleIconBoxInactive: {
-    backgroundColor: "#F0F4FF",
-  },
-  circleIconBoxActive: {
-    backgroundColor: COLORS.primary,
-    shadowColor: COLORS.primary,
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.3,
+  categoryPillContainer: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 26,
+    borderWidth: 1,
+    borderColor: "#EEF2F6",
+    paddingVertical: 5,
+    paddingHorizontal: 6,
+    shadowColor: "#000000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.03,
     shadowRadius: 6,
-    elevation: 3,
+    elevation: 1,
   },
-  circleCategoryLabel: {
-    fontSize: 12.5,
-    fontWeight: "500",
-    textAlign: "center",
-    lineHeight: 16,
+  categoryPillScroll: {
+    paddingHorizontal: 4,
+    alignItems: "center",
   },
-  circleCategoryLabelInactive: {
-    color: "#1E293B",
+  categoryPillItem: {
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: 16,
+    paddingVertical: 8,
   },
-  circleCategoryLabelActive: {
-    color: COLORS.primary,
+  categoryPillText: {
+    fontSize: 13.5,
+    letterSpacing: -0.2,
+  },
+  categoryPillTextActive: {
+    color: "#111111",
+    fontWeight: "700",
+  },
+  categoryPillTextInactive: {
+    color: "#94A3B8",
     fontWeight: "500",
   },
 
@@ -1182,7 +1177,7 @@ const styles = StyleSheet.create({
   recommendedCard: {
     width: REC_CARD_WIDTH,
     backgroundColor: "#FFFFFF",
-    borderRadius: 8,
+    borderRadius: 14,
     overflow: "hidden",
     marginRight: 12,
     shadowColor: "#000",
@@ -1559,14 +1554,14 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
 
-  /* CARD LISTS */
+  /* CARD LISTS radius:14 */
   cardHorizontalList: {
     paddingHorizontal: 20,
   },
   propertyCard: {
     width: CARD_WIDTH,
     backgroundColor: "#FFFFFF",
-    borderRadius: 8,
+    borderRadius: 14,
     marginRight: 16,
     overflow: "hidden",
     shadowColor: "#000",

@@ -1,7 +1,7 @@
 const COLORS = {
-  primary: "#146EF5",
-  primaryLight: "#EBF4FF",
-  primaryDark: "#0B51C9",
+  primary: "#1B489C",
+  primaryLight: "#EEF3FA",
+  primaryDark: "#133570",
 
   white: "#FFFFFF",
   black: "#111111",
@@ -18,7 +18,7 @@ const COLORS = {
   border: "#E2E8F0",
 
   badgeGreen: "#10B981",
-  badgeBlue: "#3B82F6",
+  badgeBlue: "#1B489C",
   badgeOrange: "#F97316",
 
   success: "#10B981",
