@@ -35,10 +35,10 @@ import {
   CheckCircle2,
   ArrowRight,
 } from "lucide-react-native";
-import COLORS from "../constants/colors";
+import COLORS from "../../constants/colors";
 import { useNavigation } from "@react-navigation/native";
-import { useWishlist } from "../context/WishlistContext";
-import { useOwner } from "../context/OwnerContext";
+import { useWishlist } from "../../context/WishlistContext";
+import { useOwner } from "../../context/OwnerContext";
 
 export default function ProfileScreen({ navigation }) {
   const nav = useNavigation() || navigation;

@@ -25,9 +25,9 @@ import {
   Copy,
   Building,
 } from "lucide-react-native";
-import COLORS from "../constants/colors";
-import { useWishlist } from "../context/WishlistContext";
-import PropertyDetailModal from "../components/PropertyDetailModal";
+import COLORS from "../../constants/colors";
+import { useWishlist } from "../../context/WishlistContext";
+import PropertyDetailModal from "../../components/PropertyDetailModal";
 
 export default function SavedScreen({ navigation }) {
   const { wishlist, removeFromWishlist, isWishlisted, toggleWishlist } = useWishlist();

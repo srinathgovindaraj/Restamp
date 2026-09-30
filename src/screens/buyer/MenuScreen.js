@@ -31,8 +31,8 @@ import {
   ArrowUpRight,
   MapPin,
 } from "lucide-react-native";
-import COLORS from "../constants/colors";
-import RestampLogo from "../components/RestampLogo";
+import COLORS from "../../constants/colors";
+import RestampLogo from "../../components/RestampLogo";
 
 const VERTICAL_TABS = [
   { id: "owner", label: "Owner Plan", icon: Crown },

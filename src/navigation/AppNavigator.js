@@ -1,16 +1,16 @@
 import React from "react";
-import { Platform } from "react-native";
+import { Platform, DeviceEventEmitter } from "react-native";
 import { NavigationContainer } from "@react-navigation/native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { Home, Search, Heart, MessageSquare, User } from "lucide-react-native";
 
-import HomeScreen from "../screens/HomeScreen";
-import SearchScreen from "../screens/SearchScreen";
-import SavedScreen from "../screens/SavedScreen";
-import EnquiriesScreen from "../screens/EnquiriesScreen";
-import ProfileScreen from "../screens/ProfileScreen";
-import MenuScreen from "../screens/MenuScreen";
+import HomeScreen from "../screens/buyer/HomeScreen";
+import SearchScreen from "../screens/buyer/SearchScreen";
+import SavedScreen from "../screens/buyer/SavedScreen";
+import EnquiriesScreen from "../screens/buyer/EnquiriesScreen";
+import ProfileScreen from "../screens/buyer/ProfileScreen";
+import MenuScreen from "../screens/buyer/MenuScreen";
 
 import OwnerNavigator from "./OwnerNavigator";
 import OwnerPlansScreen from "../screens/owner/OwnerPlansScreen";
@@ -116,9 +116,11 @@ function MainTabs() {
         name="Search"
         component={SearchScreen}
         listeners={({ navigation }) => ({
-          tabPress: () => {
+          tabPress: (e) => {
+            DeviceEventEmitter.emit("OPEN_SEARCH_FILTER_MODAL", { fromNavbar: true });
             navigation.navigate("Search", {
               openFilterModal: Date.now(),
+              fromNavbar: true,
             });
           },
         })}

@@ -1,8 +1,13 @@
 export const PROPERTY_TYPES = [
   {
     "id": "house",
-    "name": "House",
+    "name": "Home",
     "icon": "home"
+  },
+  {
+    "id": "plot",
+    "name": "Plot",
+    "icon": "grid"
   },
   {
     "id": "villa",
@@ -15,19 +20,9 @@ export const PROPERTY_TYPES = [
     "icon": "business"
   },
   {
-    "id": "bungalow",
-    "name": "Bungalow",
-    "icon": "home-sharp"
-  },
-  {
     "id": "commercial",
     "name": "Commercial",
     "icon": "briefcase"
-  },
-  {
-    "id": "plot",
-    "name": "Plot",
-    "icon": "grid"
   }
 ];
 

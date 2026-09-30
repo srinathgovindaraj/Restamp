@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect, useRef } from "react";
 import {
   View,
   Text,
@@ -15,6 +15,7 @@ import {
   Alert,
   Platform,
   Dimensions,
+  DeviceEventEmitter,
 } from "react-native";
 import {
   Search as SearchIcon,
@@ -33,11 +34,11 @@ import {
   CheckCircle2,
   Copy,
 } from "lucide-react-native";
-import COLORS from "../constants/colors";
-import ALL_PROPERTIES from "../data/properties";
-import { useWishlist } from "../context/WishlistContext";
-import PropertyDetailModal from "../components/PropertyDetailModal";
-import SearchPropertyModal from "../components/SearchPropertyModal";
+import COLORS from "../../constants/colors";
+import ALL_PROPERTIES from "../../data/properties";
+import { useWishlist } from "../../context/WishlistContext";
+import PropertyDetailModal from "../../components/PropertyDetailModal";
+import SearchPropertyModal from "../../components/SearchPropertyModal";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
@@ -72,7 +73,7 @@ const BUDGET_OPTIONS = [
 
 const BHK_OPTIONS = ["All BHK", "1 BHK", "2 BHK", "3 BHK", "4+ BHK"];
 
-const PROPERTY_TYPES = ["All Types", "Apartment", "Villa", "House", "Bungalow", "Commercial", "Plot"];
+const PROPERTY_TYPES = ["All Types", "Home", "Plot", "Villa", "Apartment", "Commercial"];
 
 const STATUS_OPTIONS = ["All Status", "Ready to move", "Under Construction", "New Launch"];
 
@@ -101,6 +102,22 @@ export default function SearchScreen({ navigation, route }) {
     !!route?.params?.openFilterModal
   );
 
+  const openedFromNavbarRef = useRef(
+    route?.params?.fromNavbar !== undefined
+      ? !!route.params.fromNavbar
+      : !!route?.params?.openFilterModal
+  );
+  const [openedFromNavbar, setOpenedFromNavbar] = useState(
+    route?.params?.fromNavbar !== undefined
+      ? !!route.params.fromNavbar
+      : !!route?.params?.openFilterModal
+  );
+
+  const setFromNavbar = (val) => {
+    openedFromNavbarRef.current = val;
+    setOpenedFromNavbar(val);
+  };
+
   // Modals for filters
   const [activeDropdown, setActiveDropdown] = useState(null); // 'sort' | 'budget' | 'bhk' | 'type' | 'status' | 'allFilters' | null
   const [selectedProperty, setSelectedProperty] = useState(null);
@@ -109,10 +126,25 @@ export default function SearchScreen({ navigation, route }) {
 
   const { wishlist = [], isWishlisted, toggleWishlist } = useWishlist();
 
+  // Listen to bottom tab Search icon press
+  useEffect(() => {
+    const sub = DeviceEventEmitter.addListener("OPEN_SEARCH_FILTER_MODAL", () => {
+      setIsSearchModalOpen(true);
+      setFromNavbar(true);
+    });
+    return () => {
+      sub.remove();
+    };
+  }, []);
+
   // Listen to incoming route parameter changes
   useEffect(() => {
     if (route?.params?.openFilterModal) {
       setIsSearchModalOpen(true);
+      if (route?.params?.fromNavbar !== false) {
+        setFromNavbar(true);
+      }
+      navigation.setParams({ openFilterModal: undefined, fromNavbar: undefined });
     }
     if (route?.params?.locality !== undefined) {
       setSearchQuery(route.params.locality);
@@ -146,7 +178,8 @@ export default function SearchScreen({ navigation, route }) {
   const filteredProperties = useMemo(() => {
     let list = ALL_PROPERTIES.filter((item) => {
       // Deal Tab filter
-      if (dealTab === "Buy" && item.badgeType !== "sale") return false;
+      if (dealTab === "Buy" && item.badgeType !== "sale" && item.badgeType !== "resale") return false;
+      if (dealTab === "Resale" && item.badgeType !== "resale" && !item.isResale && item.constructionStatus !== "Ready to move") return false;
       if (dealTab === "Rent" && item.badgeType !== "rent") return false;
       if (dealTab === "Lease" && item.badgeType !== "lease") return false;
 
@@ -182,14 +215,19 @@ export default function SearchScreen({ navigation, route }) {
 
       // Property Type filter from dropdown
       if (selectedType !== "All Types") {
-        if (selectedType.toLowerCase() === "bungalow") {
-          const t = item.type.toLowerCase();
-          const desc = (item.description || "").toLowerCase();
-          const title = (item.title || "").toLowerCase();
-          if (t !== "house" && t !== "villa" && !desc.includes("bungalow") && !title.includes("bungalow")) {
+        const selLower = selectedType.toLowerCase();
+        const itemTypeLower = item.type.toLowerCase();
+        if (selLower === "home" || selLower === "house") {
+          if (itemTypeLower !== "house" && itemTypeLower !== "home") {
             return false;
           }
-        } else if (item.type.toLowerCase() !== selectedType.toLowerCase()) {
+        } else if (selLower === "bungalow") {
+          const desc = (item.description || "").toLowerCase();
+          const title = (item.title || "").toLowerCase();
+          if (itemTypeLower !== "house" && itemTypeLower !== "villa" && !desc.includes("bungalow") && !title.includes("bungalow")) {
+            return false;
+          }
+        } else if (itemTypeLower !== selLower) {
           return false;
         }
       }
@@ -340,7 +378,10 @@ export default function SearchScreen({ navigation, route }) {
         <TouchableOpacity
           style={styles.searchInputContainer}
           activeOpacity={0.85}
-          onPress={() => setIsSearchModalOpen(true)}
+          onPress={() => {
+            setFromNavbar(false);
+            setIsSearchModalOpen(true);
+          }}
         >
           <Text
             style={[
@@ -437,7 +478,10 @@ export default function SearchScreen({ navigation, route }) {
                 styles.filterIconPillActive,
             ]}
             activeOpacity={0.8}
-            onPress={() => setIsSearchModalOpen(true)}
+            onPress={() => {
+              setFromNavbar(false);
+              setIsSearchModalOpen(true);
+            }}
           >
             <SlidersHorizontal size={15} color="#334155" />
           </TouchableOpacity>
@@ -941,7 +985,7 @@ export default function SearchScreen({ navigation, route }) {
               {/* Deal Type */}
               <Text style={styles.filterSectionTitle}>Listing Type</Text>
               <View style={styles.filterPillsRowWrap}>
-                {["Buy", "Rent", "Lease"].map((deal) => (
+                {["Buy", "Resale", "Rent", "Lease"].map((deal) => (
                   <TouchableOpacity
                     key={deal}
                     style={[styles.modalChoicePill, dealTab === deal && styles.modalChoicePillActive]}
@@ -1149,9 +1193,19 @@ export default function SearchScreen({ navigation, route }) {
       {/* ================= SEARCH PROPERTY FILTER MODAL ================= */}
       <SearchPropertyModal
         visible={isSearchModalOpen}
-        onClose={() => setIsSearchModalOpen(false)}
+        onClose={() => {
+          const wasFromNavbar = openedFromNavbarRef.current;
+          setIsSearchModalOpen(false);
+          setFromNavbar(false);
+          navigation.setParams({ openFilterModal: undefined, fromNavbar: undefined });
+          if (wasFromNavbar) {
+            navigation.navigate("Home");
+          }
+        }}
         onApply={(filters) => {
           setIsSearchModalOpen(false);
+          setFromNavbar(false);
+          navigation.setParams({ openFilterModal: undefined, fromNavbar: undefined });
           setSearchQuery(filters.locality);
           setSelectedType(filters.propertyType);
           setSelectedBhk(filters.bhk);
@@ -1610,7 +1664,7 @@ const styles = StyleSheet.create({
   viewNumberBtn: {
     height: 34,
     paddingHorizontal: 12,
-    borderRadius: 17,
+    borderRadius: 100,
     borderWidth: 1.5,
     borderColor: COLORS.primary,
     backgroundColor: "#FFFFFF",
@@ -1666,7 +1720,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 18,
     paddingVertical: 10,
     backgroundColor: COLORS.primary,
-    borderRadius: 8,
+    borderRadius: 100,
   },
   clearFiltersBtnText: {
     fontSize: 13,
@@ -1783,7 +1837,7 @@ const styles = StyleSheet.create({
   resetBtn: {
     flex: 1,
     height: 44,
-    borderRadius: 8,
+    borderRadius: 100,
     borderWidth: 1.5,
     borderColor: "#CBD5E1",
     justifyContent: "center",
@@ -1797,7 +1851,7 @@ const styles = StyleSheet.create({
   applyBtn: {
     flex: 2,
     height: 44,
-    borderRadius: 8,
+    borderRadius: 100,
     backgroundColor: COLORS.primary,
     justifyContent: "center",
     alignItems: "center",
@@ -1977,7 +2031,7 @@ const styles = StyleSheet.create({
   callNowBtn: {
     flex: 1,
     height: 48,
-    borderRadius: 14,
+    borderRadius: 100,
     backgroundColor: COLORS.primary,
     flexDirection: "row",
     justifyContent: "center",
@@ -1996,7 +2050,7 @@ const styles = StyleSheet.create({
   whatsappNowBtn: {
     flex: 1,
     height: 48,
-    borderRadius: 14,
+    borderRadius: 100,
     backgroundColor: "#16A34A",
     flexDirection: "row",
     justifyContent: "center",

@@ -25,10 +25,10 @@ import {
   Copy,
   Building,
 } from "lucide-react-native";
-import COLORS from "../constants/colors";
-import ALL_PROPERTIES from "../data/properties";
-import { useWishlist } from "../context/WishlistContext";
-import PropertyDetailModal from "../components/PropertyDetailModal";
+import COLORS from "../../constants/colors";
+import ALL_PROPERTIES from "../../data/properties";
+import { useWishlist } from "../../context/WishlistContext";
+import PropertyDetailModal from "../../components/PropertyDetailModal";
 
 const INITIAL_ENQUIRIES = [
   {

@@ -11,10 +11,10 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Search, XCircle, Heart, Star, MapPin } from "lucide-react-native";
-import COLORS from "../constants/colors";
-import ALL_PROPERTIES, { RECOMMENDED_PROPERTIES } from "../data/properties";
-import { useWishlist } from "../context/WishlistContext";
-import PropertyDetailModal from "../components/PropertyDetailModal";
+import COLORS from "../../constants/colors";
+import ALL_PROPERTIES, { RECOMMENDED_PROPERTIES } from "../../data/properties";
+import { useWishlist } from "../../context/WishlistContext";
+import PropertyDetailModal from "../../components/PropertyDetailModal";
 
 export default function ExploreScreen() {
   const { isWishlisted, toggleWishlist } = useWishlist();

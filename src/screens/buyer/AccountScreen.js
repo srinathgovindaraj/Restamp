@@ -25,8 +25,8 @@ import {
   LogOut,
   ChevronRight,
 } from "lucide-react-native";
-import COLORS from "../constants/colors";
-import { useWishlist } from "../context/WishlistContext";
+import COLORS from "../../constants/colors";
+import { useWishlist } from "../../context/WishlistContext";
 
 export default function AccountScreen() {
   const { wishlist } = useWishlist();

@@ -26,7 +26,7 @@ const LOCALITY_LIST = [
   "Guindy",
 ];
 
-const PROPERTY_TYPE_OPTIONS = ["Apartment", "Villa", "House", "Commercial", "Plot"];
+const PROPERTY_TYPE_OPTIONS = ["Home", "Plot", "Villa", "Apartment", "Commercial"];
 
 const CONSTRUCTION_STATUS_OPTIONS = [
   "All Status",
@@ -174,7 +174,8 @@ export default function SearchPropertyModal({
   const matchedCount = useMemo(() => {
     return ALL_PROPERTIES.filter((item) => {
       // Deal type match
-      if (dealType === "Buy" && item.badgeType !== "sale") return false;
+      if (dealType === "Buy" && item.badgeType !== "sale" && item.badgeType !== "resale") return false;
+      if (dealType === "Resale" && item.badgeType !== "resale" && !item.isResale && item.constructionStatus !== "Ready to move") return false;
       if (dealType === "Rent" && item.badgeType !== "rent") return false;
       if (dealType === "Lease" && item.badgeType !== "lease") return false;
 
@@ -193,7 +194,11 @@ export default function SearchPropertyModal({
       if (modalType && modalType !== "All Types") {
         const itemType = (item.type || "").toLowerCase();
         const selType = modalType.toLowerCase();
-        if (selType === "bungalow") {
+        if (selType === "home" || selType === "house") {
+          if (itemType !== "house" && itemType !== "home") {
+            return false;
+          }
+        } else if (selType === "bungalow") {
           const desc = (item.description || "").toLowerCase();
           const title = (item.title || "").toLowerCase();
           if (itemType !== "house" && itemType !== "villa" && !desc.includes("bungalow") && !title.includes("bungalow")) {
@@ -265,7 +270,7 @@ export default function SearchPropertyModal({
     <Modal
       visible={visible}
       animationType="slide"
-      transparent={false}
+      presentationStyle="pageSheet"
       onRequestClose={onClose}
     >
       <SafeAreaView style={styles.modalSafeArea}>
@@ -604,7 +609,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#F8FAFC",
     borderWidth: 1,
     borderColor: "#E2E8F0",
-    borderRadius: 12,
+    borderRadius: 100,
     paddingHorizontal: 12,
     height: 44,
     marginBottom: 12,
@@ -629,7 +634,7 @@ const styles = StyleSheet.create({
   localityChip: {
     paddingHorizontal: 12,
     paddingVertical: 7,
-    borderRadius: 14,
+    borderRadius: 20,
     backgroundColor: "#F1F5F9",
   },
   localityChipSelected: {
@@ -847,7 +852,7 @@ const styles = StyleSheet.create({
   modalShowBtn: {
     flex: 1,
     height: 48,
-    borderRadius: 14,
+    borderRadius: 100,
     backgroundColor: COLORS.primary,
     alignItems: "center",
     justifyContent: "center",

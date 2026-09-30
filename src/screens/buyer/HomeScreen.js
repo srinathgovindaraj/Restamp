@@ -35,8 +35,8 @@ import {
   ChevronDown,
   SlidersHorizontal,
 } from "lucide-react-native";
-import COLORS from "../constants/colors";
-import TYPOGRAPHY from "../constants/typography";
+import COLORS from "../../constants/colors";
+import TYPOGRAPHY from "../../constants/typography";
 import {
   PROPERTY_TYPES,
   CHENNAI_LOCALITIES,
@@ -46,11 +46,12 @@ import {
   ALL_PROPERTIES,
   NEWLY_LAUNCHED_PROJECTS,
   DEMAND_DATA,
-} from "../data/properties";
-import { useWishlist } from "../context/WishlistContext";
-import PropertyDetailModal from "../components/PropertyDetailModal";
-import RestampLogo from "../components/RestampLogo";
-import SearchPropertyModal from "../components/SearchPropertyModal";
+} from "../../data/properties";
+import { useWishlist } from "../../context/WishlistContext";
+import { useOwner } from "../../context/OwnerContext";
+import PropertyDetailModal from "../../components/PropertyDetailModal";
+import RestampLogo from "../../components/RestampLogo";
+import SearchPropertyModal from "../../components/SearchPropertyModal";
 
 const { width } = Dimensions.get("window");
 const CARD_WIDTH = width * 0.78;
@@ -58,7 +59,10 @@ const REC_CARD_WIDTH = Math.min(170, Math.max(130, Math.round((width - 40) / 2.4
 const PROJECT_CARD_WIDTH = Math.min(320, width * 0.84);
 const DEMAND_CARD_WIDTH = Math.min(270, width * 0.72);
 
-const DEAL_TYPES = ["Buy", "Rent", "Lease"];
+// MANUAL BANNER HEIGHT CONTROL (Change this value to adjust the banner height)
+const POST_PROPERTY_BANNER_HEIGHT = 130;
+
+const DEAL_TYPES = ["Buy", "Resale", "Rent", "Lease"];
 
 const LOCALITY_LIST = [
   "Anna Nagar",
@@ -157,6 +161,15 @@ export default function HomeScreen({ navigation }) {
   const [selectedType, setSelectedType] = useState("apartment");
   const [searchQuery, setSearchQuery] = useState("");
   const { isWishlisted, toggleWishlist } = useWishlist();
+  const { subscription } = useOwner();
+
+  const handlePostProperty = () => {
+    if (subscription?.active) {
+      navigation.navigate("OwnerNavigator", { screen: "Add" });
+    } else {
+      navigation.navigate("OwnerPlans");
+    }
+  };
 
   // Selected Property for Detail Modal
   const [selectedProperty, setSelectedProperty] = useState(null);
@@ -226,7 +239,8 @@ export default function HomeScreen({ navigation }) {
   const filterProperties = (list) => {
     return list.filter((item) => {
       // Deal filter
-      if (dealType === "Buy" && item.badgeType !== "sale") return false;
+      if (dealType === "Buy" && item.badgeType !== "sale" && item.badgeType !== "resale") return false;
+      if (dealType === "Resale" && item.badgeType !== "resale" && !item.isResale && item.constructionStatus !== "Ready to move") return false;
       if (dealType === "Rent" && item.badgeType !== "rent") return false;
       if (dealType === "Lease" && item.badgeType !== "lease") return false;
 
@@ -278,7 +292,8 @@ export default function HomeScreen({ navigation }) {
   // Filter preview count inside modal
   const modalMatchedCount = useMemo(() => {
     return ALL_PROPERTIES.filter((item) => {
-      if (dealType === "Buy" && item.badgeType !== "sale") return false;
+      if (dealType === "Buy" && item.badgeType !== "sale" && item.badgeType !== "resale") return false;
+      if (dealType === "Resale" && item.badgeType !== "resale" && !item.isResale && item.constructionStatus !== "Ready to move") return false;
       if (dealType === "Rent" && item.badgeType !== "rent") return false;
       if (dealType === "Lease" && item.badgeType !== "lease") return false;
       if (selectedLocality && !item.location.toLowerCase().includes(selectedLocality.toLowerCase())) {
@@ -439,46 +454,73 @@ export default function HomeScreen({ navigation }) {
             </TouchableOpacity>
           </View>
 
-          {/* 3. CATEGORY PILL SELECTOR (MATCHING NEW DESIGN SYSTEM) */}
+          {/* 3. CATEGORY SELECTOR */}
           <View style={styles.categoryPillWrapper}>
-            <View style={styles.categoryPillContainer}>
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={styles.categoryPillScroll}
-              >
-                {PROPERTY_TYPES.map((pt) => {
-                  const isSelected = selectedType === pt.id;
-                  return (
-                    <TouchableOpacity
-                      key={pt.id}
-                      style={styles.categoryPillItem}
-                      activeOpacity={0.75}
-                      onPress={() => {
-                        setSelectedType(pt.id);
-                        navigation.navigate("Search", {
-                          propertyType: pt.name,
-                          dealType: dealType,
-                          locality: selectedLocality || "",
-                        });
-                      }}
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.categoryPillScroll}
+            >
+              {PROPERTY_TYPES.map((pt) => {
+                const isSelected = selectedType === pt.id;
+                return (
+                  <TouchableOpacity
+                    key={pt.id}
+                    style={styles.categoryPillItem}
+                    activeOpacity={0.75}
+                    onPress={() => {
+                      setSelectedType(pt.id);
+                      navigation.navigate("Search", {
+                        propertyType: pt.name,
+                        dealType: dealType,
+                        locality: selectedLocality || "",
+                      });
+                    }}
+                  >
+                    <Text
+                      style={[
+                        styles.categoryPillText,
+                        isSelected
+                          ? styles.categoryPillTextActive
+                          : styles.categoryPillTextInactive,
+                      ]}
                     >
-                      <Text
-                        style={[
-                          styles.categoryPillText,
-                          isSelected
-                            ? styles.categoryPillTextActive
-                            : styles.categoryPillTextInactive,
-                        ]}
-                      >
-                        {pt.name}
-                      </Text>
-                    </TouchableOpacity>
-                  );
-                })}
-              </ScrollView>
-            </View>
+                      {pt.name}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </ScrollView>
           </View>
+        </View>
+
+        {/* ================= POST YOUR PROPERTY PROMO BANNER ================= */}
+        <View style={styles.postPropertyWrapper}>
+          <TouchableOpacity
+            style={styles.postPropertyCard}
+            activeOpacity={0.92}
+            onPress={handlePostProperty}
+          >
+            <View style={styles.postPropertyContent}>
+              <Text style={styles.postPropertyTitle}>
+                Post your Property for <Text style={styles.postPropertyTitleFree}>Free</Text>
+              </Text>
+              <Text style={styles.postPropertySubtitle}>
+                List it on Restamp and get genuine leads
+              </Text>
+              <View style={styles.postPropertyBtn}>
+                <Text style={styles.postPropertyBtnText}>Post your property</Text>
+              </View>
+            </View>
+
+            <View style={styles.postPropertyImageWrapper}>
+              <Image
+                source={require("../../../assets/post-property-banner.jpg")}
+                style={styles.postPropertyImage}
+                resizeMode="cover"
+              />
+            </View>
+          </TouchableOpacity>
         </View>
 
         {/* ================= RECOMMENDED PROPERTIES (SINGLE ROW SLIDER) ================= */}
@@ -1025,7 +1067,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 8,
     paddingBottom: 14,
-    gap: 24,
+    gap: 20,
   },
   dealTypeTab: {
     alignItems: "flex-start",
@@ -1087,7 +1129,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#EBF4FF",
     paddingHorizontal: 10,
     paddingVertical: 5,
-    borderRadius: 14,
+    borderRadius: 100,
   },
   activeLocalityTagText: {
     ...TYPOGRAPHY.smallHelperText,
@@ -1095,37 +1137,24 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
 
-  /* 3. CATEGORY PILL SELECTOR (MATCHING NEW DESIGN SYSTEM) */
+  /* 3. CATEGORY SELECTOR */
   categoryPillWrapper: {
-    paddingHorizontal: 20,
-    marginTop: 4,
-    marginBottom: 14,
-  },
-  categoryPillContainer: {
-    backgroundColor: "#FFFFFF",
-    borderRadius: 26,
-    borderWidth: 1,
-    borderColor: "#EEF2F6",
-    paddingVertical: 5,
-    paddingHorizontal: 6,
-    shadowColor: "#000000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.03,
-    shadowRadius: 6,
-    elevation: 1,
+    marginTop: 6,
+    marginBottom: 12,
   },
   categoryPillScroll: {
-    paddingHorizontal: 4,
+    paddingHorizontal: 20,
     alignItems: "center",
   },
   categoryPillItem: {
     alignItems: "center",
     justifyContent: "center",
-    paddingHorizontal: 16,
+    paddingHorizontal: 14,
     paddingVertical: 8,
+    marginRight: 6,
   },
   categoryPillText: {
-    fontSize: 13.5,
+    fontSize: 14,
     letterSpacing: -0.2,
   },
   categoryPillTextActive: {
@@ -1135,6 +1164,85 @@ const styles = StyleSheet.create({
   categoryPillTextInactive: {
     color: "#94A3B8",
     fontWeight: "500",
+  },
+
+  /* POST YOUR PROPERTY PROMO BANNER */
+  postPropertyWrapper: {
+    paddingHorizontal: 20,
+    marginTop: 6,
+    marginBottom: 12,
+  },
+  postPropertyCard: {
+    height: POST_PROPERTY_BANNER_HEIGHT, // <-- CHANGE HEIGHT MANUALLY HERE (e.g. 130, 145, 160)
+    backgroundColor: COLORS.primary,
+    borderRadius: 20,
+    overflow: "hidden",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingLeft: 18,
+    paddingRight: 6,
+    paddingVertical: 8,
+    shadowColor: COLORS.primary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 10,
+    elevation: 4,
+  },
+  postPropertyContent: {
+    flex: 1,
+    height: "100%",
+    justifyContent: "center",
+    paddingRight: 8,
+    zIndex: 2,
+  },
+  postPropertyTitle: {
+    color: "#FFFFFF",
+    fontSize: 17,
+    fontWeight: "800",
+    letterSpacing: -0.3,
+    lineHeight: 22,
+  },
+  postPropertyTitleFree: {
+    color: "#FFFFFF",
+    fontStyle: "italic",
+    fontWeight: "900",
+  },
+  postPropertySubtitle: {
+    color: "rgba(255, 255, 255, 0.88)",
+    fontSize: 11.5,
+    fontWeight: "400",
+    marginTop: 3,
+    marginBottom: 10,
+    lineHeight: 15,
+  },
+  postPropertyBtn: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 100,
+    paddingHorizontal: 15,
+    paddingVertical: 7.5,
+    alignSelf: "flex-start",
+    shadowColor: "#000000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  postPropertyBtnText: {
+    color: "#111111",
+    fontSize: 12.5,
+    fontWeight: "700",
+  },
+  postPropertyImageWrapper: {
+    height: "100%",
+    aspectRatio: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  postPropertyImage: {
+    width: "100%",
+    height: "100%",
+    borderRadius: 16,
   },
 
   /* SECTION HEADERS */
@@ -1401,7 +1509,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.primary,
     paddingHorizontal: 14,
     paddingVertical: 8,
-    borderRadius: 18,
+    borderRadius: 100,
   },
   viewNumberBtnText: {
     color: "#FFFFFF",
@@ -1539,7 +1647,7 @@ const styles = StyleSheet.create({
   feedbackBtn: {
     paddingHorizontal: 10,
     paddingVertical: 5,
-    borderRadius: 14,
+    borderRadius: 100,
     backgroundColor: "#F1F5F9",
     marginRight: 8,
   },
@@ -1996,7 +2104,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingHorizontal: 14,
     paddingVertical: 8,
-    borderRadius: 16,
+    borderRadius: 100,
     borderWidth: 1,
     borderColor: "#E2E8F0",
     backgroundColor: "#F8FAFC",
@@ -2041,7 +2149,7 @@ const styles = StyleSheet.create({
   modalShowBtn: {
     flex: 1,
     height: 46,
-    borderRadius: 14,
+    borderRadius: 100,
     backgroundColor: COLORS.primary,
     alignItems: "center",
     justifyContent: "center",

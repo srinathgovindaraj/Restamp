@@ -21,7 +21,7 @@ import {
   Phone,
   Send,
 } from "lucide-react-native";
-import COLORS from "../constants/colors";
+import COLORS from "../../constants/colors";
 
 const INITIAL_CHATS = [
   {
