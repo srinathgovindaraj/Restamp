@@ -115,7 +115,7 @@ export default function OwnerLeadsScreen({ route, navigation }) {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle="dark-content" backgroundColor="#F1F5F9" />
+      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
 
       {/* TOP HEADER: Brand Logo | Subtitle & Title | Options Button */}
       <View style={styles.topHeader}>
@@ -347,7 +347,7 @@ export default function OwnerLeadsScreen({ route, navigation }) {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: "#F1F5F9",
+    backgroundColor: "#FFFFFF",
   },
   topHeader: {
     flexDirection: "row",
@@ -356,7 +356,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 10,
     paddingBottom: 14,
-    backgroundColor: "#F1F5F9",
+    backgroundColor: "#FFFFFF",
   },
   headerLeft: {
     flexDirection: "row",
@@ -529,8 +529,8 @@ const styles = StyleSheet.create({
     borderColor: "#EEF2F6",
   },
   tabChipActive: {
-    backgroundColor: COLORS.primary,
-    borderColor: COLORS.primary,
+    backgroundColor: "#EFF6FF",
+    borderColor: "#2563EB",
   },
   tabText: {
     fontSize: 12,
@@ -539,8 +539,8 @@ const styles = StyleSheet.create({
     marginRight: 6,
   },
   tabTextActive: {
-    color: "#FFFFFF",
-    fontWeight: "500",
+    color: "#2563EB",
+    fontWeight: "600",
   },
   tabCountBadge: {
     paddingHorizontal: 6,
@@ -549,7 +549,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#F1F5F9",
   },
   tabCountBadgeActive: {
-    backgroundColor: "rgba(255, 255, 255, 0.25)",
+    backgroundColor: "#BFDBFE",
   },
   tabCountText: {
     fontSize: 10,
@@ -557,7 +557,7 @@ const styles = StyleSheet.create({
     color: COLORS.textDark,
   },
   tabCountTextActive: {
-    color: "#FFFFFF",
+    color: "#2563EB",
   },
   leadsList: {
     gap: 12,

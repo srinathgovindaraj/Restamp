@@ -32,8 +32,8 @@ export default function PrimaryButton({
         <ActivityIndicator size="small" color="#FFFFFF" />
       ) : (
         <View style={styles.content}>
-          {Icon && <Icon size={18} color="#FFFFFF" style={styles.icon} />}
-          <Text style={[styles.text, textStyle]}>{title}</Text>
+          {Icon && <Icon size={18} color={disabled ? "#94A3B8" : "#FFFFFF"} style={styles.icon} />}
+          <Text style={[styles.text, disabled && styles.textDisabled, textStyle]}>{title}</Text>
         </View>
       )}
     </TouchableOpacity>
@@ -54,9 +54,12 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   buttonDisabled: {
-    backgroundColor: "#94A3B8",
+    backgroundColor: "#E2E8F0",
     shadowOpacity: 0,
     elevation: 0,
+  },
+  textDisabled: {
+    color: "#94A3B8",
   },
   content: {
     flexDirection: "row",

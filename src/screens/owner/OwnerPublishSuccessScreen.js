@@ -6,8 +6,10 @@ import {
   SafeAreaView,
   StatusBar,
   Image,
+  TouchableOpacity,
+  ScrollView,
 } from "react-native";
-import { CheckCircle2, Building2, Plus, Clock } from "lucide-react-native";
+import { CheckCircle2, Building2, Plus, Clock, ArrowLeft } from "lucide-react-native";
 import COLORS from "../../constants/colors";
 import StatusBadge from "../../components/owner/StatusBadge";
 import PrimaryButton from "../../components/owner/PrimaryButton";
@@ -16,19 +18,48 @@ import SecondaryButton from "../../components/owner/SecondaryButton";
 export default function OwnerPublishSuccessScreen({ route, navigation }) {
   const property = route?.params?.property;
 
+  const handleGoBack = () => {
+    navigation.navigate("OwnerNavigator", { screen: "Dashboard" });
+  };
+
   const handleViewMyProperties = () => {
-    navigation.navigate("Properties");
+    navigation.navigate("OwnerNavigator", {
+      screen: "Properties",
+      params: { initialTab: "Active" },
+    });
   };
 
   const handleAddAnother = () => {
-    navigation.navigate("Add", { initialStep: 1, editingProperty: null });
+    navigation.navigate("OwnerNavigator", {
+      screen: "Add",
+      params: { resetForm: Date.now(), initialStep: 1, editingProperty: null },
+    });
   };
 
   return (
     <SafeAreaView style={styles.safeArea}>
       <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
 
-      <View style={styles.container}>
+      {/* TOP HEADER: Circular Back Button | Centered Title */}
+      <View style={styles.topHeader}>
+        <TouchableOpacity
+          style={styles.circleBtn}
+          onPress={handleGoBack}
+          activeOpacity={0.7}
+        >
+          <ArrowLeft size={20} color="#111111" strokeWidth={2.2} />
+        </TouchableOpacity>
+
+        <Text style={styles.headerTitle}>Listing Submitted</Text>
+
+        <View style={{ width: 44 }} />
+      </View>
+
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={styles.container}
+        showsVerticalScrollIndicator={false}
+      >
         {/* Success Icon */}
         <View style={styles.iconCircle}>
           <CheckCircle2 size={54} color={COLORS.success} strokeWidth={2.3} />
@@ -85,8 +116,16 @@ export default function OwnerPublishSuccessScreen({ route, navigation }) {
             variant="outline"
             style={styles.secondaryBtn}
           />
+
+          <TouchableOpacity
+            style={styles.backLinkBtn}
+            onPress={handleGoBack}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.backLinkText}>Back to Dashboard</Text>
+          </TouchableOpacity>
         </View>
-      </View>
+      </ScrollView>
     </SafeAreaView>
   );
 }
@@ -96,12 +135,44 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#FFFFFF",
   },
-  container: {
-    flex: 1,
+  topHeader: {
+    flexDirection: "row",
     alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 20,
+    paddingTop: 14,
+    paddingBottom: 14,
+    backgroundColor: "#FFFFFF",
+  },
+  circleBtn: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: "#FFFFFF",
     justifyContent: "center",
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#EEF2F6",
+    shadowColor: "#000000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 6,
+    elevation: 2,
+  },
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: "500",
+    color: "#111111",
+    letterSpacing: -0.3,
+  },
+  scrollView: {
+    flex: 1,
+  },
+  container: {
+    alignItems: "center",
     paddingHorizontal: 24,
-    backgroundColor: "#F8FAFC",
+    paddingTop: 16,
+    paddingBottom: 36,
   },
   iconCircle: {
     width: 96,
@@ -115,11 +186,11 @@ const styles = StyleSheet.create({
     borderColor: "#D1FAE5",
   },
   title: {
-    fontSize: 24,
-    fontWeight: "500",
+    fontSize: 22,
+    fontWeight: "600",
     color: COLORS.textDark,
     textAlign: "center",
-    letterSpacing: -0.5,
+    letterSpacing: -0.4,
     marginBottom: 6,
   },
   subtitle: {
@@ -185,7 +256,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#E2E8F0",
     padding: 14,
-    marginBottom: 28,
+    marginBottom: 24,
   },
   infoText: {
     fontSize: 12,
@@ -202,5 +273,15 @@ const styles = StyleSheet.create({
   },
   secondaryBtn: {
     width: "100%",
+  },
+  backLinkBtn: {
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 10,
+  },
+  backLinkText: {
+    fontSize: 14,
+    fontWeight: "500",
+    color: "#64748B",
   },
 });

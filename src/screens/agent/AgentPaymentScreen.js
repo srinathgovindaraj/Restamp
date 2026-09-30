@@ -23,19 +23,30 @@ import {
   X,
 } from "lucide-react-native";
 import COLORS from "../../constants/colors";
-import { useOwner } from "../../context/OwnerContext";
+import { useAgent } from "../../context/AgentContext";
 
-export default function OwnerPaymentScreen({ route, navigation }) {
-  const { activateSubscription } = useOwner();
+export default function AgentPaymentScreen({ route, navigation }) {
+  const { activatePlan } = useAgent();
+
   const plan = route?.params?.plan || {
-    id: "owner-pro",
-    name: "Owner Pro Plan",
-    price: "₹2,999",
-    validity: "3 Months",
-    listingLimit: 5,
+    id: "agent-pro",
+    name: "Agent Pro Plan",
+    locationLimit: 10,
+    price: "₹6,999",
+    priceNumeric: 6999,
+    validity: "30 Days",
   };
-  const totalAmount = route?.params?.totalAmount || 2999;
-  const formattedAmount = route?.params?.formattedAmount || `₹${totalAmount.toLocaleString("en-IN")}`;
+
+  const selectedLocalities = route?.params?.selectedLocalities || [
+    "Anna Nagar",
+    "Kilpauk",
+    "Mogappair",
+    "Adyar",
+  ];
+
+  const totalAmount = route?.params?.totalAmount || 6999;
+  const formattedAmount =
+    route?.params?.formattedAmount || `₹${totalAmount.toLocaleString("en-IN")}`;
 
   const [selectedMethodId, setSelectedMethodId] = useState("card_1");
   const [isProcessing, setIsProcessing] = useState(false);
@@ -48,7 +59,7 @@ export default function OwnerPaymentScreen({ route, navigation }) {
   const [cardCvv, setCardCvv] = useState("•••");
 
   // UPI state
-  const [upiId, setUpiId] = useState("raj.kumar@okhdfcbank");
+  const [upiId, setUpiId] = useState("agent.restamp@okhdfcbank");
 
   // Net banking state
   const [selectedBank, setSelectedBank] = useState("HDFC Bank");
@@ -64,7 +75,7 @@ export default function OwnerPaymentScreen({ route, navigation }) {
       id: "upi_1",
       type: "upi",
       title: "Google Pay / UPI",
-      subtitle: "raj.kumar@okhdfcbank",
+      subtitle: "agent.restamp@okhdfcbank",
     },
     {
       id: "netbanking_1",
@@ -79,23 +90,19 @@ export default function OwnerPaymentScreen({ route, navigation }) {
     setTimeout(() => {
       setIsProcessing(false);
       if (shouldSucceed) {
-        activateSubscription({
-          ...plan,
-          price: formattedAmount,
-          amountPaid: formattedAmount,
-        });
-        navigation.navigate("OwnerPaymentSuccess", {
+        // Activate plan in AgentContext
+        activatePlan(plan, selectedLocalities);
+
+        navigation.navigate("AgentPaymentSuccess", {
           planName: plan.name,
-          planValidity: plan.validity,
-          listingLimit: `Up to ${plan.listingLimit} Active Listings`,
+          locationLimit: `${selectedLocalities.length} Localities (${plan.locationLimit || 10} Limit)`,
+          selectedLocalities,
+          planValidity: plan.validity || "30 Days",
           amountPaid: formattedAmount,
         });
       } else {
-        navigation.navigate("OwnerPaymentFailed", {
-          plan,
-          totalAmount,
-          formattedAmount,
-        });
+        // Fallback or retry
+        navigation.goBack();
       }
     }, 1200);
   };
@@ -137,6 +144,8 @@ export default function OwnerPaymentScreen({ route, navigation }) {
       </View>
     );
   };
+
+  const basePriceNum = totalAmount + 500;
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -307,18 +316,30 @@ export default function OwnerPaymentScreen({ route, navigation }) {
           <Text style={styles.summaryTitle}>Order Summary</Text>
 
           <View style={styles.summaryRow}>
-            <Text style={styles.summaryKey}>Order Amount</Text>
-            <Text style={styles.summaryVal}>₹2,999.00</Text>
+            <Text style={styles.summaryKey}>Plan Name</Text>
+            <Text style={styles.summaryVal}>{plan.name}</Text>
           </View>
 
           <View style={styles.summaryRow}>
-            <Text style={styles.summaryKey}>Promo-code</Text>
-            <Text style={[styles.summaryVal, { color: "#059669" }]}>-₹300.00</Text>
+            <Text style={styles.summaryKey}>Selected Localities</Text>
+            <Text style={styles.summaryVal}>
+              {selectedLocalities.length} Areas (Max {plan.locationLimit || 10})
+            </Text>
           </View>
 
           <View style={styles.summaryRow}>
-            <Text style={styles.summaryKey}>Listing Limit</Text>
-            <Text style={styles.summaryVal}>Up to 5 Properties</Text>
+            <Text style={styles.summaryKey}>Plan Validity</Text>
+            <Text style={styles.summaryVal}>{plan.validity || "30 Days"}</Text>
+          </View>
+
+          <View style={styles.summaryRow}>
+            <Text style={styles.summaryKey}>Base Price</Text>
+            <Text style={styles.summaryVal}>₹{basePriceNum.toLocaleString("en-IN")}.00</Text>
+          </View>
+
+          <View style={styles.summaryRow}>
+            <Text style={styles.summaryKey}>Early Partner Discount</Text>
+            <Text style={[styles.summaryVal, { color: "#111111" }]}>-₹500.00</Text>
           </View>
 
           <View style={styles.summaryRow}>
@@ -334,19 +355,10 @@ export default function OwnerPaymentScreen({ route, navigation }) {
             <Text style={styles.totalLabel}>Total Amount</Text>
             <Text style={styles.totalAmount}>
               <Text style={styles.currencySymbol}>₹ </Text>
-              {totalAmount === 2999 ? "2,699.00" : formattedAmount.replace("₹", "")}
+              {formattedAmount.replace("₹", "")}.00
             </Text>
           </View>
         </View>
-
-        {/* Simulation Notice for Verification */}
-        <TouchableOpacity
-          style={styles.simulateFailLink}
-          onPress={() => handlePay(false)}
-          activeOpacity={0.7}
-        >
-          <Text style={styles.simulateFailText}>Simulate Payment Failure</Text>
-        </TouchableOpacity>
 
         <View style={{ height: 24 }} />
       </ScrollView>
@@ -389,7 +401,7 @@ export default function OwnerPaymentScreen({ route, navigation }) {
             <Text style={styles.inlineLabel}>Enter UPI ID / VPA</Text>
             <TextInput
               style={styles.modalInput}
-              placeholder="e.g. mobile@okhdfcbank"
+              placeholder="e.g. agent@okhdfcbank"
               placeholderTextColor="#94A3B8"
               value={newUpiId}
               onChangeText={setNewUpiId}
@@ -658,15 +670,6 @@ const styles = StyleSheet.create({
     fontWeight: "500",
     color: "#0F172A",
   },
-  simulateFailLink: {
-    alignSelf: "center",
-    paddingVertical: 6,
-  },
-  simulateFailText: {
-    fontSize: 12,
-    fontWeight: "400",
-    color: "#94A3B8",
-  },
   bottomBar: {
     paddingHorizontal: 20,
     paddingTop: 12,
@@ -681,7 +684,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     shadowColor: "#2563EB",
     shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.25,
+    shadowOpacity: 0.2,
     shadowRadius: 12,
     elevation: 4,
   },

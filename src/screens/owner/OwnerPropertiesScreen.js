@@ -160,7 +160,7 @@ export default function OwnerPropertiesScreen({ route, navigation }) {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle="dark-content" backgroundColor="#F1F5F9" />
+      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
 
       {/* TOP HEADER: Brand Logo | Subtitle & Title | Search & Add Circle Buttons */}
       <View style={styles.topHeader}>
@@ -329,7 +329,7 @@ export default function OwnerPropertiesScreen({ route, navigation }) {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: "#F1F5F9",
+    backgroundColor: "#FFFFFF",
   },
   topHeader: {
     flexDirection: "row",
@@ -338,7 +338,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 10,
     paddingBottom: 14,
-    backgroundColor: "#F1F5F9",
+    backgroundColor: "#FFFFFF",
   },
   headerLeft: {
     flexDirection: "row",

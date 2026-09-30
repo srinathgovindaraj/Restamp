@@ -93,7 +93,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     paddingHorizontal: 24,
-    backgroundColor: "#F8FAFC",
+    backgroundColor: "#FFFFFF",
   },
   iconCircle: {
     width: 96,

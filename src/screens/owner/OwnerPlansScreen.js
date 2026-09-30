@@ -43,8 +43,8 @@ const OWNER_PLANS = {
       id: "owner-gold",
       name: "Gold Assist",
       titlePrefix: "Gold ",
-      titlePrefixColor: "#1B489C",
-      titleColor: "#EA580C",
+      titlePrefixColor: "#2563EB",
+      titleColor: "#0F172A",
       price: "₹1,999",
       priceNumeric: 1999,
       priceSub1: "for 90 days validity",
@@ -63,7 +63,7 @@ const OWNER_PLANS = {
       id: "owner-titanium",
       name: "Titanium VIP",
       titlePrefix: "Titanium ",
-      titlePrefixColor: "#7C3AED",
+      titlePrefixColor: "#2563EB",
       titleColor: "#0F172A",
       price: "₹4,999",
       priceNumeric: 4999,
@@ -103,8 +103,8 @@ const OWNER_PLANS = {
       id: "owner-comm-pro",
       name: "Corporate Boost",
       titlePrefix: "Corporate ",
-      titlePrefixColor: "#1B489C",
-      titleColor: "#059669",
+      titlePrefixColor: "#2563EB",
+      titleColor: "#0F172A",
       price: "₹3,499",
       priceNumeric: 3499,
       priceSub1: "for 90 days validity",
@@ -123,7 +123,7 @@ const OWNER_PLANS = {
       id: "owner-comm-vip",
       name: "Enterprise Managed",
       titlePrefix: "Enterprise ",
-      titlePrefixColor: "#7C3AED",
+      titlePrefixColor: "#2563EB",
       titleColor: "#0F172A",
       price: "₹8,999",
       priceNumeric: 8999,
@@ -166,7 +166,7 @@ export default function OwnerPlansScreen({ navigation }) {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle="dark-content" backgroundColor="#F8FAFC" />
+      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
 
       {/* TOP HEADER: Circular Back Button to Buyer App | Screen Title */}
       <View style={styles.header}>
@@ -285,7 +285,7 @@ export default function OwnerPlansScreen({ navigation }) {
                 <View style={styles.refBadgePopular}>
                   <Sparkles
                     size={8.5}
-                    color="#1D4ED8"
+                    color="#FFFFFF"
                     style={{ marginRight: 3 }}
                   />
                   <Text style={styles.refBadgePopularText}>POPULAR</Text>
@@ -360,7 +360,7 @@ export default function OwnerPlansScreen({ navigation }) {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: "#F8FAFC",
+    backgroundColor: "#FFFFFF",
   },
   header: {
     flexDirection: "row",
@@ -369,7 +369,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 12,
     paddingBottom: 14,
-    backgroundColor: "#F8FAFC",
+    backgroundColor: "#FFFFFF",
   },
   circleBackBtn: {
     width: 40,
@@ -398,7 +398,7 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
-    backgroundColor: "#F8FAFC",
+    backgroundColor: "#FFFFFF",
   },
   scrollContent: {
     paddingHorizontal: 20,
@@ -468,8 +468,8 @@ const styles = StyleSheet.create({
     color: "#64748B",
   },
   categoryPillTextActive: {
-    color: "#0F172A",
-    fontWeight: "500",
+    color: "#2563EB",
+    fontWeight: "600",
   },
   sectionHeaderRow: {
     marginBottom: 10,
@@ -496,9 +496,10 @@ const styles = StyleSheet.create({
     elevation: 1,
   },
   refCardPopular: {
-    borderColor: "#93C5FD",
+    borderColor: "#2563EB",
     borderWidth: 1.5,
-    shadowOpacity: 0.06,
+    backgroundColor: "#EFF6FF",
+    shadowOpacity: 0.08,
     shadowRadius: 8,
   },
   refCardHeader: {
@@ -515,17 +516,15 @@ const styles = StyleSheet.create({
   refBadgePopular: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#EFF6FF",
+    backgroundColor: "#2563EB",
     paddingHorizontal: 7,
     paddingVertical: 2,
     borderRadius: 8,
-    borderWidth: 1,
-    borderColor: "#BFDBFE",
   },
   refBadgePopularText: {
     fontSize: 9,
-    fontWeight: "500",
-    color: "#1D4ED8",
+    fontWeight: "600",
+    color: "#FFFFFF",
     letterSpacing: 0.5,
   },
   refPriceRow: {
@@ -563,19 +562,17 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   refCtaBtnDefault: {
-    backgroundColor: "#F1F5F9",
-    borderWidth: 1,
-    borderColor: "#E2E8F0",
+    backgroundColor: "#2563EB",
   },
   refCtaBtnPopular: {
-    backgroundColor: "#0F172A",
+    backgroundColor: "#2563EB",
   },
   refCtaBtnText: {
     fontSize: 13,
-    fontWeight: "500",
+    fontWeight: "600",
   },
   refCtaBtnTextDefault: {
-    color: "#0F172A",
+    color: "#FFFFFF",
   },
   refCtaBtnTextPopular: {
     color: "#FFFFFF",

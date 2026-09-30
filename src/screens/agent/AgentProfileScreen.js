@@ -17,10 +17,8 @@ import {
   ShieldCheck,
   MapPin,
   Building2,
-  Heart,
   MessageSquare,
   Calendar,
-  Clock,
   Crown,
   Sparkles,
   RotateCw,
@@ -28,7 +26,6 @@ import {
   FileText,
   Bell,
   Globe,
-  Moon,
   HelpCircle,
   LogOut,
   ChevronRight,
@@ -36,39 +33,50 @@ import {
   ArrowRight,
 } from "lucide-react-native";
 import COLORS from "../../constants/colors";
-import { useNavigation } from "@react-navigation/native";
-import { useWishlist } from "../../context/WishlistContext";
-import { useOwner } from "../../context/OwnerContext";
+import { useAgent } from "../../context/AgentContext";
 
-export default function ProfileScreen({ navigation }) {
-  const nav = useNavigation() || navigation;
-  const { wishlist } = useWishlist();
-  const { subscription, properties, leads } = useOwner();
-  const [isDarkMode, setIsDarkMode] = useState(false);
+export default function AgentProfileScreen({ navigation }) {
+  const {
+    agentPlan,
+    selectedLocalities,
+    agentProfile,
+    leads,
+    visits,
+    renewPlan,
+  } = useAgent();
 
-  const activePlanName = subscription?.planName || "Gold Assist";
-  const propertiesCount = properties?.length || 8;
+  const [pushEnabled, setPushEnabled] = useState(true);
+
+  const activePlanName = agentPlan?.name || "Agent Pro Plan";
+  const propertiesCount = 12;
   const leadsCount = leads?.length || 6;
-  const wishlistCount = wishlist?.length || 5;
+  const visitsCount = visits?.length || 2;
+
+  const handleSwitchToBuyer = () => {
+    navigation.reset({
+      index: 0,
+      routes: [{ name: "MainTabs" }],
+    });
+  };
 
   const handleLogout = () => {
     Alert.alert(
       "Log Out",
-      "Are you sure you want to sign out of RESTAMP?",
+      "Are you sure you want to sign out of your Agent Studio? Your active subscription and leads remain saved.",
       [
         { text: "Cancel", style: "cancel" },
         {
           text: "Log Out",
           style: "destructive",
-          onPress: () =>
-            Alert.alert("Signed Out", "You have been logged out successfully."),
+          onPress: () => {
+            navigation.reset({
+              index: 0,
+              routes: [{ name: "MainTabs" }],
+            });
+          },
         },
       ]
     );
-  };
-
-  const handleOpenOwnerPortal = () => {
-    nav.navigate(subscription?.active ? "OwnerNavigator" : "OwnerPlans");
   };
 
   return (
@@ -89,42 +97,42 @@ export default function ProfileScreen({ navigation }) {
         <View style={styles.profileCard}>
           <Image
             source={{
-              uri: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=80",
+              uri:
+                agentProfile?.avatar ||
+                "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=80",
             }}
             style={styles.avatar}
           />
           <View style={styles.profileInfo}>
-            <Text style={styles.userName}>Jessica Taylor</Text>
-            <Text style={styles.userEmail}>jessica.taylor@example.com</Text>
+            <Text style={styles.userName}>{agentProfile?.name || "Jessica Taylor"}</Text>
+            <Text style={styles.userEmail}>
+              {agentProfile?.email || "jessica.taylor@example.com"}
+            </Text>
             <View style={styles.verifiedBadge}>
               <CheckCircle2 size={13} color="#16A34A" style={{ marginRight: 4 }} />
-              <Text style={styles.verifiedBadgeText}>Verified Buyer & Owner</Text>
+              <Text style={styles.verifiedBadgeText}>Verified Agent & Partner</Text>
             </View>
           </View>
         </View>
 
-        {/* Top Mode Switch / Post Property Banner (Matching Screenshot Top Card) */}
+        {/* Top Mode Switch / Buyer Portal Banner */}
         <TouchableOpacity
           style={styles.modeSwitchBanner}
           activeOpacity={0.88}
-          onPress={handleOpenOwnerPortal}
+          onPress={handleSwitchToBuyer}
         >
           <View style={styles.modeSwitchContent}>
             <View style={styles.modeSwitchIconWrap}>
               <Building2 size={20} color={COLORS.primary} />
             </View>
             <View style={{ flex: 1, marginRight: 10 }}>
-              <Text style={styles.modeSwitchTitle}>Property Owner Portal</Text>
+              <Text style={styles.modeSwitchTitle}>Buyer Portal</Text>
               <Text style={styles.modeSwitchSub} numberOfLines={1}>
-                {subscription?.active
-                  ? "Manage your active listings & buyer leads"
-                  : "Browse flats, villas & commercial properties as a Buyer"}
+                Browse verified properties & owner listings as a Buyer
               </Text>
             </View>
             <View style={styles.modeSwitchPill}>
-              <Text style={styles.modeSwitchPillText}>
-                {subscription?.active ? "Open Portal" : "Switch Mode"}
-              </Text>
+              <Text style={styles.modeSwitchPillText}>Open Portal</Text>
               <ArrowRight size={12} color="#FFFFFF" style={{ marginLeft: 4 }} />
             </View>
           </View>
@@ -141,7 +149,11 @@ export default function ProfileScreen({ navigation }) {
               onPress={() =>
                 Alert.alert(
                   "Personal Information",
-                  "Name: Jessica Taylor\nEmail: jessica.taylor@example.com\nPhone: +91 98765 43210"
+                  `Name: ${agentProfile?.name || "Jessica Taylor"}\nEmail: ${
+                    agentProfile?.email || "jessica.taylor@example.com"
+                  }\nPhone: ${agentProfile?.phone || "+91 98401 23456"}\nAgency: ${
+                    agentProfile?.agency || "Prime Realty Partners"
+                  }\nRERA: ${agentProfile?.reraNumber || "TN/AGENT/2024/0918"}`
                 )
               }
             >
@@ -160,8 +172,8 @@ export default function ProfileScreen({ navigation }) {
               activeOpacity={0.65}
               onPress={() =>
                 Alert.alert(
-                  "KYC Verification",
-                  "Aadhaar & PAN verification completed and verified."
+                  "KYC / Verification",
+                  "RERA Certificate & Aadhaar authentication completed and verified."
                 )
               }
             >
@@ -184,7 +196,7 @@ export default function ProfileScreen({ navigation }) {
               onPress={() =>
                 Alert.alert(
                   "Saved Address",
-                  "Default: A3/4 Jawhra, Prime Enclave, OMR, Chennai"
+                  "Office: 42, 2nd Avenue, Anna Nagar East, Chennai - 600102"
                 )
               }
             >
@@ -201,11 +213,11 @@ export default function ProfileScreen({ navigation }) {
         <View style={styles.sectionGroup}>
           <Text style={styles.sectionLabel}>MY ACTIVITY</Text>
           <View style={styles.cardContainer}>
-            {/* 1. Saved Properties */}
+            {/* 1. Saved Properties / Managed Properties */}
             <TouchableOpacity
               style={styles.cardRow}
               activeOpacity={0.65}
-              onPress={() => nav.navigate("Saved")}
+              onPress={() => navigation.navigate("AgentProperties")}
             >
               <View style={styles.rowLeft}>
                 <Building2 size={20} color="#334155" strokeWidth={1.8} style={styles.rowIcon} />
@@ -213,7 +225,7 @@ export default function ProfileScreen({ navigation }) {
               </View>
               <View style={styles.rowRight}>
                 <View style={styles.countBadge}>
-                  <Text style={styles.countBadgeText}>{wishlistCount || 8}</Text>
+                  <Text style={styles.countBadgeText}>{propertiesCount}</Text>
                 </View>
                 <ChevronRight size={17} color="#94A3B8" style={{ marginLeft: 6 }} />
               </View>
@@ -221,11 +233,11 @@ export default function ProfileScreen({ navigation }) {
 
             <View style={styles.divider} />
 
-            {/* 2. Enquiries */}
+            {/* 2. Enquiries / Leads */}
             <TouchableOpacity
               style={styles.cardRow}
               activeOpacity={0.65}
-              onPress={() => nav.navigate("Enquiries")}
+              onPress={() => navigation.navigate("AgentLeads")}
             >
               <View style={styles.rowLeft}>
                 <MessageSquare size={20} color="#334155" strokeWidth={1.8} style={styles.rowIcon} />
@@ -233,7 +245,7 @@ export default function ProfileScreen({ navigation }) {
               </View>
               <View style={styles.rowRight}>
                 <View style={styles.countBadge}>
-                  <Text style={styles.countBadgeText}>{leadsCount || 6}</Text>
+                  <Text style={styles.countBadgeText}>{leadsCount}</Text>
                 </View>
                 <ChevronRight size={17} color="#94A3B8" style={{ marginLeft: 6 }} />
               </View>
@@ -245,9 +257,7 @@ export default function ProfileScreen({ navigation }) {
             <TouchableOpacity
               style={styles.cardRow}
               activeOpacity={0.65}
-              onPress={() =>
-                Alert.alert("Site Visits", "You have 2 scheduled property site visits.")
-              }
+              onPress={() => navigation.navigate("AgentVisits")}
             >
               <View style={styles.rowLeft}>
                 <Calendar size={20} color="#334155" strokeWidth={1.8} style={styles.rowIcon} />
@@ -255,7 +265,7 @@ export default function ProfileScreen({ navigation }) {
               </View>
               <View style={styles.rowRight}>
                 <View style={styles.countBadge}>
-                  <Text style={styles.countBadgeText}>2</Text>
+                  <Text style={styles.countBadgeText}>{visitsCount}</Text>
                 </View>
                 <ChevronRight size={17} color="#94A3B8" style={{ marginLeft: 6 }} />
               </View>
@@ -271,7 +281,7 @@ export default function ProfileScreen({ navigation }) {
             <TouchableOpacity
               style={styles.cardRow}
               activeOpacity={0.65}
-              onPress={() => nav.navigate("OwnerPlans")}
+              onPress={() => navigation.navigate("AgentLocationSelect")}
             >
               <View style={styles.rowLeft}>
                 <Crown size={20} color="#2563EB" strokeWidth={1.8} style={styles.rowIcon} />
@@ -289,7 +299,7 @@ export default function ProfileScreen({ navigation }) {
             <TouchableOpacity
               style={styles.cardRow}
               activeOpacity={0.65}
-              onPress={() => nav.navigate("OwnerPlans")}
+              onPress={() => navigation.navigate("AgentLocationSelect")}
             >
               <View style={styles.rowLeft}>
                 <Sparkles size={20} color="#334155" strokeWidth={1.8} style={styles.rowIcon} />
@@ -304,7 +314,10 @@ export default function ProfileScreen({ navigation }) {
             <TouchableOpacity
               style={styles.cardRow}
               activeOpacity={0.65}
-              onPress={() => nav.navigate("OwnerPlans")}
+              onPress={() => {
+                renewPlan();
+                Alert.alert("Plan Renewed", "Your agent subscription has been renewed for 30 days.");
+              }}
             >
               <View style={styles.rowLeft}>
                 <RotateCw size={20} color="#334155" strokeWidth={1.8} style={styles.rowIcon} />
@@ -322,33 +335,13 @@ export default function ProfileScreen({ navigation }) {
               onPress={() =>
                 Alert.alert(
                   "Payment History",
-                  "Last Transaction: ₹1,999 on 26 Sep 2026 (Gold Assist Plan) - Completed."
+                  `Last Transaction: ${agentPlan?.price || "₹6,999"} on 28 Sep 2026 (${activePlanName}) - Completed.`
                 )
               }
             >
               <View style={styles.rowLeft}>
                 <CreditCard size={20} color="#334155" strokeWidth={1.8} style={styles.rowIcon} />
                 <Text style={styles.rowLabel}>Payment History</Text>
-              </View>
-              <ChevronRight size={17} color="#94A3B8" />
-            </TouchableOpacity>
-
-            <View style={styles.divider} />
-
-            {/* 5. Invoices */}
-            <TouchableOpacity
-              style={styles.cardRow}
-              activeOpacity={0.65}
-              onPress={() =>
-                Alert.alert(
-                  "Tax Invoices",
-                  "Invoice #INV-2026-0814 available for download with 18% GST input credit."
-                )
-              }
-            >
-              <View style={styles.rowLeft}>
-                <FileText size={20} color="#334155" strokeWidth={1.8} style={styles.rowIcon} />
-                <Text style={styles.rowLabel}>Invoices</Text>
               </View>
               <ChevronRight size={17} color="#94A3B8" />
             </TouchableOpacity>
@@ -374,46 +367,15 @@ export default function ProfileScreen({ navigation }) {
 
             <View style={styles.divider} />
 
-            {/* Language */}
-            <TouchableOpacity
-              style={styles.cardRow}
-              activeOpacity={0.65}
-              onPress={() => Alert.alert("Language", "Selected language: English (US)")}
-            >
-              <View style={styles.rowLeft}>
-                <Globe size={20} color="#334155" strokeWidth={1.8} style={styles.rowIcon} />
-                <Text style={styles.rowLabel}>Language</Text>
-              </View>
-              <View style={styles.rowRight}>
-                <Text style={styles.extraText}>English (US)</Text>
-                <ChevronRight size={17} color="#94A3B8" style={{ marginLeft: 6 }} />
-              </View>
-            </TouchableOpacity>
-
-            <View style={styles.divider} />
-
-            {/* Dark Mode Switch */}
-            <View style={styles.cardRow}>
-              <View style={styles.rowLeft}>
-                <Moon size={20} color="#334155" strokeWidth={1.8} style={styles.rowIcon} />
-                <Text style={styles.rowLabel}>Dark Mode</Text>
-              </View>
-              <Switch
-                value={isDarkMode}
-                onValueChange={setIsDarkMode}
-                trackColor={{ false: "#E2E8F0", true: COLORS.primary }}
-                thumbColor={Platform.OS === "android" ? "#FFFFFF" : undefined}
-              />
-            </View>
-
-            <View style={styles.divider} />
-
             {/* Help Center */}
             <TouchableOpacity
               style={styles.cardRow}
               activeOpacity={0.65}
               onPress={() =>
-                Alert.alert("RESTAMP Support", "Reach us at support@restamp.in or call 1800-RESTAMP.")
+                Alert.alert(
+                  "RESTAMP Support",
+                  "Agent Partner Desk: agent-support@restamp.in or call 1800-RESTAMP-AGENT."
+                )
               }
             >
               <View style={styles.rowLeft}>
@@ -633,11 +595,6 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: "700",
     color: "#0F172A",
-  },
-  extraText: {
-    fontSize: 12,
-    color: "#64748B",
-    fontWeight: "500",
   },
   divider: {
     height: 1,

@@ -72,7 +72,7 @@ export default function OwnerDashboardScreen({ navigation }) {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle="dark-content" backgroundColor="#F1F5F9" />
+      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
 
       {/* TOP HEADER: 4-Dot Brand Icon | Subtitle & Greeting | Search & Menu Icons */}
       <View style={styles.topHeader}>
@@ -360,7 +360,7 @@ export default function OwnerDashboardScreen({ navigation }) {
         <View style={styles.bigCard}>
           <View style={styles.bigCardHeader}>
             <View style={{ flexDirection: "row", alignItems: "center" }}>
-              <ShieldCheck size={18} color="#059669" style={{ marginRight: 8 }} />
+              <ShieldCheck size={18} color="#16A34A" style={{ marginRight: 8 }} />
               <Text style={styles.bigCardTitle}>Owner Subscription</Text>
             </View>
             <View style={styles.activePill}>
@@ -413,7 +413,7 @@ export default function OwnerDashboardScreen({ navigation }) {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: "#F1F5F9",
+    backgroundColor: "#FFFFFF",
   },
   topHeader: {
     flexDirection: "row",
@@ -422,7 +422,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 14,
     paddingBottom: 16,
-    backgroundColor: "#F1F5F9",
+    backgroundColor: "#FFFFFF",
   },
   headerLeft: {
     flexDirection: "row",
@@ -560,7 +560,7 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: "#111111",
+    backgroundColor: "#2563EB",
     justifyContent: "center",
     alignItems: "center",
   },
@@ -677,14 +677,14 @@ const styles = StyleSheet.create({
     fontWeight: "400",
   },
   activePill: {
-    backgroundColor: "#ECFDF5",
+    backgroundColor: "#F0FDF4",
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 12,
   },
   activePillText: {
     fontSize: 11,
-    color: "#059669",
+    color: "#16A34A",
     fontWeight: "500",
   },
   subscriptionBox: {
@@ -717,19 +717,19 @@ const styles = StyleSheet.create({
   primaryPillBtn: {
     height: 50,
     borderRadius: 25,
-    backgroundColor: "#111111",
+    backgroundColor: "#2563EB",
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
-    shadowColor: "#000000",
+    shadowColor: "#2563EB",
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.12,
+    shadowOpacity: 0.25,
     shadowRadius: 10,
     elevation: 3,
   },
   primaryPillBtnText: {
     fontSize: 14,
-    fontWeight: "500",
+    fontWeight: "600",
     color: "#FFFFFF",
   },
   secondaryPillBtn: {

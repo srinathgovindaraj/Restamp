@@ -552,7 +552,7 @@ export default function SearchPropertyModal({
 const styles = StyleSheet.create({
   modalSafeArea: {
     flex: 1,
-    backgroundColor: "#F8FAFC",
+    backgroundColor: "#FFFFFF",
   },
   modalHeader: {
     flexDirection: "row",
@@ -638,7 +638,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#F1F5F9",
   },
   localityChipSelected: {
-    backgroundColor: "#EBF4FF",
+    backgroundColor: "#EFF6FF",
     borderWidth: 1,
     borderColor: COLORS.primary,
   },
@@ -659,7 +659,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#FFFFFF",
   },
   modalFilterChipActive: {
-    backgroundColor: COLORS.primary,
+    backgroundColor: "#EFF6FF",
     borderColor: COLORS.primary,
   },
   modalFilterChipText: {
@@ -667,7 +667,7 @@ const styles = StyleSheet.create({
     color: "#475569",
   },
   modalFilterChipTextActive: {
-    color: "#FFFFFF",
+    color: COLORS.primary,
     fontWeight: "600",
   },
   budgetHeaderRow: {
@@ -787,7 +787,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#F8FAFC",
   },
   statusFilterChipActive: {
-    backgroundColor: COLORS.primary,
+    backgroundColor: "#EFF6FF",
     borderColor: COLORS.primary,
   },
   statusFilterChipText: {
@@ -796,25 +796,26 @@ const styles = StyleSheet.create({
     fontWeight: "500",
   },
   statusFilterChipTextActive: {
-    color: "#FFFFFF",
+    color: COLORS.primary,
     fontWeight: "600",
   },
   bhkRow: {
     flexDirection: "row",
     gap: 8,
   },
+  // Bedroom Style
   bhkPill: {
     flex: 1,
     paddingVertical: 9,
     alignItems: "center",
     justifyContent: "center",
-    borderRadius: 12,
+    borderRadius: 20,
     backgroundColor: "#F8FAFC",
     borderWidth: 1,
     borderColor: "#E2E8F0",
   },
   bhkPillActive: {
-    backgroundColor: COLORS.primary,
+    backgroundColor: "#EFF6FF",
     borderColor: COLORS.primary,
   },
   bhkPillText: {
@@ -822,7 +823,7 @@ const styles = StyleSheet.create({
     color: "#475569",
   },
   bhkPillTextActive: {
-    color: "#FFFFFF",
+    color: COLORS.primary,
     fontWeight: "600",
   },
   modalBottomBar: {

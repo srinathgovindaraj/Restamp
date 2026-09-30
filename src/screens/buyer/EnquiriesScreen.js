@@ -524,7 +524,7 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: "#111111",
+    backgroundColor: "#2563EB",
     justifyContent: "center",
     alignItems: "center",
   },
@@ -567,8 +567,8 @@ const styles = StyleSheet.create({
     borderColor: "#E2E8F0",
   },
   tabBtnActive: {
-    backgroundColor: "#0F172A",
-    borderColor: "#0F172A",
+    backgroundColor: "#EFF6FF",
+    borderColor: "#2563EB",
   },
   tabText: {
     fontSize: 12,
@@ -576,7 +576,7 @@ const styles = StyleSheet.create({
     color: "#64748B",
   },
   tabTextActive: {
-    color: "#FFFFFF",
+    color: "#2563EB",
     fontWeight: "700",
   },
   listContainer: {
@@ -585,7 +585,7 @@ const styles = StyleSheet.create({
 
   /* Reference Card System */
   enquiryCard: {
-    backgroundColor: "#F8FAFC",
+    backgroundColor: "#ffffffff",
     borderRadius: 22,
     padding: 16,
     borderWidth: 1,
@@ -783,7 +783,7 @@ const styles = StyleSheet.create({
     flex: 1,
     height: 48,
     borderRadius: 24,
-    backgroundColor: "#0F172A",
+    backgroundColor: "#2563EB",
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",

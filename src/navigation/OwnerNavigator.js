@@ -41,6 +41,13 @@ function OwnerTabBar({ state, descriptors, navigation }) {
 
   if (keyboardVisible) return null;
 
+  // Hide the floating tab bar when on Add property screen or when requested
+  const currentRoute = state.routes[state.index];
+  const currentOptions = descriptors[currentRoute.key]?.options;
+  if (currentRoute?.name === "Add" || currentOptions?.tabBarStyle?.display === "none") {
+    return null;
+  }
+
   return (
     <View style={styles.floatingWrapper} pointerEvents="box-none">
       <View style={styles.pillContainer}>
@@ -81,7 +88,7 @@ function OwnerTabBar({ state, descriptors, navigation }) {
             >
               {options.tabBarIcon?.({
                 focused: isFocused,
-                color: isFocused ? "#111111" : "#8E8E93",
+                color: isFocused ? "#2563EB" : "#94A3B8",
                 size: 24,
               })}
             </TouchableOpacity>
@@ -138,6 +145,7 @@ export default function OwnerNavigator() {
         name="Add"
         component={OwnerAddPropertyScreen}
         options={{
+          tabBarStyle: { display: "none" },
           tabBarAccessibilityLabel: "Add Property",
           tabBarIcon: ({ color, focused }) => (
             <PlusCircle

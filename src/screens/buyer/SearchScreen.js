@@ -355,7 +355,7 @@ export default function SearchScreen({ navigation, route }) {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle="dark-content" backgroundColor="#F4F7FB" />
+      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
 
       {/* ========================================================================= */}
       {/* 1. TOP HEADER: [ < BACK ]  [ SEARCH INPUT PILL 🔍 ]  [ ♡ HEART ]           */}
@@ -1243,7 +1243,7 @@ export default function SearchScreen({ navigation, route }) {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: "#F4F7FB",
+    backgroundColor: "#FFFFFF",
   },
 
   /* 1. Header Bar */
@@ -1254,7 +1254,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: Platform.OS === "android" ? 10 : 6,
     paddingBottom: 8,
-    backgroundColor: "#F4F7FB",
+    backgroundColor: "#FFFFFF",
   },
   circleIconBtn: {
     width: 40,
@@ -1335,7 +1335,7 @@ const styles = StyleSheet.create({
     borderColor: "#E2E8F0",
   },
   suggestionChipActive: {
-    backgroundColor: "#F0FDF4",
+    backgroundColor: "#EFF6FF",
     borderColor: COLORS.primary,
   },
   suggestionChipText: {
@@ -1350,7 +1350,7 @@ const styles = StyleSheet.create({
 
   /* 2. Filter Pills */
   filterPillsContainer: {
-    backgroundColor: "#F4F7FB",
+    backgroundColor: "#FFFFFF",
     borderBottomWidth: 1,
     borderBottomColor: "#E2E8F0",
   },
@@ -1373,7 +1373,7 @@ const styles = StyleSheet.create({
   },
   filterIconPillActive: {
     borderColor: COLORS.primary,
-    backgroundColor: "#EBF4FF",
+    backgroundColor: "#EFF6FF",
   },
   filterDropdownPill: {
     height: 34,
@@ -1388,7 +1388,7 @@ const styles = StyleSheet.create({
   },
   filterDropdownPillActive: {
     borderColor: COLORS.primary,
-    backgroundColor: "#EBF4FF",
+    backgroundColor: "#EFF6FF",
   },
   filterDropdownText: {
     fontSize: 13,
@@ -1407,7 +1407,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 10,
     paddingBottom: 8,
-    backgroundColor: "#F4F7FB",
+    backgroundColor: "#FFFFFF",
   },
   resultsCountBold: {
     fontSize: 12,
@@ -1429,7 +1429,7 @@ const styles = StyleSheet.create({
   /* 4. Results List */
   resultsListScroll: {
     flex: 1,
-    backgroundColor: "#F4F7FB",
+    backgroundColor: "#FFFFFF",
   },
   resultsListContent: {
     paddingHorizontal: 16,
@@ -1765,7 +1765,7 @@ const styles = StyleSheet.create({
     borderBottomColor: "#F8FAFC",
   },
   dropdownItemActive: {
-    backgroundColor: "#F0FDF4",
+    backgroundColor: "#EFF6FF",
     paddingHorizontal: 10,
     borderRadius: 8,
   },

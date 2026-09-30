@@ -70,7 +70,7 @@ export default function SavedScreen({ navigation }) {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle="dark-content" backgroundColor="#F4F7FB" />
+      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
 
       {/* Minimal Header */}
       <View style={styles.header}>
@@ -310,7 +310,7 @@ export default function SavedScreen({ navigation }) {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: "#F4F7FB",
+    backgroundColor: "#FFFFFF",
   },
   header: {
     flexDirection: "row",
@@ -319,7 +319,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 14,
     paddingBottom: 12,
-    backgroundColor: "#F4F7FB",
+    backgroundColor: "#FFFFFF",
     borderBottomWidth: 1,
     borderBottomColor: "#E2E8F0",
   },
@@ -339,7 +339,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 3,
     borderRadius: 12,
-    backgroundColor: "#0F172A",
+    backgroundColor: COLORS.primary,
   },
   headerBadgeText: {
     fontSize: 12,
@@ -348,7 +348,7 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
-    backgroundColor: "#F4F7FB",
+    backgroundColor: "#FFFFFF",
   },
   listContainer: {
     paddingHorizontal: 16,
@@ -515,7 +515,7 @@ const styles = StyleSheet.create({
   exploreBtn: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#0F172A",
+    backgroundColor: COLORS.primary,
     paddingHorizontal: 18,
     paddingVertical: 10,
     borderRadius: 20,
@@ -642,7 +642,7 @@ const styles = StyleSheet.create({
     flex: 1,
     height: 44,
     borderRadius: 12,
-    backgroundColor: "#0F172A",
+    backgroundColor: COLORS.primary,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",

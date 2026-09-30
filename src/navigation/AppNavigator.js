@@ -1,6 +1,6 @@
 import React from "react";
 import { Platform, DeviceEventEmitter } from "react-native";
-import { NavigationContainer } from "@react-navigation/native";
+import { NavigationContainer, DefaultTheme } from "@react-navigation/native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { Home, Search, Heart, MessageSquare, User } from "lucide-react-native";
@@ -20,6 +20,13 @@ import OwnerPaymentSuccessScreen from "../screens/owner/OwnerPaymentSuccessScree
 import OwnerPaymentFailedScreen from "../screens/owner/OwnerPaymentFailedScreen";
 import OwnerPublishSuccessScreen from "../screens/owner/OwnerPublishSuccessScreen";
 import OwnerLeadDetailScreen from "../screens/owner/OwnerLeadDetailScreen";
+
+import AgentNavigator from "./AgentNavigator";
+import AgentLocationSelectScreen from "../screens/agent/AgentLocationSelectScreen";
+import AgentPlanConfirmScreen from "../screens/agent/AgentPlanConfirmScreen";
+import AgentPaymentScreen from "../screens/agent/AgentPaymentScreen";
+import AgentPaymentSuccessScreen from "../screens/agent/AgentPaymentSuccessScreen";
+import AgentLeadDetailScreen from "../screens/agent/AgentLeadDetailScreen";
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -58,8 +65,8 @@ function MainTabs() {
           headerShown: false,
           tabBarShowLabel: true,
           tabBarHideOnKeyboard: true,
-          tabBarActiveTintColor: "#111111",
-          tabBarInactiveTintColor: "#8E8E93",
+          tabBarActiveTintColor: "#2563EB",
+          tabBarInactiveTintColor: "#94A3B8",
 
           tabBarLabel: config.label,
 
@@ -132,9 +139,17 @@ function MainTabs() {
   );
 }
 
+const navTheme = {
+  ...DefaultTheme,
+  colors: {
+    ...DefaultTheme.colors,
+    background: "#FFFFFF",
+  },
+};
+
 export default function AppNavigator() {
   return (
-    <NavigationContainer>
+    <NavigationContainer theme={navTheme}>
       <Stack.Navigator screenOptions={{ headerShown: false }}>
         <Stack.Screen name="MainTabs" component={MainTabs} />
         <Stack.Screen
@@ -155,6 +170,14 @@ export default function AppNavigator() {
         <Stack.Screen name="OwnerNavigator" component={OwnerNavigator} />
         <Stack.Screen name="OwnerPublishSuccess" component={OwnerPublishSuccessScreen} />
         <Stack.Screen name="OwnerLeadDetail" component={OwnerLeadDetailScreen} />
+
+        {/* AGENT FLOW (Entry, Location Select, Confirm, Payment, Success, Navigator, Detail) */}
+        <Stack.Screen name="AgentLocationSelect" component={AgentLocationSelectScreen} />
+        <Stack.Screen name="AgentPlanConfirm" component={AgentPlanConfirmScreen} />
+        <Stack.Screen name="AgentPayment" component={AgentPaymentScreen} />
+        <Stack.Screen name="AgentPaymentSuccess" component={AgentPaymentSuccessScreen} />
+        <Stack.Screen name="AgentNavigator" component={AgentNavigator} />
+        <Stack.Screen name="AgentLeadDetail" component={AgentLeadDetailScreen} />
       </Stack.Navigator>
 
     </NavigationContainer>

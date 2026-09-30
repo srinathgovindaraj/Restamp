@@ -1,30 +1,50 @@
 const COLORS = {
-  primary: "#146EF5",
-  primaryLight: "#EEF3FA",
-  primaryDark: "#133570",
+  // Primary
+  primary: "#2563EB",
+  primaryLight: "#EFF6FF",
+  primaryDark: "#1D4ED8",
+  primaryBorder: "#BFDBFE",
 
+  // Neutrals
   white: "#FFFFFF",
   black: "#111111",
 
-  background: "#F7F9FC",
+  // Backgrounds & Canvas
+  background: "#FFFFFF",
+  pageBackground: "#F8FAFC",
   card: "#FFFFFF",
+  cardBg: "#FFFFFF",
   pillGray: "#F2F4F8",
 
-  textDark: "#1E293B",
-  textPrimary: "#1E293B",
-  textSecondary: "#64748B",
-  muted: "#94A3B8",
+  // Typography
+  textDark: "#0F172A",
+  textPrimary: "#0F172A",
+  textSecondary: "#475569",
+  muted: "#64748B",
+  lightText: "#94A3B8",
 
+  // Borders & Controls
   border: "#E2E8F0",
+  borderInput: "#CBD5E1",
+  disabledBg: "#E2E8F0",
+  disabledText: "#94A3B8",
 
-  badgeGreen: "#10B981",
-  badgeBlue: "#1B489C",
-  badgeOrange: "#F97316",
+  // Semantic Status Colors
+  success: "#16A34A",
+  successBg: "#F0FDF4",
+  warning: "#D97706",
+  warningBg: "#FFFBEB",
+  danger: "#DC2626",
+  error: "#DC2626",
+  errorBg: "#FEF2F2",
+  info: "#2563EB",
 
-  success: "#10B981",
-  danger: "#EF4444",
-  heartRed: "#EF4444",
-  star: "#FFC107",
+  // Badges & Accents
+  badgeGreen: "#16A34A",
+  badgeBlue: "#2563EB",
+  badgeOrange: "#D97706",
+  heartRed: "#DC2626",
+  star: "#D97706",
 };
 
 export default COLORS;

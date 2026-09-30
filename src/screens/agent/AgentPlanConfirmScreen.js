@@ -18,42 +18,52 @@ import {
   Tag,
   ShieldCheck,
   CheckCircle2,
-  Zap,
 } from "lucide-react-native";
 import COLORS from "../../constants/colors";
 
-export default function OwnerPlanConfirmScreen({ route, navigation }) {
+export default function AgentPlanConfirmScreen({ route, navigation }) {
   const plan = route?.params?.plan || {
-    id: "owner-pro",
-    name: "Owner Pro Plan",
-    price: "₹2,999",
-    priceNumeric: 2999,
-    validity: "3 Months (90 Days)",
-    listingLimit: 5,
+    id: "agent-pro",
+    name: "Agent Pro Plan",
+    locationLimit: 10,
+    price: "₹6,999",
+    priceNumeric: 6999,
+    validity: "1 Month",
   };
+
+  const selectedLocalities = route?.params?.selectedLocalities || [
+    "Anna Nagar",
+    "Kilpauk",
+    "Mogappair",
+    "Adyar",
+  ];
 
   const [couponCode, setCouponCode] = useState("");
   const [discount, setDiscount] = useState(0);
   const [couponApplied, setCouponApplied] = useState(false);
 
-  const basePrice = plan.priceNumeric || 2999;
-  const totalAmount = basePrice - discount;
+  const basePrice = plan.priceNumeric || 6999;
+  const totalAmount = Math.max(0, basePrice - discount);
 
   const handleApplyCoupon = () => {
     const code = couponCode.trim().toUpperCase();
-    if (code === "RESTAMP" || code === "OWNER10" || code === "PROMO") {
-      setDiscount(300);
+    if (code === "RESTAMP" || code === "AGENT500" || code === "PROMO") {
+      setDiscount(500);
       setCouponApplied(true);
     } else {
       setDiscount(0);
       setCouponApplied(false);
-      Alert.alert("Invalid Code", "Please enter a valid coupon code like RESTAMP or OWNER10.");
+      Alert.alert(
+        "Invalid Code",
+        "Please enter a valid coupon code like RESTAMP or AGENT500."
+      );
     }
   };
 
   const handleProceedToPayment = () => {
-    navigation.navigate("OwnerPayment", {
+    navigation.navigate("AgentPayment", {
       plan,
+      selectedLocalities,
       totalAmount,
       formattedAmount: `₹${totalAmount.toLocaleString("en-IN")}`,
     });
@@ -80,7 +90,7 @@ export default function OwnerPlanConfirmScreen({ route, navigation }) {
           onPress={() =>
             Alert.alert(
               "Plan Information",
-              `${plan.name} gives you up to ${plan.listingLimit} active listings with 0% brokerage assurance.`
+              `${plan.name} gives you direct buyer leads across ${selectedLocalities.length} selected localities with 0% brokerage assurance.`
             )
           }
           activeOpacity={0.7}
@@ -107,7 +117,7 @@ export default function OwnerPlanConfirmScreen({ route, navigation }) {
             <View style={styles.planInfo}>
               <Text style={styles.planTitle}>{plan.name}</Text>
               <Text style={styles.planSubtitle}>
-                {plan.validity} • Up to {plan.listingLimit} Listings
+                {plan.validity || "1 Month"} • Up to {plan.locationLimit || 10} Locations
               </Text>
             </View>
 
@@ -126,7 +136,7 @@ export default function OwnerPlanConfirmScreen({ route, navigation }) {
             </View>
             <View style={styles.benefitItem}>
               <CheckCircle2 size={13} color={COLORS.primary} style={{ marginRight: 8 }} />
-              <Text style={styles.benefitText}>Verified Owner badge on search results</Text>
+              <Text style={styles.benefitText}>Verified Agent badge on search results</Text>
             </View>
             <View style={styles.benefitItem}>
               <CheckCircle2 size={13} color={COLORS.primary} style={{ marginRight: 8 }} />
@@ -183,14 +193,16 @@ export default function OwnerPlanConfirmScreen({ route, navigation }) {
 
           <View style={styles.summaryRow}>
             <Text style={styles.summaryKey}>Promo-code</Text>
-            <Text style={[styles.summaryVal, { color: discount > 0 ? "#059669" : "#111111" }]}>
+            <Text style={[styles.summaryVal, { color: discount > 0 ? "#16A34A" : "#111111" }]}>
               {discount > 0 ? `-₹${discount.toFixed(2)}` : "₹0.00"}
             </Text>
           </View>
 
           <View style={styles.summaryRow}>
-            <Text style={styles.summaryKey}>Listing Limit</Text>
-            <Text style={styles.summaryVal}>Up to {plan.listingLimit} Properties</Text>
+            <Text style={styles.summaryKey}>Location Limit</Text>
+            <Text style={styles.summaryVal}>
+              {selectedLocalities.length} Localities ({plan.locationLimit || 10} Limit)
+            </Text>
           </View>
 
           <View style={styles.summaryRow}>
@@ -213,7 +225,7 @@ export default function OwnerPlanConfirmScreen({ route, navigation }) {
 
         {/* Assurance Box */}
         <View style={styles.assuranceBox}>
-          <ShieldCheck size={16} color="#059669" style={{ marginRight: 8 }} />
+          <ShieldCheck size={16} color="#16A34A" style={{ marginRight: 8 }} />
           <Text style={styles.assuranceText}>
             100% money-back guarantee if you don't receive buyer inquiries in 30 days.
           </Text>
@@ -391,7 +403,7 @@ const styles = StyleSheet.create({
   },
   promoSuccessText: {
     fontSize: 11,
-    color: "#059669",
+    color: "#16A34A",
     fontWeight: "500",
     marginTop: 8,
     marginLeft: 28,
@@ -487,7 +499,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     shadowColor: "#2563EB",
     shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.25,
+    shadowOpacity: 0.2,
     shadowRadius: 12,
     elevation: 4,
   },

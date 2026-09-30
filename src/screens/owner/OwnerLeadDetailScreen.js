@@ -139,7 +139,7 @@ export default function OwnerLeadDetailScreen({ route, navigation }) {
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={[styles.contactActionBtn, { backgroundColor: "#10B981" }]}
+            style={[styles.contactActionBtn, { backgroundColor: "#16A34A" }]}
             onPress={handleWhatsApp}
             activeOpacity={0.8}
           >
@@ -271,10 +271,10 @@ export default function OwnerLeadDetailScreen({ route, navigation }) {
 
         {/* Site Visit Info if scheduled */}
         {lead.visitData && (
-          <View style={[styles.sectionCard, { borderColor: "#DDD6FE", backgroundColor: "#FAF5FF" }]}>
+          <View style={[styles.sectionCard, { borderColor: "#BFDBFE", backgroundColor: "#EFF6FF" }]}>
             <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 8 }}>
-              <Calendar size={18} color="#7C3AED" style={{ marginRight: 8 }} />
-              <Text style={[styles.cardHeading, { color: "#6D28D9", marginBottom: 0 }]}>
+              <Calendar size={18} color="#2563EB" style={{ marginRight: 8 }} />
+              <Text style={[styles.cardHeading, { color: "#2563EB", marginBottom: 0 }]}>
                 Scheduled Site Visit
               </Text>
             </View>
@@ -369,7 +369,7 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
-    backgroundColor: "#F8FAFC",
+    backgroundColor: "#FFFFFF",
   },
   scrollContent: {
     padding: 18,
@@ -569,12 +569,12 @@ const styles = StyleSheet.create({
   visitDataText: {
     fontSize: 13,
     fontWeight: "500",
-    color: "#6D28D9",
+    color: "#1E40AF",
     marginBottom: 2,
   },
   visitNoteText: {
     fontSize: 12,
-    color: "#7C3AED",
+    color: "#2563EB",
     fontWeight: "400",
   },
   bottomActions: {

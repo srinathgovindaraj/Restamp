@@ -65,7 +65,7 @@ export default function OwnerPaymentSuccessScreen({ route, navigation }) {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle="dark-content" backgroundColor="#F7F9FC" />
+      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
 
       {/* TOP HEADER: Circular Back Button | Centered Title | Circular More Button */}
       <View style={styles.header}>
@@ -114,7 +114,7 @@ export default function OwnerPaymentSuccessScreen({ route, navigation }) {
 
           {/* Transaction Pill */}
           <View style={styles.txnBadge}>
-            <ShieldCheck size={14} color="#059669" style={{ marginRight: 6 }} />
+            <ShieldCheck size={14} color="#16A34A" style={{ marginRight: 6 }} />
             <Text style={styles.txnBadgeText}>
               TXN-2026-98124 • Instant Activation
             </Text>
@@ -142,7 +142,7 @@ export default function OwnerPaymentSuccessScreen({ route, navigation }) {
 
           <View style={styles.summaryRow}>
             <Text style={styles.summaryKey}>Payment Status</Text>
-            <Text style={[styles.summaryVal, { color: "#059669" }]}>Completed • Paid</Text>
+            <Text style={[styles.summaryVal, { color: "#16A34A" }]}>Completed • Paid</Text>
           </View>
 
           <View style={styles.summaryRow}>
@@ -191,7 +191,7 @@ export default function OwnerPaymentSuccessScreen({ route, navigation }) {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: "#F7F9FC",
+    backgroundColor: "#FFFFFF",
   },
   header: {
     flexDirection: "row",
@@ -200,7 +200,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 14,
     paddingBottom: 16,
-    backgroundColor: "#F7F9FC",
+    backgroundColor: "#FFFFFF",
   },
   circleBtn: {
     width: 44,
@@ -225,7 +225,7 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
-    backgroundColor: "#F7F9FC",
+    backgroundColor: "#FFFFFF",
   },
   scrollContent: {
     paddingHorizontal: 20,
@@ -360,7 +360,7 @@ const styles = StyleSheet.create({
   currencySymbol: {
     fontSize: 16,
     fontWeight: "500",
-    color: "#F97316",
+    color: "#0F172A",
   },
   redirectNoticeBox: {
     flexDirection: "row",
@@ -382,17 +382,17 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 12,
     paddingBottom: 22,
-    backgroundColor: "#F7F9FC",
+    backgroundColor: "#FFFFFF",
   },
   ctaButton: {
     height: 54,
     borderRadius: 27,
-    backgroundColor: "#111111",
+    backgroundColor: "#2563EB",
     justifyContent: "center",
     alignItems: "center",
-    shadowColor: "#000000",
+    shadowColor: "#2563EB",
     shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.15,
+    shadowOpacity: 0.2,
     shadowRadius: 12,
     elevation: 4,
   },

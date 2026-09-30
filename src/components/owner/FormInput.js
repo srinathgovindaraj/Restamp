@@ -80,14 +80,14 @@ const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: "#FFFFFF",
     borderWidth: 1.5,
-    borderColor: "#E2E8F0",
+    borderColor: "#CBD5E1",
     borderRadius: 14,
     paddingHorizontal: 14,
     minHeight: 50,
   },
   inputWrapperFocused: {
     borderColor: COLORS.primary,
-    backgroundColor: "#F8FAFF",
+    backgroundColor: "#EFF6FF",
   },
   inputWrapperError: {
     borderColor: COLORS.danger,

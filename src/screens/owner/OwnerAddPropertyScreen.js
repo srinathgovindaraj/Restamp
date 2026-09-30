@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -9,6 +9,7 @@ import {
   TouchableOpacity,
   Image,
   Alert,
+  Platform,
 } from "react-native";
 import {
   ArrowLeft,
@@ -90,6 +91,13 @@ export default function OwnerAddPropertyScreen({ route, navigation }) {
   const [currentStep, setCurrentStep] = useState(
     route?.params?.initialStep || 1
   );
+
+  useEffect(() => {
+    if (route?.params?.resetForm) {
+      setCurrentStep(1);
+      setPurposeSelected(null);
+    }
+  }, [route?.params?.resetForm]);
 
   // Form State
   const [purpose, setPurpose] = useState(
@@ -316,7 +324,7 @@ export default function OwnerAddPropertyScreen({ route, navigation }) {
   if (!purposeSelected) {
     return (
       <SafeAreaView style={styles.safeArea}>
-        <StatusBar barStyle="dark-content" backgroundColor="#F1F5F9" />
+        <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
 
         {/* TOP HEADER: Brand Logo | Subtitle & Title | Circular Back Button */}
         <View style={styles.topHeader}>
@@ -494,7 +502,7 @@ export default function OwnerAddPropertyScreen({ route, navigation }) {
   // =========================================================================
   return (
     <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle="dark-content" backgroundColor="#F1F5F9" />
+      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
 
       {/* TOP HEADER: Brand Logo | Subtitle & Title | Cancel Button */}
       <View style={styles.topHeader}>
@@ -506,6 +514,7 @@ export default function OwnerAddPropertyScreen({ route, navigation }) {
                 setCurrentStep(currentStep - 1);
               } else {
                 setPurposeSelected(null);
+                navigation.navigate("Dashboard");
               }
             }}
             activeOpacity={0.7}
@@ -520,7 +529,7 @@ export default function OwnerAddPropertyScreen({ route, navigation }) {
           <View style={styles.headerTitles}>
             <Text style={styles.headerSubtitle}>RESTAMP Owner Studio</Text>
             <Text style={styles.headerTitle}>
-              {purpose} Property • Step {currentStep}/5
+              {purpose} Property • Step {currentStep}/6
             </Text>
           </View>
         </View>
@@ -528,7 +537,10 @@ export default function OwnerAddPropertyScreen({ route, navigation }) {
         <View style={styles.headerRight}>
           <TouchableOpacity
             style={styles.cancelPillBtn}
-            onPress={() => setPurposeSelected(null)}
+            onPress={() => {
+              setPurposeSelected(null);
+              navigation.navigate("Dashboard");
+            }}
             activeOpacity={0.7}
           >
             <Text style={styles.cancelPillText}>Cancel</Text>
@@ -991,12 +1003,20 @@ export default function OwnerAddPropertyScreen({ route, navigation }) {
         {currentStep === 6 && (
           <View style={styles.bigCard}>
             <View style={styles.bigCardHeader}>
-              <View>
+              <View style={{ flex: 1, marginRight: 10 }}>
                 <Text style={styles.bigCardTitle}>Preview Listing</Text>
                 <Text style={styles.bigCardSubtitle}>
                   This is how your property will appear to verified buyers and tenants on RESTAMP
                 </Text>
               </View>
+              <TouchableOpacity
+                style={styles.editStepBtn}
+                onPress={() => setCurrentStep(1)}
+                activeOpacity={0.7}
+              >
+                <Edit size={14} color="#2563EB" style={{ marginRight: 4 }} />
+                <Text style={styles.editStepBtnText}>Edit</Text>
+              </TouchableOpacity>
             </View>
 
             {/* Preview Card matching Buyer Property Detail page */}
@@ -1127,17 +1147,18 @@ export default function OwnerAddPropertyScreen({ route, navigation }) {
       <View style={styles.bottomBar}>
         {currentStep > 1 && (
           <TouchableOpacity
-            style={[styles.secondaryPillBtn, { flex: 1, marginRight: 10 }]}
+            style={styles.backBtnPill}
             onPress={() => setCurrentStep(currentStep - 1)}
             activeOpacity={0.8}
           >
+            <ArrowLeft size={16} color="#111111" strokeWidth={2.2} style={{ marginRight: 6 }} />
             <Text style={styles.secondaryPillBtnText}>Back</Text>
           </TouchableOpacity>
         )}
 
         {currentStep < 6 ? (
           <TouchableOpacity
-            style={[styles.primaryPillBtn, { flex: 2 }]}
+            style={styles.primaryPillBtn}
             onPress={() => setCurrentStep(currentStep + 1)}
             activeOpacity={0.88}
           >
@@ -1145,25 +1166,14 @@ export default function OwnerAddPropertyScreen({ route, navigation }) {
             <ArrowRight size={17} color="#FFFFFF" strokeWidth={2.4} style={{ marginLeft: 6 }} />
           </TouchableOpacity>
         ) : (
-          <View style={{ flex: 1, flexDirection: "row", gap: 10 }}>
-            <TouchableOpacity
-              style={[styles.secondaryPillBtn, { flex: 1 }]}
-              onPress={() => setCurrentStep(1)}
-              activeOpacity={0.8}
-            >
-              <Edit size={16} color="#111111" style={{ marginRight: 6 }} />
-              <Text style={styles.secondaryPillBtnText}>Edit</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[styles.primaryPillBtn, { flex: 2 }]}
-              onPress={handlePublishProperty}
-              activeOpacity={0.88}
-            >
-              <Upload size={17} color="#FFFFFF" strokeWidth={2.4} style={{ marginRight: 6 }} />
-              <Text style={styles.primaryPillBtnText}>Publish Property</Text>
-            </TouchableOpacity>
-          </View>
+          <TouchableOpacity
+            style={styles.primaryPillBtn}
+            onPress={handlePublishProperty}
+            activeOpacity={0.88}
+          >
+            <Upload size={17} color="#FFFFFF" strokeWidth={2.4} style={{ marginRight: 6 }} />
+            <Text style={styles.primaryPillBtnText}>Publish Property</Text>
+          </TouchableOpacity>
         )}
       </View>
 
@@ -1188,7 +1198,7 @@ export default function OwnerAddPropertyScreen({ route, navigation }) {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: "#F1F5F9",
+    backgroundColor: "#FFFFFF",
   },
   topHeader: {
     flexDirection: "row",
@@ -1197,7 +1207,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 10,
     paddingBottom: 14,
-    backgroundColor: "#F1F5F9",
+    backgroundColor: "#FFFFFF",
   },
   headerLeft: {
     flexDirection: "row",
@@ -1257,7 +1267,7 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
-    backgroundColor: "#F1F5F9",
+    backgroundColor: "#FFFFFF",
   },
   scrollContent: {
     paddingHorizontal: 20,
@@ -1356,8 +1366,8 @@ const styles = StyleSheet.create({
     paddingVertical: 18,
   },
   referenceItemCardSelected: {
-    borderColor: "#111111",
-    backgroundColor: "#FFFFFF",
+    borderColor: "#2563EB",
+    backgroundColor: "#EFF6FF",
   },
   referenceItemTitle: {
     fontSize: 16,
@@ -1380,7 +1390,7 @@ const styles = StyleSheet.create({
     marginLeft: 12,
   },
   referenceCheckCircleSelected: {
-    backgroundColor: "#111111",
+    backgroundColor: "#2563EB",
   },
   referenceCheckDot: {
     width: 6,
@@ -1405,14 +1415,14 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: "#111111",
+    backgroundColor: "#2563EB",
     justifyContent: "center",
     alignItems: "center",
   },
   applyPillBtn: {
     height: 56,
     borderRadius: 28,
-    backgroundColor: "#111111",
+    backgroundColor: "#2563EB",
     justifyContent: "center",
     alignItems: "center",
   },
@@ -1652,23 +1662,36 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingHorizontal: 20,
     paddingTop: 12,
-    paddingBottom: 24,
+    paddingBottom: Platform.OS === "ios" ? 28 : 16,
     backgroundColor: "#FFFFFF",
     borderTopWidth: 1,
     borderTopColor: "#EEF2F6",
+    shadowColor: "#000000",
+    shadowOffset: { width: 0, height: -3 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 8,
   },
   primaryPillBtn: {
+    flex: 1,
     height: 54,
     borderRadius: 27,
-    backgroundColor: "#111111",
+    backgroundColor: "#2563EB",
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
+    paddingHorizontal: 20,
+    shadowColor: "#2563EB",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 10,
+    elevation: 3,
   },
   primaryPillBtnText: {
     fontSize: 15,
-    fontWeight: "500",
+    fontWeight: "600",
     color: "#FFFFFF",
+    letterSpacing: 0.2,
   },
   secondaryPillBtn: {
     height: 54,
@@ -1684,5 +1707,32 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "500",
     color: "#111111",
+  },
+  backBtnPill: {
+    height: 54,
+    paddingHorizontal: 20,
+    borderRadius: 27,
+    backgroundColor: "#FFFFFF",
+    justifyContent: "center",
+    alignItems: "center",
+    borderWidth: 1.5,
+    borderColor: "#E2E8F0",
+    flexDirection: "row",
+    marginRight: 10,
+  },
+  editStepBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#EFF6FF",
+    borderWidth: 1,
+    borderColor: "#BFDBFE",
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+  },
+  editStepBtnText: {
+    fontSize: 12,
+    fontWeight: "600",
+    color: "#2563EB",
   },
 });

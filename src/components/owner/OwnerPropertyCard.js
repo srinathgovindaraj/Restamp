@@ -190,7 +190,7 @@ export default function OwnerPropertyCard({
             </>
           ) : isRejected ? (
             <TouchableOpacity
-              style={[styles.primaryBtn, { width: "100%", backgroundColor: "#DC2626" }]}
+              style={[styles.primaryBtn, { width: "100%" }]}
               onPress={() => onResubmit?.(property)}
               activeOpacity={0.8}
             >

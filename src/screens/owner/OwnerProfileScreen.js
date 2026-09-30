@@ -86,7 +86,7 @@ export default function OwnerProfileScreen({ navigation }) {
 
             {ownerProfile.verified && (
               <View style={styles.verifiedBadge}>
-                <ShieldCheck size={12} color="#059669" style={{ marginRight: 4 }} />
+                <ShieldCheck size={12} color="#16A34A" style={{ marginRight: 4 }} />
                 <Text style={styles.verifiedBadgeText}>Verified Owner Partner</Text>
               </View>
             )}
@@ -231,7 +231,7 @@ export default function OwnerProfileScreen({ navigation }) {
             activeOpacity={0.7}
           >
             <View style={styles.menuLeft}>
-              <Crown size={18} color="#D97706" style={styles.menuIcon} />
+              <Crown size={18} color="#2563EB" style={styles.menuIcon} />
               <Text style={styles.menuLabel}>Current Plan</Text>
             </View>
             <View style={styles.badgeRow}>
@@ -406,7 +406,7 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
-    backgroundColor: "#F8FAFC",
+    backgroundColor: "#FFFFFF",
   },
   scrollContent: {
     padding: 16,
@@ -450,7 +450,7 @@ const styles = StyleSheet.create({
   verifiedBadge: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#ECFDF5",
+    backgroundColor: "#F0FDF4",
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: 6,
@@ -460,7 +460,7 @@ const styles = StyleSheet.create({
   verifiedBadgeText: {
     fontSize: 10,
     fontWeight: "500",
-    color: "#059669",
+    color: "#16A34A",
   },
   editProfileBtn: {
     backgroundColor: "#F1F5F9",
@@ -573,7 +573,7 @@ const styles = StyleSheet.create({
   planBadge: {
     fontSize: 12,
     fontWeight: "500",
-    color: "#D97706",
+    color: "#2563EB",
     marginRight: 6,
   },
   langText: {

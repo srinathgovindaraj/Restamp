@@ -33,6 +33,7 @@ import {
 } from "lucide-react-native";
 import COLORS from "../../constants/colors";
 import RestampLogo from "../../components/RestampLogo";
+import { useAgent } from "../../context/AgentContext";
 
 const VERTICAL_TABS = [
   { id: "owner", label: "Owner Plan", icon: Crown },
@@ -118,7 +119,7 @@ const OWNER_PLANS = {
       name: "Gold Assist",
       titlePrefix: "Gold ",
       titlePrefixColor: "#2563EB",
-      titleColor: "#EA580C",
+      titleColor: "#0F172A",
       price: "₹1,999",
       priceSub1: "for 90 days validity",
       priceSub2: "+ GST • verified owner tag",
@@ -134,7 +135,7 @@ const OWNER_PLANS = {
       id: "owner-titanium",
       name: "Titanium VIP",
       titlePrefix: "Titanium ",
-      titlePrefixColor: "#7C3AED",
+      titlePrefixColor: "#2563EB",
       titleColor: "#0F172A",
       price: "₹4,999",
       priceSub1: "until deal closed",
@@ -169,7 +170,7 @@ const OWNER_PLANS = {
       name: "Corporate Boost",
       titlePrefix: "Corporate ",
       titlePrefixColor: "#2563EB",
-      titleColor: "#059669",
+      titleColor: "#0F172A",
       price: "₹3,499",
       priceSub1: "for 90 days validity",
       priceSub2: "+ GST • full tax credit",
@@ -185,7 +186,7 @@ const OWNER_PLANS = {
       id: "owner-comm-vip",
       name: "Enterprise Managed",
       titlePrefix: "Enterprise ",
-      titlePrefixColor: "#7C3AED",
+      titlePrefixColor: "#2563EB",
       titleColor: "#0F172A",
       price: "₹8,999",
       priceSub1: "until leased / sold",
@@ -206,102 +207,108 @@ const AGENT_PLANS = {
   residential: [
     {
       id: "agent-starter",
-      name: "Agent Starter",
+      name: "Agent Starter (5 Locations)",
       titleColor: "#0F172A",
       price: "₹2,999",
-      priceSub1: "per broker / month",
-      priceSub2: "billed monthly + GST",
+      priceSub1: "Suitable for local agents",
+      priceSub2: "billed monthly • 30 days validity",
       isPopular: false,
-      buttonText: "Get started",
+      buttonText: "Choose Plan",
+      locationLimit: 5,
       features: [
-        "15 Active property listings",
-        "40 Verified buyer contacts",
-        "Lead management CRM dashboard",
+        "5 Selected Chennai Localities",
+        "Owner-posted properties access",
+        "40 Verified buyer & tenant leads",
       ],
     },
     {
       id: "agent-pro",
-      name: "Pro Broker",
+      name: "Agent Pro (10 Locations)",
       titlePrefix: "Pro ",
       titlePrefixColor: "#2563EB",
-      titleColor: "#EA580C",
+      titleColor: "#0F172A",
       price: "₹6,999",
-      priceSub1: "per broker / month",
-      priceSub2: "micromarket boost included",
+      priceSub1: "Recommended • High coverage",
+      priceSub2: "billed monthly • 30 days validity",
       isPopular: true,
-      buttonText: "Get started",
+      buttonText: "Choose Plan",
+      locationLimit: 10,
       features: [
-        "50 Active property listings",
-        "150 Verified buyer contacts",
-        "Micromarket boost & WhatsApp alerts",
+        "10 Selected Chennai Localities",
+        "Full owner contact & property matching",
+        "150 Verified buyer & tenant leads",
       ],
     },
     {
       id: "agent-agency",
-      name: "Elite Agency",
+      name: "Elite Agency (15 Locations)",
       titlePrefix: "Elite ",
-      titlePrefixColor: "#7C3AED",
+      titlePrefixColor: "#2563EB",
       titleColor: "#0F172A",
       price: "₹14,999",
-      priceSub1: "per agency / month",
-      priceSub2: "unlimited listings + CRM",
+      priceSub1: "Maximum coverage",
+      priceSub2: "billed monthly • 30 days validity",
       isPopular: false,
-      buttonText: "Get started",
+      buttonText: "Choose Plan",
+      locationLimit: 15,
       features: [
-        "Unlimited property listings",
-        "500+ Verified HNI contacts",
-        "5 Sub-broker logins & CRM sync",
+        "15 Selected Chennai Localities",
+        "500+ Verified HNI buyer leads",
+        "Priority visit coordination & CRM sync",
       ],
     },
   ],
   commercial: [
     {
       id: "comm-agent-starter",
-      name: "Commercial Broker",
+      name: "Commercial (5 Locations)",
       titleColor: "#0F172A",
       price: "₹4,999",
-      priceSub1: "per broker / month",
-      priceSub2: "billed monthly + GST",
+      priceSub1: "Suitable for local agents",
+      priceSub2: "billed monthly • 30 days validity",
       isPopular: false,
-      buttonText: "Get started",
+      buttonText: "Choose Plan",
+      locationLimit: 5,
       features: [
-        "20 Commercial units listing",
-        "60 Verified tenant contacts",
+        "5 Commercial Hub Localities",
+        "Verified office & retail tenants",
         "Commercial lead CRM",
       ],
     },
     {
       id: "comm-agent-pro",
-      name: "Corporate Partner",
+      name: "Corporate Partner (10 Locations)",
       titlePrefix: "Corporate ",
       titlePrefixColor: "#2563EB",
-      titleColor: "#059669",
+      titleColor: "#0F172A",
       price: "₹9,999",
-      priceSub1: "per partner / month",
-      priceSub2: "top IT corridor slots",
+      priceSub1: "Recommended • Top IT hubs",
+      priceSub2: "billed monthly • 30 days validity",
       isPopular: true,
-      buttonText: "Get started",
+      buttonText: "Choose Plan",
+      locationLimit: 10,
       features: [
-        "60 Commercial property listings",
+        "10 Commercial Hub Localities",
         "200+ Corporate tenant contacts",
         "Top category placement for IT hubs",
       ],
     },
     {
       id: "comm-agent-elite",
-      name: "Developer Mandate",
+      name: "Developer Mandate (15 Locations)",
       titlePrefix: "Developer ",
-      titlePrefixColor: "#7C3AED",
+      titlePrefixColor: "#2563EB",
       titleColor: "#0F172A",
       price: "₹19,999",
-      priceSub1: "per mandate / month",
-      priceSub2: "exclusive project marketing",
+      priceSub1: "Maximum coverage",
+      priceSub2: "billed monthly • 30 days validity",
       isPopular: false,
-      buttonText: "Get started",
+      buttonText: "Choose Plan",
+      locationLimit: 15,
       features: [
-        "Unlimited commercial inventory",
-        "600+ Institutional HNI leads",
-        "End-to-end legal & marketing deck",
+        "15 Prime Business Corridors",
+        "Institutional tenant network",
+        "Exclusive mandate marketing",
       ],
     },
   ],
@@ -374,11 +381,14 @@ const PROPERTY_TYPE_OPTIONS = [
   "Commercial Office",
 ];
 
-export default function MenuScreen({ navigation }) {
+export default function MenuScreen({ navigation, route }) {
   const insets = useSafeAreaInsets();
+  const { hasActivePlan, agentPlan } = useAgent();
 
   // Vertical Tab state: 'owner' | 'agent' | 'price' | 'insights'
-  const [activeVerticalTab, setActiveVerticalTab] = useState("owner");
+  const [activeVerticalTab, setActiveVerticalTab] = useState(
+    route?.params?.initialTab || "owner"
+  );
 
   // Category: 'residential' | 'commercial'
   const [propertyCategory, setPropertyCategory] = useState("residential");
@@ -477,6 +487,21 @@ export default function MenuScreen({ navigation }) {
       return;
     }
 
+    if (planRole === "Agent") {
+      navigation.navigate("AgentLocationSelect", {
+        plan: {
+          id: plan.id,
+          name: plan.name,
+          locationLimit: plan.locationLimit || (plan.name?.includes("15") ? 15 : plan.name?.includes("5") ? 5 : 10),
+          price: plan.price,
+          priceNumeric: parseInt(plan.price?.replace(/[^0-9]/g, "")) || 6999,
+          validity: "1 Month (30 Days)",
+          category: propertyCategory,
+        },
+      });
+      return;
+    }
+
     Alert.alert(
       `${plan.name} Selected`,
       `Proceed with ${plan.name} (${plan.price}) for your ${propertyCategory} property as an ${planRole}?`,
@@ -511,7 +536,7 @@ export default function MenuScreen({ navigation }) {
 
   return (
     <View style={styles.screenRoot}>
-      <StatusBar barStyle="dark-content" backgroundColor="#F4F7FB" />
+      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
 
       {/* ================= HEADER BAR ================= */}
       <View style={[styles.header, { paddingTop: safeTopPadding }]}>
@@ -628,6 +653,28 @@ export default function MenuScreen({ navigation }) {
                 </Text>
               </View>
 
+              {/* Active Plan Quick Access Banner for Agents */}
+              {activeVerticalTab === "agent" && hasActivePlan && (
+                <View style={styles.activePlanBanner}>
+                  <View style={styles.activePlanLeft}>
+                    <Crown size={18} color={COLORS.primary} style={{ marginRight: 8 }} />
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.activePlanTitle}>{agentPlan?.name || "Agent Pro"} Active</Text>
+                      <Text style={styles.activePlanSub}>
+                        {agentPlan?.locationLimit || 10} Locations • {agentPlan?.daysRemaining || 24} Days Left
+                      </Text>
+                    </View>
+                  </View>
+                  <TouchableOpacity
+                    style={styles.activePlanBtn}
+                    onPress={() => navigation.navigate("AgentNavigator")}
+                    activeOpacity={0.85}
+                  >
+                    <Text style={styles.activePlanBtnText}>Dashboard</Text>
+                  </TouchableOpacity>
+                </View>
+              )}
+
               {/* Minimal Category Filter Pills */}
               <View style={styles.categoryPillsRow}>
                 <TouchableOpacity
@@ -724,7 +771,7 @@ export default function MenuScreen({ navigation }) {
                       <View style={styles.refBadgePopular}>
                         <Sparkles
                           size={8.5}
-                          color="#1D4ED8"
+                          color="#FFFFFF"
                           style={{ marginRight: 3 }}
                         />
                         <Text style={styles.refBadgePopularText}>POPULAR</Text>
@@ -1061,7 +1108,7 @@ export default function MenuScreen({ navigation }) {
 const styles = StyleSheet.create({
   screenRoot: {
     flex: 1,
-    backgroundColor: "#F4F7FB",
+    backgroundColor: "#FFFFFF",
   },
 
   /* ================= HEADER BAR ================= */
@@ -1071,7 +1118,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     paddingHorizontal: 18,
     paddingBottom: 12,
-    backgroundColor: "#F4F7FB",
+    backgroundColor: "#FFFFFF",
     borderBottomWidth: 1,
     borderBottomColor: "#E2E8F0",
   },
@@ -1130,7 +1177,7 @@ const styles = StyleSheet.create({
   mainLayoutContainer: {
     flex: 1,
     flexDirection: "row",
-    backgroundColor: "#F4F7FB",
+    backgroundColor: "#FFFFFF",
   },
 
   /* Left Column: Vertical Tab Rail */
@@ -1189,7 +1236,7 @@ const styles = StyleSheet.create({
   /* Right Column: Content Pane */
   contentPane: {
     flex: 1,
-    backgroundColor: "#F4F7FB",
+    backgroundColor: "#FFFFFF",
   },
   contentPaneScroll: {
     padding: 12,
@@ -1296,9 +1343,10 @@ const styles = StyleSheet.create({
     elevation: 1,
   },
   refCardPopular: {
-    borderColor: "#93C5FD",
+    borderColor: "#2563EB",
     borderWidth: 1.5,
-    shadowOpacity: 0.06,
+    backgroundColor: "#EFF6FF",
+    shadowOpacity: 0.08,
     shadowRadius: 8,
   },
   refCardHeader: {
@@ -1315,17 +1363,15 @@ const styles = StyleSheet.create({
   refBadgePopular: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#EFF6FF",
+    backgroundColor: "#2563EB",
     paddingHorizontal: 7,
     paddingVertical: 2,
     borderRadius: 8,
-    borderWidth: 1,
-    borderColor: "#BFDBFE",
   },
   refBadgePopularText: {
     fontSize: 9,
     fontWeight: "800",
-    color: "#1D4ED8",
+    color: "#FFFFFF",
     letterSpacing: 0.5,
   },
   refPriceRow: {
@@ -1363,19 +1409,17 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   refCtaBtnDefault: {
-    backgroundColor: "#F1F5F9",
-    borderWidth: 1,
-    borderColor: "#E2E8F0",
+    backgroundColor: "#2563EB",
   },
   refCtaBtnPopular: {
-    backgroundColor: "#0F172A",
+    backgroundColor: "#2563EB",
   },
   refCtaBtnText: {
     fontSize: 13,
     fontWeight: "700",
   },
   refCtaBtnTextDefault: {
-    color: "#0F172A",
+    color: "#FFFFFF",
   },
   refCtaBtnTextPopular: {
     color: "#FFFFFF",
@@ -1686,5 +1730,43 @@ const styles = StyleSheet.create({
     color: "#166534",
     marginTop: 2,
     lineHeight: 15,
+  },
+  activePlanBanner: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    backgroundColor: "#F0F7FF",
+    borderWidth: 1,
+    borderColor: "#BFDBFE",
+    borderRadius: 16,
+    padding: 12,
+    marginBottom: 14,
+  },
+  activePlanLeft: {
+    flexDirection: "row",
+    alignItems: "center",
+    flex: 1,
+    marginRight: 8,
+  },
+  activePlanTitle: {
+    fontSize: 13,
+    fontWeight: "800",
+    color: "#0F172A",
+  },
+  activePlanSub: {
+    fontSize: 11,
+    color: "#64748B",
+    marginTop: 1,
+  },
+  activePlanBtn: {
+    backgroundColor: COLORS.primary,
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    borderRadius: 100,
+  },
+  activePlanBtnText: {
+    fontSize: 11,
+    fontWeight: "700",
+    color: "#FFFFFF",
   },
 });

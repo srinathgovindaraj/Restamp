@@ -11,6 +11,7 @@ import {
   SafeAreaView,
   Dimensions,
   Modal,
+  Platform,
 } from "react-native";
 import {
   Home as HomeIcon,
@@ -349,7 +350,7 @@ export default function HomeScreen({ navigation }) {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle="dark-content" backgroundColor="#F4F7FB" />
+      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
       <ScrollView
         style={styles.container}
         showsVerticalScrollIndicator={false}
@@ -969,11 +970,11 @@ export default function HomeScreen({ navigation }) {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: "#F4F7FB",
+    backgroundColor: "#FFFFFF",
   },
   container: {
     flex: 1,
-    backgroundColor: "#F4F7FB",
+    backgroundColor: "#FFFFFF",
   },
   scrollContent: {
     paddingBottom: 90,
@@ -987,7 +988,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 12,
     paddingBottom: 4,
-    backgroundColor: "#F4F7FB",
+    backgroundColor: "#FFFFFF",
   },
   logoContainer: {
     flexDirection: "row",
@@ -1055,7 +1056,7 @@ const styles = StyleSheet.create({
 
   /* TOP SECTION */
   topSection: {
-    backgroundColor: "#F4F7FB",
+    backgroundColor: "#FFFFFF",
     paddingTop: 4,
     paddingBottom: 10,
   },
@@ -1158,7 +1159,7 @@ const styles = StyleSheet.create({
     letterSpacing: -0.2,
   },
   categoryPillTextActive: {
-    color: "#111111",
+    color: COLORS.primary,
     fontWeight: "700",
   },
   categoryPillTextInactive: {
@@ -1252,7 +1253,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     paddingHorizontal: 20,
     marginTop: 18,
-    marginBottom: 12,
+    marginBottom: 8,
   },
   sectionTitle: {
     ...TYPOGRAPHY.sectionHeading,
@@ -1280,30 +1281,42 @@ const styles = StyleSheet.create({
   /* RECOMMENDED PROPERTIES SLIDER (SINGLE ROW) */
   recommendedScrollContainer: {
     paddingHorizontal: 20,
-    paddingBottom: 4,
+    paddingTop: 6,
+    paddingBottom: 20,
   },
   recommendedCard: {
     width: REC_CARD_WIDTH,
     backgroundColor: "#FFFFFF",
     borderRadius: 14,
-    overflow: "hidden",
     marginRight: 12,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 6,
-    elevation: 2,
     borderWidth: 1,
-    borderColor: "#F1F5F9",
+    borderColor: "#EEF2F6",
+    ...Platform.select({
+      web: {
+        boxShadow: "0 3px 12px rgba(0, 0, 0, 0.06)",
+      },
+      default: {
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.06,
+        shadowRadius: 8,
+        elevation: 2,
+      },
+    }),
   },
   recommendedImageContainer: {
     height: 110,
     width: "100%",
+    borderTopLeftRadius: 14,
+    borderTopRightRadius: 14,
+    overflow: "hidden",
     position: "relative",
   },
   recommendedImage: {
     width: "100%",
     height: "100%",
+    borderTopLeftRadius: 14,
+    borderTopRightRadius: 14,
     backgroundColor: "#E2E8F0",
   },
   verifiedGreenBadge: {
@@ -1333,9 +1346,9 @@ const styles = StyleSheet.create({
     zIndex: 10,
   },
   recommendedCardBody: {
-    paddingHorizontal: 10,
-    paddingTop: 8,
-    paddingBottom: 10,
+    paddingHorizontal: 12,
+    paddingTop: 10,
+    paddingBottom: 12,
   },
   recommendedTitle: {
     fontSize: 13,
@@ -1387,26 +1400,35 @@ const styles = StyleSheet.create({
   },
   projectCardList: {
     paddingHorizontal: 20,
-    paddingBottom: 4,
+    paddingTop: 6,
+    paddingBottom: 20,
   },
   newProjectCard: {
     width: PROJECT_CARD_WIDTH,
     backgroundColor: "#FFFFFF",
-    borderRadius: 8,
-    overflow: "hidden",
+    borderRadius: 14,
     marginRight: 14,
     borderWidth: 1,
     borderColor: "#F3E8D6",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.05,
-    shadowRadius: 10,
-    elevation: 2,
+    ...Platform.select({
+      web: {
+        boxShadow: "0 4px 14px rgba(0, 0, 0, 0.06)",
+      },
+      default: {
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 3 },
+        shadowOpacity: 0.06,
+        shadowRadius: 10,
+        elevation: 2,
+      },
+    }),
   },
   projectBanner: {
     backgroundColor: "#FEF3C7",
     paddingVertical: 5,
     alignItems: "center",
+    borderTopLeftRadius: 14,
+    borderTopRightRadius: 14,
   },
   projectBannerText: {
     fontSize: 11.5,
@@ -1492,6 +1514,8 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderColor: "#F1F5F9",
     backgroundColor: "#FAFAFA",
+    borderBottomLeftRadius: 14,
+    borderBottomRightRadius: 14,
   },
   zeroBrokerageRow: {
     flexDirection: "row",
@@ -1547,7 +1571,7 @@ const styles = StyleSheet.create({
     color: "#64748B",
   },
   demandTabTextActive: {
-    color: "#0F172A",
+    color: COLORS.primary,
     fontWeight: "700",
   },
   demandTabIndicator: {
@@ -1561,21 +1585,29 @@ const styles = StyleSheet.create({
   },
   demandCardsList: {
     paddingHorizontal: 20,
-    paddingBottom: 4,
+    paddingTop: 6,
+    paddingBottom: 20,
   },
   demandCard: {
     width: DEMAND_CARD_WIDTH,
     backgroundColor: "#FFFFFF",
-    borderRadius: 8,
+    borderRadius: 14,
     padding: 16,
     marginRight: 14,
     borderWidth: 1,
     borderColor: "#E2E8F0",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.04,
-    shadowRadius: 8,
-    elevation: 1,
+    ...Platform.select({
+      web: {
+        boxShadow: "0 3px 12px rgba(0, 0, 0, 0.05)",
+      },
+      default: {
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.05,
+        shadowRadius: 8,
+        elevation: 1,
+      },
+    }),
   },
   demandCategoryTitle: {
     fontSize: 16,
@@ -1665,27 +1697,42 @@ const styles = StyleSheet.create({
   /* CARD LISTS radius:14 */
   cardHorizontalList: {
     paddingHorizontal: 20,
+    paddingTop: 6,
+    paddingBottom: 20,
   },
   propertyCard: {
     width: CARD_WIDTH,
     backgroundColor: "#FFFFFF",
     borderRadius: 14,
     marginRight: 16,
-    overflow: "hidden",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.05,
-    shadowRadius: 10,
-    elevation: 2,
+    borderWidth: 1,
+    borderColor: "#EEF2F6",
+    ...Platform.select({
+      web: {
+        boxShadow: "0 4px 16px rgba(0, 0, 0, 0.07)",
+      },
+      default: {
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 3 },
+        shadowOpacity: 0.07,
+        shadowRadius: 10,
+        elevation: 3,
+      },
+    }),
   },
   cardImageContainer: {
     height: 170,
     width: "100%",
+    borderTopLeftRadius: 14,
+    borderTopRightRadius: 14,
+    overflow: "hidden",
     position: "relative",
   },
   cardImage: {
     width: "100%",
     height: "100%",
+    borderTopLeftRadius: 14,
+    borderTopRightRadius: 14,
   },
   badgeRow: {
     position: "absolute",
@@ -1735,13 +1782,15 @@ const styles = StyleSheet.create({
   },
 
   cardBody: {
-    padding: 14,
+    paddingHorizontal: 16,
+    paddingTop: 12,
+    paddingBottom: 16,
   },
   priceRow: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 4,
+    marginBottom: 6,
   },
   priceText: {
     ...TYPOGRAPHY.propertyPrice,
@@ -1759,7 +1808,7 @@ const styles = StyleSheet.create({
   propertyTitle: {
     ...TYPOGRAPHY.propertyTitle,
     color: "#0F172A",
-    marginBottom: 4,
+    marginBottom: 6,
   },
   locationRow: {
     flexDirection: "row",
@@ -1769,7 +1818,8 @@ const styles = StyleSheet.create({
   locationAddress: {
     ...TYPOGRAPHY.location,
     color: COLORS.textSecondary,
-    marginLeft: 4,
+    marginLeft: 5,
+    flex: 1,
   },
   specsRow: {
     flexDirection: "row",
@@ -1791,40 +1841,67 @@ const styles = StyleSheet.create({
   /* VERTICAL CARDS */
   verticalCardsList: {
     paddingHorizontal: 20,
+    paddingBottom: 20,
   },
   verticalCard: {
     backgroundColor: "#FFFFFF",
     borderRadius: 14,
     marginBottom: 16,
-    overflow: "hidden",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.04,
-    shadowRadius: 8,
-    elevation: 2,
+    borderWidth: 1,
+    borderColor: "#EEF2F6",
+    ...Platform.select({
+      web: {
+        boxShadow: "0 3px 12px rgba(0, 0, 0, 0.06)",
+      },
+      default: {
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.06,
+        shadowRadius: 8,
+        elevation: 2,
+      },
+    }),
   },
   verticalImageContainer: {
     height: 160,
     width: "100%",
+    borderTopLeftRadius: 14,
+    borderTopRightRadius: 14,
+    overflow: "hidden",
     position: "relative",
   },
   verticalImage: {
     width: "100%",
     height: "100%",
+    borderTopLeftRadius: 14,
+    borderTopRightRadius: 14,
   },
 
   /* LOCATION CARDS */
   locationList: {
     paddingHorizontal: 20,
-    paddingBottom: 10,
+    paddingTop: 6,
+    paddingBottom: 20,
   },
   locationCard: {
     width: 140,
     height: 100,
-    borderRadius: 8,
+    borderRadius: 12,
     marginRight: 12,
     overflow: "hidden",
     position: "relative",
+    ...Platform.select({
+      web: {
+        boxShadow: "0 2px 8px rgba(0, 0, 0, 0.08)",
+      },
+      default: {
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.08,
+        shadowRadius: 6,
+        elevation: 2,
+      },
+    }),
   },
   locationCardImage: {
     width: "100%",
@@ -1956,15 +2033,15 @@ const styles = StyleSheet.create({
     backgroundColor: "#FFFFFF",
   },
   modalFilterChipActive: {
-    backgroundColor: COLORS.primary,
-    borderColor: COLORS.primary,
+    backgroundColor: "#EFF6FF",
+    borderColor: "#2563EB",
   },
   modalFilterChipText: {
     ...TYPOGRAPHY.smallHelperText,
     color: "#475569",
   },
   modalFilterChipTextActive: {
-    color: "#FFFFFF",
+    color: "#2563EB",
     fontWeight: "600",
   },
   bhkRow: {
@@ -1982,15 +2059,15 @@ const styles = StyleSheet.create({
     borderColor: "#E2E8F0",
   },
   bhkPillActive: {
-    backgroundColor: COLORS.primary,
-    borderColor: COLORS.primary,
+    backgroundColor: "#EFF6FF",
+    borderColor: "#2563EB",
   },
   bhkPillText: {
     ...TYPOGRAPHY.smallHelperText,
     color: "#475569",
   },
   bhkPillTextActive: {
-    color: "#FFFFFF",
+    color: "#2563EB",
     fontWeight: "600",
   },
   budgetHeaderRow: {
@@ -2054,12 +2131,19 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#CBD5E1",
     marginBottom: 12,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 5,
     overflow: "hidden",
+    ...Platform.select({
+      web: {
+        boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
+      },
+      default: {
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.1,
+        shadowRadius: 8,
+        elevation: 5,
+      },
+    }),
   },
   dropdownMenuHeader: {
     fontSize: 11,
@@ -2110,8 +2194,8 @@ const styles = StyleSheet.create({
     backgroundColor: "#F8FAFC",
   },
   statusFilterChipActive: {
-    backgroundColor: COLORS.primary,
-    borderColor: COLORS.primary,
+    backgroundColor: "#EFF6FF",
+    borderColor: "#2563EB",
   },
   statusFilterChipText: {
     ...TYPOGRAPHY.smallHelperText,
@@ -2119,7 +2203,7 @@ const styles = StyleSheet.create({
     fontWeight: "500",
   },
   statusFilterChipTextActive: {
-    color: "#FFFFFF",
+    color: "#2563EB",
     fontWeight: "600",
   },
   modalBottomBar: {

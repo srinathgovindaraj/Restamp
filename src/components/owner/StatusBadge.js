@@ -13,8 +13,8 @@ export default function StatusBadge({ status, style, textStyle }) {
 
   switch (normalized) {
     case "active":
-      bg = "#ECFDF5";
-      textColor = "#059669";
+      bg = "#F0FDF4";
+      textColor = "#16A34A";
       label = "ACTIVE";
       break;
     case "pending":
@@ -72,18 +72,18 @@ export default function StatusBadge({ status, style, textStyle }) {
       label = "NEGOTIATING";
       break;
     case "rented":
-      bg = "#ECFDF5";
-      textColor = "#059669";
+      bg = "#F0FDF4";
+      textColor = "#16A34A";
       label = "RENTED";
       break;
     case "sold":
-      bg = "#ECFDF5";
-      textColor = "#059669";
+      bg = "#F0FDF4";
+      textColor = "#16A34A";
       label = "SOLD";
       break;
     case "leased":
-      bg = "#ECFDF5";
-      textColor = "#059669";
+      bg = "#F0FDF4";
+      textColor = "#16A34A";
       label = "LEASED";
       break;
     default:
