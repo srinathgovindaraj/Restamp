@@ -12,8 +12,6 @@ import {
   Sparkles,
   Check,
   ArrowLeft,
-  Home,
-  Building2,
   ShieldCheck,
 } from "lucide-react-native";
 import { useOwner } from "../../context/OwnerContext";
@@ -201,55 +199,6 @@ export default function OwnerPlansScreen({ navigation }) {
           <Text style={styles.paneSubtitle}>
             Direct buyer inquiries • 0% brokerage in Chennai
           </Text>
-        </View>
-
-        {/* Category Filter Pills (Residential / Commercial) */}
-        <View style={styles.categoryPillsRow}>
-          <TouchableOpacity
-            style={[
-              styles.categoryPill,
-              propertyCategory === "residential" && styles.categoryPillActive,
-            ]}
-            onPress={() => setPropertyCategory("residential")}
-            activeOpacity={0.8}
-          >
-            <Home
-              size={13}
-              color={propertyCategory === "residential" ? "#0F172A" : "#64748B"}
-              style={{ marginRight: 5 }}
-            />
-            <Text
-              style={[
-                styles.categoryPillText,
-                propertyCategory === "residential" && styles.categoryPillTextActive,
-              ]}
-            >
-              Residential
-            </Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[
-              styles.categoryPill,
-              propertyCategory === "commercial" && styles.categoryPillActive,
-            ]}
-            onPress={() => setPropertyCategory("commercial")}
-            activeOpacity={0.8}
-          >
-            <Building2
-              size={13}
-              color={propertyCategory === "commercial" ? "#0F172A" : "#64748B"}
-              style={{ marginRight: 5 }}
-            />
-            <Text
-              style={[
-                styles.categoryPillText,
-                propertyCategory === "commercial" && styles.categoryPillTextActive,
-              ]}
-            >
-              Commercial
-            </Text>
-          </TouchableOpacity>
         </View>
 
         {/* Section Header */}
@@ -487,20 +436,13 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     padding: 16,
     borderWidth: 1,
-    borderColor: "#E5E7EB",
+    borderColor: "#EEF2F6",
     marginBottom: 12,
-    shadowColor: "#000000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.03,
-    shadowRadius: 6,
-    elevation: 1,
   },
   refCardPopular: {
-    borderColor: "#2563EB",
-    borderWidth: 1.5,
-    backgroundColor: "#EFF6FF",
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
+    borderColor: "#EEF2F6",
+    borderWidth: 1,
+    backgroundColor: "#FFFFFF",
   },
   refCardHeader: {
     flexDirection: "row",

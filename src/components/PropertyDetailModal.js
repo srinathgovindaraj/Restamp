@@ -252,7 +252,7 @@ export default function PropertyDetailModal({
           contentContainerStyle={styles.scrollContent}
         >
           {/* CHILD 0: HERO GALLERY & MAIN INFO (MATCHING IMAGE 2 + ADAPTED DETAILS) */}
-          <View style={{ backgroundColor: "#ffffffff", paddingBottom: 16 }}>
+          <View style={{ backgroundColor: "#FFFFFF", paddingBottom: 16 }}>
             {/* 1. PROPERTY IMAGE GALLERY HERO (Rounded Card matching Image 2) */}
             <View style={styles.heroCardContainer}>
               <View style={styles.galleryContainer}>
@@ -955,7 +955,7 @@ const styles = StyleSheet.create({
     ...TYPOGRAPHY.screenHeading,
     fontSize: 18,
     color: "#0F172A",
-    fontWeight: "500",
+    fontWeight: "600",
   },
   headerActions: {
     flexDirection: "row",
@@ -989,8 +989,8 @@ const styles = StyleSheet.create({
     backgroundColor: "#EBEFE3",
   },
   modalCategoryPillText: {
-    fontSize: 12,
-    fontWeight: "600",
+    fontSize: 14,
+    fontWeight: "500",
     color: "#2D3728",
   },
 
@@ -1002,12 +1002,7 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     overflow: "hidden",
     borderWidth: 1,
-    borderColor: "#eeeeeeff",
-    shadowColor: "#000000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.05,
-    shadowRadius: 10,
-    elevation: 3,
+    borderColor: "#EEF2F6",
     padding: 10,
   },
   galleryContainer: {
@@ -1048,8 +1043,8 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   heroPhotoCountText: {
-    fontSize: 12,
-    fontWeight: "700",
+    fontSize: 14,
+    fontWeight: "500",
     color: "#0F172A",
   },
   thumbnailStrip: {
@@ -1091,7 +1086,7 @@ const styles = StyleSheet.create({
   },
   propertyTitleText: {
     fontSize: 18,
-    fontWeight: "700",
+    fontWeight: "600",
     color: "#0F172A",
     flex: 1,
     marginRight: 10,
@@ -1101,8 +1096,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   ratingText: {
-    fontSize: 13,
-    fontWeight: "700",
+    fontSize: 14,
+    fontWeight: "400",
     color: "#0F172A",
   },
   priceRow: {
@@ -1111,14 +1106,14 @@ const styles = StyleSheet.create({
     marginTop: 6,
   },
   priceTag: {
-    fontSize: 24,
-    fontWeight: "800",
+    fontSize: 28,
+    fontWeight: "700",
     color: "#0F172A",
   },
   priceSubtext: {
     fontSize: 14,
     color: "#64748B",
-    fontWeight: "500",
+    fontWeight: "400",
     marginLeft: 4,
   },
   specsRow: {
@@ -1135,8 +1130,8 @@ const styles = StyleSheet.create({
     alignItems: "baseline",
   },
   specBold: {
-    fontSize: 15,
-    fontWeight: "800",
+    fontSize: 16,
+    fontWeight: "600",
     color: "#0F172A",
   },
   specLabel: {
@@ -1163,11 +1158,11 @@ const styles = StyleSheet.create({
     borderColor: "#E2E8F0",
   },
   locationText: {
-    fontSize: 12.5,
+    fontSize: 14,
     color: "#475569",
     marginLeft: 2,
     flex: 1,
-    fontWeight: "500",
+    fontWeight: "400",
   },
   changeLocationPill: {
     backgroundColor: "#EBF4FF",
@@ -1177,8 +1172,8 @@ const styles = StyleSheet.create({
     marginLeft: 6,
   },
   changeLocationPillText: {
-    fontSize: 10.5,
-    fontWeight: "700",
+    fontSize: 14,
+    fontWeight: "500",
     color: COLORS.primary,
   },
   statusPill: {
@@ -1188,8 +1183,8 @@ const styles = StyleSheet.create({
     borderRadius: 6,
   },
   statusPillText: {
-    fontSize: 11,
-    fontWeight: "600",
+    fontSize: 14,
+    fontWeight: "500",
     color: "#475569",
   },
   featureChipsRow: {
@@ -1207,9 +1202,9 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
   },
   featureChipText: {
-    fontSize: 11,
+    fontSize: 14,
     color: "#475569",
-    fontWeight: "500",
+    fontWeight: "400",
   },
 
   /* SECTION NAVIGATION TAB BAR */
@@ -1230,7 +1225,7 @@ const styles = StyleSheet.create({
     position: "relative",
   },
   tabLabelText: {
-    fontSize: 15,
+    fontSize: 16,
     color: "#64748B",
     fontWeight: "400",
   },
@@ -1261,13 +1256,13 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: "#0F172A",
     marginRight: 8,
-    lineHeight: 22,
+    lineHeight: 24,
   },
   bulletText: {
     flex: 1,
-    fontSize: 14,
+    fontSize: 16,
     color: "#334155",
-    lineHeight: 22,
+    lineHeight: 24,
     fontWeight: "400",
   },
 
@@ -1282,21 +1277,22 @@ const styles = StyleSheet.create({
   },
   sectionHeading: {
     fontSize: 18,
-    fontWeight: "500",
+    fontWeight: "600",
     color: "#0F172A",
     marginBottom: 12,
   },
   subSectionTitle: {
     fontSize: 16,
-    fontWeight: "500",
+    fontWeight: "600",
     color: "#334155",
     marginBottom: 8,
     marginTop: 4,
   },
   descriptionText: {
-    fontSize: 14,
+    fontSize: 16,
     color: "#475569",
-    lineHeight: 22,
+    lineHeight: 24,
+    fontWeight: "400",
   },
 
   /* DETAILS GRID (MINIMAL BORDERLESS LAYOUT) */
@@ -1312,14 +1308,14 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
   },
   detailLabel: {
-    fontSize: 13,
+    fontSize: 14,
     color: "#64748B",
     marginBottom: 3,
     fontWeight: "400",
   },
   detailValue: {
-    fontSize: 15,
-    fontWeight: "500",
+    fontSize: 16,
+    fontWeight: "600",
     color: "#0F172A",
   },
 
@@ -1341,7 +1337,7 @@ const styles = StyleSheet.create({
     borderColor: "#E2E8F0",
   },
   amenityText: {
-    fontSize: 13,
+    fontSize: 14,
     color: "#0F172A",
     fontWeight: "400",
   },
@@ -1357,14 +1353,15 @@ const styles = StyleSheet.create({
     borderColor: "#E2E8F0",
   },
   furnishingTitle: {
-    fontSize: 15,
-    fontWeight: "500",
+    fontSize: 16,
+    fontWeight: "600",
     color: "#0F172A",
     marginBottom: 2,
   },
   furnishingSubText: {
-    fontSize: 13,
+    fontSize: 14,
     color: "#64748B",
+    fontWeight: "400",
   },
 
   /* MAP */
@@ -1403,7 +1400,7 @@ const styles = StyleSheet.create({
     padding: 14,
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: "#E2E8F0",
+    borderColor: "#EEF2F6",
     marginTop: 4,
   },
   ownerAvatar: {
@@ -1412,14 +1409,15 @@ const styles = StyleSheet.create({
     borderRadius: 24,
   },
   ownerName: {
-    fontSize: 15,
-    fontWeight: "500",
+    fontSize: 16,
+    fontWeight: "600",
     color: "#0F172A",
   },
   ownerRole: {
-    fontSize: 13,
+    fontSize: 14,
     color: "#64748B",
     marginTop: 2,
+    fontWeight: "400",
   },
   ownerCallBtn: {
     width: 40,
@@ -1444,9 +1442,9 @@ const styles = StyleSheet.create({
     borderColor: "#E2E8F0",
   },
   quickQuestionText: {
-    fontSize: 13,
+    fontSize: 14,
     color: "#334155",
-    fontWeight: "400",
+    fontWeight: "500",
   },
   questionInputBox: {
     flexDirection: "row",
@@ -1462,7 +1460,8 @@ const styles = StyleSheet.create({
   questionTextInput: {
     flex: 1,
     height: 44,
-    fontSize: 14,
+    fontSize: 16,
+    fontWeight: "400",
     color: "#0F172A",
   },
   questionSendBtn: {
@@ -1485,12 +1484,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     overflow: "hidden",
     borderWidth: 1,
-    borderColor: "#E2E8F0",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.06,
-    shadowRadius: 10,
-    elevation: 3,
+    borderColor: "#EEF2F6",
   },
   recommendedImageContainer: {
     width: "100%",
@@ -1512,7 +1506,7 @@ const styles = StyleSheet.create({
   },
   verifiedGreenBadgeText: {
     color: "#FFFFFF",
-    fontSize: 11,
+    fontSize: 14,
     fontWeight: "500",
   },
   simHeartBtn: {
@@ -1530,18 +1524,20 @@ const styles = StyleSheet.create({
     padding: 12,
   },
   recommendedTitle: {
-    fontSize: 14,
-    fontWeight: "500",
+    fontSize: 16,
+    fontWeight: "600",
     color: "#0F172A",
     marginBottom: 4,
-    lineHeight: 18,
+    lineHeight: 20,
   },
   recommendedSubtitle: {
-    fontSize: 12,
+    fontSize: 14,
     color: "#64748B",
-    lineHeight: 16,
+    lineHeight: 18,
+    fontWeight: "400",
   },
   recommendedPrice: {
+    fontSize: 16,
     fontWeight: "600",
     color: COLORS.primary,
   },
@@ -1583,8 +1579,8 @@ const styles = StyleSheet.create({
     backgroundColor: "#F0FDF4",
   },
   siteVisitBtnText: {
-    fontSize: 14,
-    fontWeight: "500",
+    fontSize: 16,
+    fontWeight: "600",
     color: COLORS.primary,
   },
   siteVisitBtnTextActive: {
@@ -1603,8 +1599,8 @@ const styles = StyleSheet.create({
     backgroundColor: "#059669",
   },
   sendEnquiryBtnText: {
-    fontSize: 14,
-    fontWeight: "500",
+    fontSize: 16,
+    fontWeight: "600",
     color: "#FFFFFF",
   },
 
@@ -1630,11 +1626,12 @@ const styles = StyleSheet.create({
   },
   locationPickerTitle: {
     fontSize: 18,
-    fontWeight: "700",
+    fontWeight: "600",
     color: "#0F172A",
   },
   locationPickerSubtitle: {
-    fontSize: 12.5,
+    fontSize: 14,
+    fontWeight: "400",
     color: "#64748B",
     marginTop: 2,
   },
@@ -1661,7 +1658,8 @@ const styles = StyleSheet.create({
     borderColor: "#E2E8F0",
     borderRadius: 12,
     paddingHorizontal: 14,
-    fontSize: 13.5,
+    fontSize: 16,
+    fontWeight: "400",
     color: "#0F172A",
   },
   saveCustomAddressBtn: {
@@ -1674,12 +1672,12 @@ const styles = StyleSheet.create({
   },
   saveCustomAddressBtnText: {
     color: "#FFFFFF",
-    fontSize: 13,
-    fontWeight: "700",
+    fontSize: 14,
+    fontWeight: "500",
   },
   quickLocalitiesLabel: {
-    fontSize: 12,
-    fontWeight: "700",
+    fontSize: 16,
+    fontWeight: "600",
     color: "#64748B",
     marginBottom: 10,
     textTransform: "uppercase",
@@ -1718,15 +1716,16 @@ const styles = StyleSheet.create({
     borderColor: COLORS.primary,
   },
   localitySelectName: {
-    fontSize: 14,
-    fontWeight: "700",
+    fontSize: 16,
+    fontWeight: "600",
     color: "#0F172A",
   },
   localitySelectNameActive: {
     color: COLORS.primary,
   },
   localitySelectAddress: {
-    fontSize: 11.5,
+    fontSize: 14,
+    fontWeight: "400",
     color: "#64748B",
     marginTop: 2,
   },

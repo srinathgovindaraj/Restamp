@@ -1440,7 +1440,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#F8FAFC",
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: "#F1F5F9",
+    borderColor: "#EEF2F6",
     padding: 16,
   },
   whatIconWrap: {
@@ -1501,8 +1501,8 @@ const styles = StyleSheet.create({
   mapCard: {
     backgroundColor: "#FFFFFF",
     borderRadius: 16,
-    borderWidth: 1.5,
-    borderColor: "#E2E8F0",
+    borderWidth: 1,
+    borderColor: "#EEF2F6",
     overflow: "hidden",
     marginBottom: 20,
   },

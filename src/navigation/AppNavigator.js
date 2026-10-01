@@ -3,12 +3,12 @@ import { Platform, DeviceEventEmitter } from "react-native";
 import { NavigationContainer, DefaultTheme } from "@react-navigation/native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import { Home, Search, Heart, MessageSquare, User } from "lucide-react-native";
+import { Home, Search, Clock, Compass, Menu as MenuIcon, Heart, User } from "lucide-react-native";
 
 import HomeScreen from "../screens/buyer/HomeScreen";
 import SearchScreen from "../screens/buyer/SearchScreen";
 import SavedScreen from "../screens/buyer/SavedScreen";
-import EnquiriesScreen from "../screens/buyer/EnquiriesScreen";
+import ExploreScreen from "../screens/buyer/ExploreScreen";
 import ProfileScreen from "../screens/buyer/ProfileScreen";
 import MenuScreen from "../screens/buyer/MenuScreen";
 
@@ -40,17 +40,21 @@ const tabConfig = {
     label: "Search",
     Icon: Search,
   },
-  Saved: {
-    label: "Saved",
-    Icon: Heart,
+  Activity: {
+    label: "My Activity",
+    Icon: Clock,
   },
-  Enquiries: {
-    label: "Enquiries",
-    Icon: MessageSquare,
+  Saved: {
+    label: "My Activity",
+    Icon: Clock,
   },
   Profile: {
     label: "Profile",
     Icon: User,
+  },
+  Menu: {
+    label: "Menu",
+    Icon: MenuIcon,
   },
 };
 
@@ -104,14 +108,11 @@ function MainTabs() {
           },
 
           tabBarIcon: ({ color, focused }) => {
-            const fill = route.name === "Saved" && focused ? color : "none";
-
             return (
               <IconComponent
-                size={20}
+                size={22}
                 color={color}
-                fill={fill}
-                strokeWidth={focused ? 2.3 : 1.8}
+                strokeWidth={focused ? 2.4 : 1.8}
               />
             );
           },
@@ -132,9 +133,9 @@ function MainTabs() {
           },
         })}
       />
-      <Tab.Screen name="Saved" component={SavedScreen} />
-      <Tab.Screen name="Enquiries" component={EnquiriesScreen} />
+      <Tab.Screen name="Activity" component={SavedScreen} />
       <Tab.Screen name="Profile" component={ProfileScreen} />
+      <Tab.Screen name="Menu" component={MenuScreen} />
     </Tab.Navigator>
   );
 }
@@ -152,6 +153,10 @@ export default function AppNavigator() {
     <NavigationContainer theme={navTheme}>
       <Stack.Navigator screenOptions={{ headerShown: false }}>
         <Stack.Screen name="MainTabs" component={MainTabs} />
+        <Stack.Screen name="Profile" component={ProfileScreen} />
+        <Stack.Screen name="Activity" component={SavedScreen} />
+        <Stack.Screen name="Saved" component={SavedScreen} />
+        <Stack.Screen name="Explore" component={ExploreScreen} />
         <Stack.Screen
           name="Menu"
           component={MenuScreen}

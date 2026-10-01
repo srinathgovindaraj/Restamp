@@ -25,6 +25,8 @@ const COLORS = {
 
   // Borders & Controls
   border: "#E2E8F0",
+  borderLight: "#EEF2F6",
+  cardBorder: "#EEF2F6",
   borderInput: "#CBD5E1",
   disabledBg: "#E2E8F0",
   disabledText: "#94A3B8",

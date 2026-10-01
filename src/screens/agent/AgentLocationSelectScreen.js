@@ -18,6 +18,7 @@ import {
   Crown,
   X,
   MoreVertical,
+  Sparkles,
 } from "lucide-react-native";
 import COLORS from "../../constants/colors";
 
@@ -80,9 +81,54 @@ export default function AgentLocationSelectScreen({ route, navigation }) {
 
   // Plan tiers for quick switching if user wants to upgrade/downgrade
   const PLAN_TIERS = [
-    { limit: 5, label: "5 Locations", name: "Agent Starter", price: "₹2,999" },
-    { limit: 10, label: "10 Locations", name: "Agent Pro", price: "₹6,999", badge: "Popular" },
-    { limit: 15, label: "15 Locations", name: "Elite Agency", price: "₹14,999" },
+    {
+      limit: 5,
+      label: "5 Locations",
+      name: "Starter Agent",
+      titlePrefix: "Starter ",
+      titleSuffix: "Agent (5 Locations)",
+      price: "₹2,999",
+      priceSub1: "Essential coverage",
+      priceSub2: "billed monthly • 30 days validity",
+      badge: null,
+      features: [
+        "5 Selected Chennai Localities",
+        "Direct owner contact matching",
+        "40 Verified buyer & tenant leads",
+      ],
+    },
+    {
+      limit: 10,
+      label: "10 Locations",
+      name: "Pro Agent",
+      titlePrefix: "Pro ",
+      titleSuffix: "Agent (10 Locations)",
+      price: "₹6,999",
+      priceSub1: "Recommended • High coverage",
+      priceSub2: "billed monthly • 30 days validity",
+      badge: "POPULAR",
+      features: [
+        "10 Selected Chennai Localities",
+        "Full owner contact & property matching",
+        "150 Verified buyer & tenant leads",
+      ],
+    },
+    {
+      limit: 15,
+      label: "15 Locations",
+      name: "Elite Agency",
+      titlePrefix: "Elite ",
+      titleSuffix: "Agency (15 Locations)",
+      price: "₹14,999",
+      priceSub1: "Maximum coverage",
+      priceSub2: "billed monthly • 30 days validity",
+      badge: null,
+      features: [
+        "15 Selected Chennai Localities",
+        "500+ Verified HNI buyer leads",
+        "Priority visit coordination & CRM sync",
+      ],
+    },
   ];
 
   const handleSelectTier = (tier) => {
@@ -173,36 +219,60 @@ export default function AgentLocationSelectScreen({ route, navigation }) {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Tier Selector Card */}
-        <View style={styles.cardBox}>
+        {/* 3 Small Cards in 1 Row (Simplified, No Button, Matching Reference Design) */}
+        <View style={styles.tierCardsRowSection}>
           <View style={styles.tierHeaderRow}>
-            <Text style={styles.cardTitle}>Coverage Tier</Text>
-            <View style={styles.activeTierBadge}>
-              <Crown size={12} color="#D97706" style={{ marginRight: 4 }} />
-              <Text style={styles.activeTierBadgeText}>{currentPlan.name}</Text>
-            </View>
+            <Text style={styles.tierSectionTitle}>CHOOSE COVERAGE TIER</Text>
+            <Text style={styles.tierSectionSubtitle}>
+              {locationLimit} Localities Active
+            </Text>
           </View>
-          <View style={styles.tierPillsRow}>
+
+          <View style={styles.tierCardsRow}>
             {PLAN_TIERS.map((tier) => {
               const isTierActive = locationLimit === tier.limit;
               return (
                 <TouchableOpacity
                   key={tier.limit}
-                  style={[styles.tierPill, isTierActive && styles.tierPillActive]}
+                  style={[
+                    styles.smallTierCard,
+                    isTierActive
+                      ? styles.smallTierCardActive
+                      : styles.smallTierCardInactive,
+                  ]}
                   onPress={() => handleSelectTier(tier)}
-                  activeOpacity={0.8}
+                  activeOpacity={0.82}
                 >
-                  <Text style={[styles.tierPillLabel, isTierActive && styles.tierPillLabelActive]}>
-                    {tier.label}
-                  </Text>
-                  <Text style={[styles.tierPillPrice, isTierActive && styles.tierPillPriceActive]}>
-                    {tier.price}
-                  </Text>
+                  {/* Floating Popular Badge */}
                   {tier.badge && (
-                    <View style={styles.tierMiniBadge}>
-                      <Text style={styles.tierMiniBadgeText}>{tier.badge}</Text>
+                    <View style={styles.smallBadgePopular}>
+                      <Sparkles size={8} color="#FFFFFF" style={{ marginRight: 2 }} />
+                      <Text style={styles.smallBadgePopularText}>{tier.badge}</Text>
                     </View>
                   )}
+
+                  {/* Row 1: Plan Name */}
+                  <Text style={styles.smallTierName}>
+                    {tier.titlePrefix.trim()}
+                  </Text>
+
+                  {/* Row 2: Location Count */}
+                  <Text style={styles.smallTierLoc}>
+                    {tier.limit} Locations
+                  </Text>
+
+                  {/* Price */}
+                  <Text
+                    style={[
+                      styles.smallTierPrice,
+                      isTierActive && styles.smallTierPriceActive,
+                    ]}
+                  >
+                    {tier.price}
+                  </Text>
+
+                  {/* Subtext */}
+                  <Text style={styles.smallTierSub}>30 Days</Text>
                 </TouchableOpacity>
               );
             })}
@@ -377,94 +447,114 @@ const styles = StyleSheet.create({
     paddingTop: 10,
     paddingBottom: 24,
   },
-  cardBox: {
-    backgroundColor: "#FFFFFF",
-    borderRadius: 24,
-    padding: 18,
-    borderWidth: 1,
-    borderColor: "#EEF2F6",
+  tierCardsRowSection: {
     marginBottom: 16,
-    shadowColor: "#000000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.04,
-    shadowRadius: 8,
-    elevation: 2,
-  },
-  cardTitle: {
-    fontSize: 15,
-    fontWeight: "500",
-    color: "#111111",
+    paddingTop: 10,
   },
   tierHeaderRow: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    marginBottom: 14,
+    marginBottom: 12,
   },
-  activeTierBadge: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#FEF3C7",
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 12,
-  },
-  activeTierBadgeText: {
+  tierSectionTitle: {
     fontSize: 11,
-    fontWeight: "600",
-    color: "#B45309",
+    fontWeight: "700",
+    color: "#94A3B8",
+    letterSpacing: 0.8,
+    textTransform: "uppercase",
   },
-  tierPillsRow: {
+  tierSectionSubtitle: {
+    fontSize: 12,
+    fontWeight: "600",
+    color: COLORS.primary,
+  },
+  tierCardsRow: {
     flexDirection: "row",
     gap: 8,
   },
-  tierPill: {
+  smallTierCard: {
     flex: 1,
-    backgroundColor: "#F8FAFC",
-    borderRadius: 14,
-    paddingVertical: 12,
-    paddingHorizontal: 8,
+    backgroundColor: "#FFFFFF",
+    borderRadius: 16,
+    paddingVertical: 14,
+    paddingHorizontal: 6,
     alignItems: "center",
+    justifyContent: "center",
     borderWidth: 1,
     borderColor: "#E2E8F0",
+    shadowColor: "#000000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.03,
+    shadowRadius: 4,
+    elevation: 1,
     position: "relative",
   },
-  tierPillActive: {
-    backgroundColor: "#EFF6FF",
+  smallTierCardActive: {
     borderColor: "#2563EB",
-    borderWidth: 1.5,
+    borderWidth: 2,
+    backgroundColor: "#EFF6FF",
+    shadowColor: "#2563EB",
+    shadowOpacity: 0.08,
+    shadowRadius: 6,
+    elevation: 2,
   },
-  tierPillLabel: {
-    fontSize: 12,
+  smallTierCardInactive: {
+    borderColor: "#E2E8F0",
+    borderWidth: 1,
+    backgroundColor: "#FFFFFF",
+  },
+  smallBadgePopular: {
+    position: "absolute",
+    top: -10,
+    alignSelf: "center",
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#2563EB",
+    paddingHorizontal: 7,
+    paddingVertical: 2.5,
+    borderRadius: 9,
+    zIndex: 10,
+    shadowColor: "#2563EB",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.18,
+    shadowRadius: 3,
+    elevation: 3,
+  },
+  smallBadgePopularText: {
+    fontSize: 8,
+    fontWeight: "800",
+    color: "#FFFFFF",
+    letterSpacing: 0.4,
+  },
+  smallTierName: {
+    fontSize: 13,
+    fontWeight: "800",
+    color: "#2563EB",
+    textAlign: "center",
+  },
+  smallTierLoc: {
+    fontSize: 11,
+    fontWeight: "600",
+    color: "#0F172A",
+    textAlign: "center",
+    marginTop: 2,
+  },
+  smallTierPrice: {
+    fontSize: 16,
+    fontWeight: "900",
+    color: "#0F172A",
+    marginTop: 4,
+    marginBottom: 2,
+    letterSpacing: -0.3,
+  },
+  smallTierPriceActive: {
+    color: "#2563EB",
+  },
+  smallTierSub: {
+    fontSize: 10,
     fontWeight: "500",
     color: "#64748B",
-    marginBottom: 2,
-  },
-  tierPillLabelActive: {
-    color: "#2563EB",
-    fontWeight: "600",
-  },
-  tierPillPrice: {
-    fontSize: 13,
-    fontWeight: "600",
-    color: "#111111",
-  },
-  tierPillPriceActive: {
-    color: "#2563EB",
-  },
-  tierMiniBadge: {
-    position: "absolute",
-    top: -8,
-    backgroundColor: "#2563EB",
-    paddingHorizontal: 6,
-    paddingVertical: 1,
-    borderRadius: 6,
-  },
-  tierMiniBadgeText: {
-    fontSize: 8,
-    fontWeight: "700",
-    color: "#FFFFFF",
-    textTransform: "uppercase",
   },
   selectedSection: {
     marginBottom: 16,

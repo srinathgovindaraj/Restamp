@@ -228,55 +228,59 @@ export default function AgentDashboardScreen({ navigation }) {
 
         {/* SECTION 3: QUICK SUMMARY METRICS */}
         <View style={styles.metricsGrid}>
-          <TouchableOpacity
-            style={styles.metricCard}
-            onPress={() => navigation.navigate("Properties")}
-            activeOpacity={0.8}
-          >
-            <View style={[styles.metricIconBox, { backgroundColor: "#EFF6FF" }]}>
-              <Building2 size={18} color={COLORS.primary} />
-            </View>
-            <Text style={styles.metricValue}>{localityProperties.length || 126}</Text>
-            <Text style={styles.metricLabel}>Available Properties</Text>
-          </TouchableOpacity>
+          <View style={styles.metricsRow}>
+            <TouchableOpacity
+              style={styles.metricCard}
+              onPress={() => navigation.navigate("Properties")}
+              activeOpacity={0.8}
+            >
+              <View style={[styles.metricIconBox, { backgroundColor: "#EFF6FF" }]}>
+                <Building2 size={18} color={COLORS.primary} />
+              </View>
+              <Text style={styles.metricValue}>{localityProperties.length || 126}</Text>
+              <Text style={styles.metricLabel}>Available Properties</Text>
+            </TouchableOpacity>
 
-          <TouchableOpacity
-            style={styles.metricCard}
-            onPress={() => navigation.navigate("Leads")}
-            activeOpacity={0.8}
-          >
-            <View style={[styles.metricIconBox, { backgroundColor: "#F0FDF4" }]}>
-              <Users size={18} color="#16A34A" />
-            </View>
-            <Text style={styles.metricValue}>{leads.length || 18}</Text>
-            <Text style={styles.metricLabel}>Active Leads</Text>
-          </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.metricCard}
+              onPress={() => navigation.navigate("Leads")}
+              activeOpacity={0.8}
+            >
+              <View style={[styles.metricIconBox, { backgroundColor: "#F0FDF4" }]}>
+                <Users size={18} color="#16A34A" />
+              </View>
+              <Text style={styles.metricValue}>{leads.length || 18}</Text>
+              <Text style={styles.metricLabel}>Active Leads</Text>
+            </TouchableOpacity>
+          </View>
 
-          <TouchableOpacity
-            style={styles.metricCard}
-            onPress={() => navigation.navigate("Visits")}
-            activeOpacity={0.8}
-          >
-            <View style={[styles.metricIconBox, { backgroundColor: "#FFF7ED" }]}>
-              <Calendar size={18} color="#EA580C" />
-            </View>
-            <Text style={styles.metricValue}>
-              {todaysVisits.length > 0 ? todaysVisits.length : 4}
-            </Text>
-            <Text style={styles.metricLabel}>Visits Today</Text>
-          </TouchableOpacity>
+          <View style={styles.metricsRow}>
+            <TouchableOpacity
+              style={styles.metricCard}
+              onPress={() => navigation.navigate("Visits")}
+              activeOpacity={0.8}
+            >
+              <View style={[styles.metricIconBox, { backgroundColor: "#FFF7ED" }]}>
+                <Calendar size={18} color="#EA580C" />
+              </View>
+              <Text style={styles.metricValue}>
+                {todaysVisits.length > 0 ? todaysVisits.length : 4}
+              </Text>
+              <Text style={styles.metricLabel}>Visits Today</Text>
+            </TouchableOpacity>
 
-          <TouchableOpacity
-            style={styles.metricCard}
-            onPress={() => navigation.navigate("Profile")}
-            activeOpacity={0.8}
-          >
-            <View style={[styles.metricIconBox, { backgroundColor: "#FAF5FF" }]}>
-              <Sparkles size={18} color="#9333EA" />
-            </View>
-            <Text style={styles.metricValue}>{agentProfile?.dealsClosedCount || 7}</Text>
-            <Text style={styles.metricLabel}>Closed Deals</Text>
-          </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.metricCard}
+              onPress={() => navigation.navigate("Profile")}
+              activeOpacity={0.8}
+            >
+              <View style={[styles.metricIconBox, { backgroundColor: "#FAF5FF" }]}>
+                <Sparkles size={18} color="#9333EA" />
+              </View>
+              <Text style={styles.metricValue}>{agentProfile?.dealsClosedCount || 7}</Text>
+              <Text style={styles.metricLabel}>Closed Deals</Text>
+            </TouchableOpacity>
+          </View>
         </View>
 
         {/* SECTION 4: QUICK ACTION BUTTONS */}
@@ -551,11 +555,6 @@ const styles = StyleSheet.create({
     padding: 16,
     borderWidth: 1,
     borderColor: "#EEF2F6",
-    shadowColor: "#000000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.03,
-    shadowRadius: 8,
-    elevation: 2,
   },
   planTopRow: {
     flexDirection: "row",
@@ -680,12 +679,14 @@ const styles = StyleSheet.create({
     color: COLORS.primary,
   },
   metricsGrid: {
+    gap: 10,
+  },
+  metricsRow: {
     flexDirection: "row",
-    flexWrap: "wrap",
     gap: 10,
   },
   metricCard: {
-    width: "48%",
+    flex: 1,
     backgroundColor: "#FFFFFF",
     borderRadius: 18,
     padding: 14,

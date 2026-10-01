@@ -187,73 +187,77 @@ export default function OwnerLeadsScreen({ route, navigation }) {
 
           {/* 2-Column Grid of 4 Stat Tiles */}
           <View style={styles.statsGrid}>
-            {/* Tile 1: New Enquiries */}
-            <TouchableOpacity
-              style={styles.statTile}
-              onPress={() => setActiveTab("New")}
-              activeOpacity={0.8}
-            >
-              <View style={styles.statTileTop}>
-                <Text style={styles.statTileNumber}>
-                  {String(newCount || 12).padStart(2, "0")}
-                </Text>
-                <View style={styles.arrowCircle}>
-                  <ArrowUpRight size={13} color="#111111" strokeWidth={2.4} />
+            <View style={styles.statsRow}>
+              {/* Tile 1: New Enquiries */}
+              <TouchableOpacity
+                style={styles.statTile}
+                onPress={() => setActiveTab("New")}
+                activeOpacity={0.8}
+              >
+                <View style={styles.statTileTop}>
+                  <Text style={styles.statTileNumber}>
+                    {String(newCount || 12).padStart(2, "0")}
+                  </Text>
+                  <View style={styles.arrowCircle}>
+                    <ArrowUpRight size={13} color="#111111" strokeWidth={2.4} />
+                  </View>
                 </View>
-              </View>
-              <Text style={styles.statTileLabel}>New Enquiries</Text>
-            </TouchableOpacity>
+                <Text style={styles.statTileLabel}>New Enquiries</Text>
+              </TouchableOpacity>
 
-            {/* Tile 2: Visits Booked */}
-            <TouchableOpacity
-              style={styles.statTile}
-              onPress={() => setActiveTab("Visit Scheduled")}
-              activeOpacity={0.8}
-            >
-              <View style={styles.statTileTop}>
-                <Text style={styles.statTileNumber}>
-                  {String(visitsCount || 4).padStart(2, "0")}
-                </Text>
-                <View style={styles.arrowCircle}>
-                  <ArrowUpRight size={13} color="#111111" strokeWidth={2.4} />
+              {/* Tile 2: Visits Booked */}
+              <TouchableOpacity
+                style={styles.statTile}
+                onPress={() => setActiveTab("Visit Scheduled")}
+                activeOpacity={0.8}
+              >
+                <View style={styles.statTileTop}>
+                  <Text style={styles.statTileNumber}>
+                    {String(visitsCount || 4).padStart(2, "0")}
+                  </Text>
+                  <View style={styles.arrowCircle}>
+                    <ArrowUpRight size={13} color="#111111" strokeWidth={2.4} />
+                  </View>
                 </View>
-              </View>
-              <Text style={styles.statTileLabel}>Visits Booked</Text>
-            </TouchableOpacity>
+                <Text style={styles.statTileLabel}>Visits Booked</Text>
+              </TouchableOpacity>
+            </View>
 
-            {/* Tile 3: In Negotiation */}
-            <TouchableOpacity
-              style={styles.statTile}
-              onPress={() => setActiveTab("Negotiating")}
-              activeOpacity={0.8}
-            >
-              <View style={styles.statTileTop}>
-                <Text style={styles.statTileNumber}>
-                  {String(negotiatingCount || 3).padStart(2, "0")}
-                </Text>
-                <View style={styles.arrowCircle}>
-                  <ArrowUpRight size={13} color="#111111" strokeWidth={2.4} />
+            <View style={styles.statsRow}>
+              {/* Tile 3: In Negotiation */}
+              <TouchableOpacity
+                style={styles.statTile}
+                onPress={() => setActiveTab("Negotiating")}
+                activeOpacity={0.8}
+              >
+                <View style={styles.statTileTop}>
+                  <Text style={styles.statTileNumber}>
+                    {String(negotiatingCount || 3).padStart(2, "0")}
+                  </Text>
+                  <View style={styles.arrowCircle}>
+                    <ArrowUpRight size={13} color="#111111" strokeWidth={2.4} />
+                  </View>
                 </View>
-              </View>
-              <Text style={styles.statTileLabel}>In Negotiation</Text>
-            </TouchableOpacity>
+                <Text style={styles.statTileLabel}>In Negotiation</Text>
+              </TouchableOpacity>
 
-            {/* Tile 4: Closed Deals */}
-            <TouchableOpacity
-              style={styles.statTile}
-              onPress={() => setActiveTab("Closed")}
-              activeOpacity={0.8}
-            >
-              <View style={styles.statTileTop}>
-                <Text style={styles.statTileNumber}>
-                  {String(closedCount || 2).padStart(2, "0")}
-                </Text>
-                <View style={styles.arrowCircle}>
-                  <ArrowUpRight size={13} color="#111111" strokeWidth={2.4} />
+              {/* Tile 4: Closed Deals */}
+              <TouchableOpacity
+                style={styles.statTile}
+                onPress={() => setActiveTab("Closed")}
+                activeOpacity={0.8}
+              >
+                <View style={styles.statTileTop}>
+                  <Text style={styles.statTileNumber}>
+                    {String(closedCount || 2).padStart(2, "0")}
+                  </Text>
+                  <View style={styles.arrowCircle}>
+                    <ArrowUpRight size={13} color="#111111" strokeWidth={2.4} />
+                  </View>
                 </View>
-              </View>
-              <Text style={styles.statTileLabel}>Closed Deals</Text>
-            </TouchableOpacity>
+                <Text style={styles.statTileLabel}>Closed Deals</Text>
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
 
@@ -457,8 +461,8 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   bigCardTitle: {
-    fontSize: 16,
-    fontWeight: "500",
+    fontSize: 18,
+    fontWeight: "600",
     color: "#111111",
     letterSpacing: -0.3,
   },
@@ -471,13 +475,14 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   statsGrid: {
+    gap: 12,
+  },
+  statsRow: {
     flexDirection: "row",
-    flexWrap: "wrap",
-    justifyContent: "space-between",
     gap: 12,
   },
   statTile: {
-    width: "48%",
+    flex: 1,
     backgroundColor: "#F8FAFC",
     borderRadius: 20,
     padding: 16,
@@ -492,7 +497,7 @@ const styles = StyleSheet.create({
   },
   statTileNumber: {
     fontSize: 24,
-    fontWeight: "500",
+    fontWeight: "700",
     color: "#111111",
     letterSpacing: -0.5,
   },
@@ -507,7 +512,7 @@ const styles = StyleSheet.create({
     borderColor: "#EEF2F6",
   },
   statTileLabel: {
-    fontSize: 12,
+    fontSize: 14,
     color: "#64748B",
     fontWeight: "400",
     marginTop: 4,

@@ -1,107 +1,200 @@
+import { Platform } from "react-native";
+
+export const FONT_FAMILY = Platform.select({
+  web: "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
+  android: "sans-serif",
+  default: undefined,
+});
+
+const fontConfig = FONT_FAMILY ? { fontFamily: FONT_FAMILY } : {};
+
 export const TYPOGRAPHY = {
-  // Main Page Title: size 22, weight 500 (Medium), line height 28
+  // Page Title: Size 28px | Weight: Bold (700)
+  pageTitle: {
+    fontSize: 28,
+    fontWeight: "700",
+    lineHeight: 34,
+    ...fontConfig,
+  },
   mainPageTitle: {
-    fontSize: 22,
-    fontWeight: "500",
-    lineHeight: 28,
+    fontSize: 28,
+    fontWeight: "700",
+    lineHeight: 34,
+    ...fontConfig,
   },
 
-  // Screen Heading: size 20, weight 500 (Medium), line height 26
-  screenHeading: {
-    fontSize: 20,
-    fontWeight: "500",
-    lineHeight: 26,
-  },
-
-  // Section Heading: size 17, weight 500 (Medium), line height 22
-  sectionHeading: {
-    fontSize: 17,
-    fontWeight: "500",
-    lineHeight: 22,
-  },
-
-  // Property Title: size 16, weight 500 (Medium), line height 21
-  propertyTitle: {
-    fontSize: 16,
-    fontWeight: "500",
-    lineHeight: 21,
-  },
-
-  // Property Price: size 19, weight 600 (Semi-bold Medium), line height 24
-  propertyPrice: {
-    fontSize: 19,
+  // Card & Section Titles: Size 18px | Weight: Semi-Bold (600)
+  cardTitle: {
+    fontSize: 18,
     fontWeight: "600",
     lineHeight: 24,
+    ...fontConfig,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: "600",
+    lineHeight: 24,
+    ...fontConfig,
+  },
+  screenHeading: {
+    fontSize: 18,
+    fontWeight: "600",
+    lineHeight: 24,
+    ...fontConfig,
+  },
+  sectionHeading: {
+    fontSize: 18,
+    fontWeight: "600",
+    lineHeight: 24,
+    ...fontConfig,
+  },
+  cardHeading: {
+    fontSize: 18,
+    fontWeight: "600",
+    lineHeight: 24,
+    ...fontConfig,
+  },
+  propertyTitle: {
+    fontSize: 18,
+    fontWeight: "600",
+    lineHeight: 24,
+    ...fontConfig,
+  },
+  propertyPrice: {
+    fontSize: 18,
+    fontWeight: "600",
+    lineHeight: 24,
+    ...fontConfig,
+  },
+  price: {
+    fontSize: 18,
+    fontWeight: "600",
+    lineHeight: 24,
+    ...fontConfig,
   },
 
-  // Location: size 13, weight 400 (Regular), line height 18
-  location: {
-    fontSize: 13,
+  // Inline Section Labels: Size 16px | Weight: Semi-Bold (600)
+  inlineSectionLabel: {
+    fontSize: 16,
+    fontWeight: "600",
+    lineHeight: 22,
+    ...fontConfig,
+  },
+  inputLabel: {
+    fontSize: 16,
+    fontWeight: "600",
+    lineHeight: 22,
+    ...fontConfig,
+  },
+
+  // Primary Body Text: Size 16px | Weight: Regular (400)
+  primaryBody: {
+    fontSize: 16,
     fontWeight: "400",
-    lineHeight: 18,
+    lineHeight: 24,
+    ...fontConfig,
   },
-
-  // Property Meta: size 13, weight 400 (Regular), line height 18
-  propertyMeta: {
-    fontSize: 13,
-    fontWeight: "400",
-    lineHeight: 18,
-  },
-
-  // Body Text: size 14, weight 400 (Regular), line height 20
   bodyText: {
+    fontSize: 16,
+    fontWeight: "400",
+    lineHeight: 24,
+    ...fontConfig,
+  },
+  inputText: {
+    fontSize: 16,
+    fontWeight: "400",
+    lineHeight: 24,
+    ...fontConfig,
+  },
+
+  // Secondary/Meta Text & Subtext: Size 14px | Weight: Regular (400)
+  secondaryText: {
     fontSize: 14,
     fontWeight: "400",
     lineHeight: 20,
+    ...fontConfig,
   },
-
-  // Input Text: size 15, weight 400 (Regular), line height 20
-  inputText: {
-    fontSize: 15,
+  subtext: {
+    fontSize: 14,
     fontWeight: "400",
     lineHeight: 20,
+    ...fontConfig,
+  },
+  location: {
+    fontSize: 14,
+    fontWeight: "400",
+    lineHeight: 20,
+    ...fontConfig,
+  },
+  propertyMeta: {
+    fontSize: 14,
+    fontWeight: "400",
+    lineHeight: 20,
+    ...fontConfig,
+  },
+  caption: {
+    fontSize: 14,
+    fontWeight: "400",
+    lineHeight: 20,
+    ...fontConfig,
+  },
+  smallHelperText: {
+    fontSize: 14,
+    fontWeight: "400",
+    lineHeight: 20,
+    ...fontConfig,
+  },
+  specs: {
+    fontSize: 14,
+    fontWeight: "400",
+    lineHeight: 20,
+    ...fontConfig,
   },
 
-  // Input Label: size 13, weight 500 (Medium), line height 17
-  inputLabel: {
-    fontSize: 13,
+  // Small Button Text: Size 14px | Weight: Medium (500)
+  smallButton: {
+    fontSize: 14,
     fontWeight: "500",
-    lineHeight: 17,
+    lineHeight: 18,
+    ...fontConfig,
   },
-
-  // Filter Chip: size 13, weight 500 (Medium), line height 16
-  filterChip: {
-    fontSize: 13,
-    fontWeight: "500",
-    lineHeight: 16,
-  },
-
-  // Badge: size 11, weight 500 (Medium), line height 14
-  badge: {
-    fontSize: 11,
-    fontWeight: "500",
-    lineHeight: 14,
-  },
-
-  // Button: size 14, weight 500 (Medium), line height 18
   button: {
     fontSize: 14,
     fontWeight: "500",
     lineHeight: 18,
+    ...fontConfig,
   },
-
-  // Bottom Tab: size 11, weight 400-500 (Regular / Medium), line height 14
+  filterChip: {
+    fontSize: 14,
+    fontWeight: "500",
+    lineHeight: 18,
+    ...fontConfig,
+  },
+  badge: {
+    fontSize: 14,
+    fontWeight: "500",
+    lineHeight: 18,
+    ...fontConfig,
+  },
   bottomTab: {
-    fontSize: 11,
-    fontWeight: "400",
-    lineHeight: 14,
+    fontSize: 14,
+    fontWeight: "500",
+    lineHeight: 18,
+    ...fontConfig,
   },
 
-  // Small Helper Text: size 12, weight 400 (Regular), line height 16
-  smallHelperText: {
-    fontSize: 12,
-    fontWeight: "400",
-    lineHeight: 16,
+  // Main Action Button: Size 16px | Weight: Semi-Bold (600)
+  mainActionButton: {
+    fontSize: 16,
+    fontWeight: "600",
+    lineHeight: 22,
+    ...fontConfig,
+  },
+  mainButton: {
+    fontSize: 16,
+    fontWeight: "600",
+    lineHeight: 22,
+    ...fontConfig,
   },
 };
 

@@ -154,107 +154,113 @@ export default function OwnerDashboardScreen({ navigation }) {
 
           {/* 2-Column Grid of 6 Stat Cards */}
           <View style={styles.statsGrid}>
-            {/* Tile 1: Active Listings */}
-            <TouchableOpacity
-              style={styles.statTile}
-              onPress={() => handleMyProperties("Active")}
-              activeOpacity={0.8}
-            >
-              <View style={styles.statTileTop}>
-                <Text style={styles.statTileNumber}>
-                  {String(activeCount).padStart(2, "0")}
-                </Text>
-                <View style={styles.arrowCircle}>
-                  <ArrowUpRight size={13} color="#111111" strokeWidth={2.4} />
+            <View style={styles.statsRow}>
+              {/* Tile 1: Active Listings */}
+              <TouchableOpacity
+                style={styles.statTile}
+                onPress={() => handleMyProperties("Active")}
+                activeOpacity={0.8}
+              >
+                <View style={styles.statTileTop}>
+                  <Text style={styles.statTileNumber}>
+                    {String(activeCount).padStart(2, "0")}
+                  </Text>
+                  <View style={styles.arrowCircle}>
+                    <ArrowUpRight size={13} color="#111111" strokeWidth={2.4} />
+                  </View>
                 </View>
-              </View>
-              <Text style={styles.statTileLabel}>Active Listings</Text>
-            </TouchableOpacity>
+                <Text style={styles.statTileLabel}>Active Listings</Text>
+              </TouchableOpacity>
 
-            {/* Tile 2: Pending Generations / Review */}
-            <TouchableOpacity
-              style={styles.statTile}
-              onPress={() => handleMyProperties("Pending")}
-              activeOpacity={0.8}
-            >
-              <View style={styles.statTileTop}>
-                <Text style={styles.statTileNumber}>
-                  {String(pendingCount).padStart(2, "0")}
-                </Text>
-                <View style={styles.arrowCircle}>
-                  <ArrowUpRight size={13} color="#111111" strokeWidth={2.4} />
+              {/* Tile 2: Pending Generations / Review */}
+              <TouchableOpacity
+                style={styles.statTile}
+                onPress={() => handleMyProperties("Pending")}
+                activeOpacity={0.8}
+              >
+                <View style={styles.statTileTop}>
+                  <Text style={styles.statTileNumber}>
+                    {String(pendingCount).padStart(2, "0")}
+                  </Text>
+                  <View style={styles.arrowCircle}>
+                    <ArrowUpRight size={13} color="#111111" strokeWidth={2.4} />
+                  </View>
                 </View>
-              </View>
-              <Text style={styles.statTileLabel}>Pending Verification</Text>
-            </TouchableOpacity>
+                <Text style={styles.statTileLabel}>Pending Verification</Text>
+              </TouchableOpacity>
+            </View>
 
-            {/* Tile 3: Total Enquiries */}
-            <TouchableOpacity
-              style={styles.statTile}
-              onPress={handleViewLeads}
-              activeOpacity={0.8}
-            >
-              <View style={styles.statTileTop}>
-                <Text style={styles.statTileNumber}>
-                  {String(totalEnquiries || 14)}
-                </Text>
-                <View style={styles.arrowCircle}>
-                  <ArrowUpRight size={13} color="#111111" strokeWidth={2.4} />
+            <View style={styles.statsRow}>
+              {/* Tile 3: Total Enquiries */}
+              <TouchableOpacity
+                style={styles.statTile}
+                onPress={handleViewLeads}
+                activeOpacity={0.8}
+              >
+                <View style={styles.statTileTop}>
+                  <Text style={styles.statTileNumber}>
+                    {String(totalEnquiries || 14)}
+                  </Text>
+                  <View style={styles.arrowCircle}>
+                    <ArrowUpRight size={13} color="#111111" strokeWidth={2.4} />
+                  </View>
                 </View>
-              </View>
-              <Text style={styles.statTileLabel}>Total Inquiries</Text>
-            </TouchableOpacity>
+                <Text style={styles.statTileLabel}>Total Inquiries</Text>
+              </TouchableOpacity>
 
-            {/* Tile 4: Total Views */}
-            <TouchableOpacity
-              style={styles.statTile}
-              onPress={() => handleMyProperties("Active")}
-              activeOpacity={0.8}
-            >
-              <View style={styles.statTileTop}>
-                <Text style={styles.statTileNumber}>
-                  {totalViews > 0 ? totalViews.toLocaleString("en-IN") : "1,240"}
-                </Text>
-                <View style={styles.arrowCircle}>
-                  <ArrowUpRight size={13} color="#111111" strokeWidth={2.4} />
+              {/* Tile 4: Total Views */}
+              <TouchableOpacity
+                style={styles.statTile}
+                onPress={() => handleMyProperties("Active")}
+                activeOpacity={0.8}
+              >
+                <View style={styles.statTileTop}>
+                  <Text style={styles.statTileNumber}>
+                    {totalViews > 0 ? totalViews.toLocaleString("en-IN") : "1,240"}
+                  </Text>
+                  <View style={styles.arrowCircle}>
+                    <ArrowUpRight size={13} color="#111111" strokeWidth={2.4} />
+                  </View>
                 </View>
-              </View>
-              <Text style={styles.statTileLabel}>Property Views</Text>
-            </TouchableOpacity>
+                <Text style={styles.statTileLabel}>Property Views</Text>
+              </TouchableOpacity>
+            </View>
 
-            {/* Tile 5: Site Visits */}
-            <TouchableOpacity
-              style={styles.statTile}
-              onPress={handleViewLeads}
-              activeOpacity={0.8}
-            >
-              <View style={styles.statTileTop}>
-                <Text style={styles.statTileNumber}>
-                  {String(totalVisits || 6)}
-                </Text>
-                <View style={styles.arrowCircle}>
-                  <ArrowUpRight size={13} color="#111111" strokeWidth={2.4} />
+            <View style={styles.statsRow}>
+              {/* Tile 5: Site Visits */}
+              <TouchableOpacity
+                style={styles.statTile}
+                onPress={handleViewLeads}
+                activeOpacity={0.8}
+              >
+                <View style={styles.statTileTop}>
+                  <Text style={styles.statTileNumber}>
+                    {String(totalVisits || 6)}
+                  </Text>
+                  <View style={styles.arrowCircle}>
+                    <ArrowUpRight size={13} color="#111111" strokeWidth={2.4} />
+                  </View>
                 </View>
-              </View>
-              <Text style={styles.statTileLabel}>Site Visits Booked</Text>
-            </TouchableOpacity>
+                <Text style={styles.statTileLabel}>Site Visits Booked</Text>
+              </TouchableOpacity>
 
-            {/* Tile 6: Closed Deals */}
-            <TouchableOpacity
-              style={styles.statTile}
-              onPress={() => handleMyProperties("Closed")}
-              activeOpacity={0.8}
-            >
-              <View style={styles.statTileTop}>
-                <Text style={styles.statTileNumber}>
-                  {String(closedCount).padStart(2, "0")}
-                </Text>
-                <View style={styles.arrowCircle}>
-                  <ArrowUpRight size={13} color="#111111" strokeWidth={2.4} />
+              {/* Tile 6: Closed Deals */}
+              <TouchableOpacity
+                style={styles.statTile}
+                onPress={() => handleMyProperties("Closed")}
+                activeOpacity={0.8}
+              >
+                <View style={styles.statTileTop}>
+                  <Text style={styles.statTileNumber}>
+                    {String(closedCount).padStart(2, "0")}
+                  </Text>
+                  <View style={styles.arrowCircle}>
+                    <ArrowUpRight size={13} color="#111111" strokeWidth={2.4} />
+                  </View>
                 </View>
-              </View>
-              <Text style={styles.statTileLabel}>Closed Listings</Text>
-            </TouchableOpacity>
+                <Text style={styles.statTileLabel}>Closed Listings</Text>
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
 
@@ -491,12 +497,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     marginBottom: 16,
     borderWidth: 1,
-    borderColor: "#E2E8F0",
-    shadowColor: "#000000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.03,
-    shadowRadius: 6,
-    elevation: 1,
+    borderColor: "#EEF2F6",
   },
   switchBannerLeft: {
     flexDirection: "row",
@@ -525,11 +526,6 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     borderWidth: 1,
     borderColor: "#EEF2F6",
-    shadowColor: "#000000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.04,
-    shadowRadius: 12,
-    elevation: 2,
   },
   bigCardHeader: {
     flexDirection: "row",
@@ -538,8 +534,8 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   bigCardTitle: {
-    fontSize: 16,
-    fontWeight: "500",
+    fontSize: 18,
+    fontWeight: "600",
     color: "#111111",
     letterSpacing: -0.3,
   },
@@ -565,13 +561,14 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   statsGrid: {
+    gap: 12,
+  },
+  statsRow: {
     flexDirection: "row",
-    flexWrap: "wrap",
-    justifyContent: "space-between",
     gap: 12,
   },
   statTile: {
-    width: "48%",
+    flex: 1,
     backgroundColor: "#F8FAFC",
     borderRadius: 20,
     padding: 16,
@@ -586,7 +583,7 @@ const styles = StyleSheet.create({
   },
   statTileNumber: {
     fontSize: 24,
-    fontWeight: "500",
+    fontWeight: "700",
     color: "#111111",
     letterSpacing: -0.5,
   },
@@ -597,14 +594,11 @@ const styles = StyleSheet.create({
     backgroundColor: "#FFFFFF",
     justifyContent: "center",
     alignItems: "center",
-    shadowColor: "#000000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 3,
-    elevation: 1,
+    borderWidth: 1,
+    borderColor: "#EEF2F6",
   },
   statTileLabel: {
-    fontSize: 12,
+    fontSize: 14,
     color: "#64748B",
     fontWeight: "400",
     marginTop: 4,

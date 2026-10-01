@@ -368,19 +368,15 @@ export default function HomeScreen({ navigation }) {
             </Text>
           </View>
 
-          {/* Right Side Header Actions: Notification Bell + Menu Button */}
+          {/* Right Side Header Actions: Notification Bell */}
           <View style={styles.headerRightActions}>
-            <TouchableOpacity style={styles.notificationBtn} activeOpacity={0.8}>
+            <TouchableOpacity
+              style={styles.notificationBtn}
+              activeOpacity={0.8}
+              onPress={() => Alert.alert("Notifications", "You have no unread notifications.")}
+            >
               <Bell size={20} color={COLORS.textDark} />
               <View style={styles.notificationDot} />
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={styles.menuHeaderBtn}
-              activeOpacity={0.8}
-              onPress={() => navigation.navigate("Menu")}
-            >
-              <Menu size={22} color={COLORS.textDark} />
             </TouchableOpacity>
           </View>
         </View>
@@ -1184,11 +1180,6 @@ const styles = StyleSheet.create({
     paddingLeft: 18,
     paddingRight: 6,
     paddingVertical: 8,
-    shadowColor: COLORS.primary,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.25,
-    shadowRadius: 10,
-    elevation: 4,
   },
   postPropertyContent: {
     flex: 1,
@@ -1223,11 +1214,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 15,
     paddingVertical: 7.5,
     alignSelf: "flex-start",
-    shadowColor: "#000000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 4,
-    elevation: 2,
+    borderWidth: 1,
+    borderColor: "#EEF2F6",
   },
   postPropertyBtnText: {
     color: "#111111",
@@ -1291,18 +1279,6 @@ const styles = StyleSheet.create({
     marginRight: 12,
     borderWidth: 1,
     borderColor: "#EEF2F6",
-    ...Platform.select({
-      web: {
-        boxShadow: "0 3px 12px rgba(0, 0, 0, 0.06)",
-      },
-      default: {
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.06,
-        shadowRadius: 8,
-        elevation: 2,
-      },
-    }),
   },
   recommendedImageContainer: {
     height: 110,
@@ -1409,19 +1385,7 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     marginRight: 14,
     borderWidth: 1,
-    borderColor: "#F3E8D6",
-    ...Platform.select({
-      web: {
-        boxShadow: "0 4px 14px rgba(0, 0, 0, 0.06)",
-      },
-      default: {
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 3 },
-        shadowOpacity: 0.06,
-        shadowRadius: 10,
-        elevation: 2,
-      },
-    }),
+    borderColor: "#EEF2F6",
   },
   projectBanner: {
     backgroundColor: "#FEF3C7",
@@ -1595,19 +1559,7 @@ const styles = StyleSheet.create({
     padding: 16,
     marginRight: 14,
     borderWidth: 1,
-    borderColor: "#E2E8F0",
-    ...Platform.select({
-      web: {
-        boxShadow: "0 3px 12px rgba(0, 0, 0, 0.05)",
-      },
-      default: {
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.05,
-        shadowRadius: 8,
-        elevation: 1,
-      },
-    }),
+    borderColor: "#EEF2F6",
   },
   demandCategoryTitle: {
     fontSize: 16,
@@ -1707,18 +1659,6 @@ const styles = StyleSheet.create({
     marginRight: 16,
     borderWidth: 1,
     borderColor: "#EEF2F6",
-    ...Platform.select({
-      web: {
-        boxShadow: "0 4px 16px rgba(0, 0, 0, 0.07)",
-      },
-      default: {
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 3 },
-        shadowOpacity: 0.07,
-        shadowRadius: 10,
-        elevation: 3,
-      },
-    }),
   },
   cardImageContainer: {
     height: 170,
@@ -1849,18 +1789,6 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     borderWidth: 1,
     borderColor: "#EEF2F6",
-    ...Platform.select({
-      web: {
-        boxShadow: "0 3px 12px rgba(0, 0, 0, 0.06)",
-      },
-      default: {
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.06,
-        shadowRadius: 8,
-        elevation: 2,
-      },
-    }),
   },
   verticalImageContainer: {
     height: 160,
@@ -1890,18 +1818,8 @@ const styles = StyleSheet.create({
     marginRight: 12,
     overflow: "hidden",
     position: "relative",
-    ...Platform.select({
-      web: {
-        boxShadow: "0 2px 8px rgba(0, 0, 0, 0.08)",
-      },
-      default: {
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.08,
-        shadowRadius: 6,
-        elevation: 2,
-      },
-    }),
+    borderWidth: 1,
+    borderColor: "#EEF2F6",
   },
   locationCardImage: {
     width: "100%",
@@ -1968,7 +1886,7 @@ const styles = StyleSheet.create({
     padding: 16,
     marginBottom: 12,
     borderWidth: 1,
-    borderColor: "#F1F5F9",
+    borderColor: "#EEF2F6",
   },
   modalSectionLabel: {
     ...TYPOGRAPHY.sectionHeading,

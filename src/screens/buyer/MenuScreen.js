@@ -38,8 +38,6 @@ import { useAgent } from "../../context/AgentContext";
 const VERTICAL_TABS = [
   { id: "owner", label: "Owner Plan", icon: Crown },
   { id: "agent", label: "Agent Plan", icon: Briefcase },
-  { id: "price", label: "Price", icon: Calculator },
-  { id: "insights", label: "Insights", icon: TrendingUp },
 ];
 
 const RESIDENTIAL_TYPES = [
@@ -555,7 +553,13 @@ export default function MenuScreen({ navigation, route }) {
         <TouchableOpacity
           style={styles.closeBtn}
           activeOpacity={0.8}
-          onPress={() => navigation.goBack()}
+          onPress={() => {
+            if (navigation.canGoBack()) {
+              navigation.goBack();
+            } else {
+              navigation.navigate("Home");
+            }
+          }}
           hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
         >
           <X size={18} color="#0F172A" />
@@ -578,7 +582,13 @@ export default function MenuScreen({ navigation, route }) {
                 <TouchableOpacity
                   key={tab.id}
                   style={[styles.railItem, isActive && styles.railItemActive]}
-                  onPress={() => setActiveVerticalTab(tab.id)}
+                  onPress={() => {
+                    if (tab.id === "agent") {
+                      navigation.navigate("AgentLocationSelect");
+                    } else {
+                      setActiveVerticalTab(tab.id);
+                    }
+                  }}
                   activeOpacity={0.75}
                 >
                   {/* Left Active Indicator Bar */}
@@ -674,63 +684,6 @@ export default function MenuScreen({ navigation, route }) {
                   </TouchableOpacity>
                 </View>
               )}
-
-              {/* Minimal Category Filter Pills */}
-              <View style={styles.categoryPillsRow}>
-                <TouchableOpacity
-                  style={[
-                    styles.categoryPill,
-                    propertyCategory === "residential" &&
-                      styles.categoryPillActive,
-                  ]}
-                  onPress={() => setPropertyCategory("residential")}
-                  activeOpacity={0.8}
-                >
-                  <Home
-                    size={13}
-                    color={
-                      propertyCategory === "residential" ? "#0F172A" : "#64748B"
-                    }
-                    style={{ marginRight: 5 }}
-                  />
-                  <Text
-                    style={[
-                      styles.categoryPillText,
-                      propertyCategory === "residential" &&
-                        styles.categoryPillTextActive,
-                    ]}
-                  >
-                    Residential
-                  </Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  style={[
-                    styles.categoryPill,
-                    propertyCategory === "commercial" &&
-                      styles.categoryPillActive,
-                  ]}
-                  onPress={() => setPropertyCategory("commercial")}
-                  activeOpacity={0.8}
-                >
-                  <Building
-                    size={13}
-                    color={
-                      propertyCategory === "commercial" ? "#0F172A" : "#64748B"
-                    }
-                    style={{ marginRight: 5 }}
-                  />
-                  <Text
-                    style={[
-                      styles.categoryPillText,
-                      propertyCategory === "commercial" &&
-                        styles.categoryPillTextActive,
-                    ]}
-                  >
-                    Commercial
-                  </Text>
-                </TouchableOpacity>
-              </View>
 
               {/* Section Header */}
               <View style={styles.sectionHeaderRow}>
@@ -1334,20 +1287,13 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     padding: 15,
     borderWidth: 1,
-    borderColor: "#E5E7EB",
+    borderColor: "#EEF2F6",
     marginBottom: 10,
-    shadowColor: "#000000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.03,
-    shadowRadius: 6,
-    elevation: 1,
   },
   refCardPopular: {
-    borderColor: "#2563EB",
-    borderWidth: 1.5,
-    backgroundColor: "#EFF6FF",
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
+    borderColor: "#EEF2F6",
+    borderWidth: 1,
+    backgroundColor: "#FFFFFF",
   },
   refCardHeader: {
     flexDirection: "row",
@@ -1624,12 +1570,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 4,
     borderWidth: 1,
-    borderColor: "#E2E8F0",
-    shadowColor: "#000000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.04,
-    shadowRadius: 8,
-    elevation: 1,
+    borderColor: "#EEF2F6",
   },
   rateItemRow: {
     flexDirection: "row",
@@ -1667,13 +1608,8 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 16,
     borderWidth: 1,
-    borderColor: "#E2E8F0",
+    borderColor: "#EEF2F6",
     marginBottom: 10,
-    shadowColor: "#000000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.04,
-    shadowRadius: 8,
-    elevation: 1,
   },
   insightTagBadge: {
     alignSelf: "flex-start",

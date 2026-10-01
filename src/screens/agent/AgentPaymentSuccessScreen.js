@@ -233,11 +233,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     borderWidth: 1,
     borderColor: "#EEF2F6",
-    shadowColor: "#000000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.04,
-    shadowRadius: 10,
-    elevation: 2,
   },
   badgeCircle: {
     width: 76,
@@ -255,11 +250,6 @@ const styles = StyleSheet.create({
     backgroundColor: "#16A34A",
     alignItems: "center",
     justifyContent: "center",
-    shadowColor: "#16A34A",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 4,
   },
   statusTitle: {
     fontSize: 20,

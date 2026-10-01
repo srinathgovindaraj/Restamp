@@ -409,7 +409,7 @@ export default function SearchScreen({ navigation, route }) {
         <TouchableOpacity
           style={styles.circleIconBtn}
           activeOpacity={0.8}
-          onPress={() => navigation.navigate("Saved")}
+          onPress={() => navigation.navigate("Activity")}
         >
           <Heart
             size={19}
