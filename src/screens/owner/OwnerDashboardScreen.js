@@ -346,7 +346,7 @@ export default function OwnerDashboardScreen({ navigation }) {
                 onPress={() => navigation.navigate("OwnerLeadDetail", { lead })}
                 activeOpacity={0.75}
               >
-                {/* Customer Profile Image */}
+                {/* Round Profile Avatar Image */}
                 <Image
                   source={{
                     uri:
@@ -356,8 +356,8 @@ export default function OwnerDashboardScreen({ navigation }) {
                   style={styles.enquiryAvatar}
                 />
 
-                  {/* Middle Info */}
-                  <View style={styles.enquiryInfo}>
+                {/* Middle Info */}
+                <View style={styles.enquiryInfo}>
                     <Text style={styles.enquiryName} numberOfLines={1}>
                       {lead.customerName}
                     </Text>
@@ -798,11 +798,11 @@ const styles = StyleSheet.create({
   enquiryAvatar: {
     width: 44,
     height: 44,
-    borderRadius: 12,
-    backgroundColor: "#F1F5F9",
-    borderWidth: 1,
-    borderColor: "#EEF2F6",
+    borderRadius: 22,
     marginRight: 14,
+    backgroundColor: "#F1F5F9",
+    borderWidth: 1.5,
+    borderColor: "#EEF2F6",
   },
   enquiryInfo: {
     flex: 1,
