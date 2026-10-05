@@ -25,7 +25,7 @@ export default function OwnerPublishSuccessScreen({ route, navigation }) {
   const handleViewMyProperties = () => {
     navigation.navigate("OwnerNavigator", {
       screen: "Properties",
-      params: { initialTab: "Active" },
+      params: { initialTab: "Pending" },
     });
   };
 
