@@ -159,19 +159,19 @@ export default function OwnerLeadDetailScreen({ route, navigation }) {
             <TouchableOpacity
               style={[styles.contactActionBtn, styles.callActionBtn]}
               onPress={handleCall}
-              activeOpacity={0.85}
+              activeOpacity={0.8}
             >
-              <Phone size={16} color="#FFFFFF" fill="#FFFFFF" style={{ marginRight: 8 }} />
-              <Text style={styles.contactActionBtnText}>Call Now</Text>
+              <Phone size={15} color={COLORS.primary} fill={COLORS.primary} style={{ marginRight: 8 }} />
+              <Text style={styles.callActionBtnText}>Call Now</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
               style={[styles.contactActionBtn, styles.whatsappActionBtn]}
               onPress={handleWhatsApp}
-              activeOpacity={0.85}
+              activeOpacity={0.8}
             >
-              <MessageCircle size={18} color="#FFFFFF" style={{ marginRight: 8 }} />
-              <Text style={styles.contactActionBtnText}>WhatsApp</Text>
+              <MessageCircle size={16} color="#16A34A" style={{ marginRight: 8 }} />
+              <Text style={styles.whatsappActionBtnText}>WhatsApp</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -540,21 +540,29 @@ const styles = StyleSheet.create({
   },
   contactActionBtn: {
     flex: 1,
-    height: 44,
-    borderRadius: 12,
+    height: 42,
+    borderRadius: 21,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
+    borderWidth: 1,
   },
   callActionBtn: {
-    backgroundColor: COLORS.primary,
+    backgroundColor: "#EFF6FF",
+    borderColor: "#BFDBFE",
+  },
+  callActionBtnText: {
+    color: COLORS.primary,
+    fontSize: 13.5,
+    fontWeight: "700",
   },
   whatsappActionBtn: {
-    backgroundColor: "#16A34A",
+    backgroundColor: "#F0FDF4",
+    borderColor: "#BBF7D0",
   },
-  contactActionBtnText: {
-    color: "#FFFFFF",
-    fontSize: 14,
+  whatsappActionBtnText: {
+    color: "#16A34A",
+    fontSize: 13.5,
     fontWeight: "700",
   },
 
