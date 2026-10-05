@@ -347,14 +347,17 @@ export default function OwnerDashboardScreen({ navigation }) {
                 activeOpacity={0.75}
               >
                 {/* Round Profile Avatar Image */}
-                <Image
-                  source={{
-                    uri:
-                      lead.avatar ||
-                      "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&q=80",
-                  }}
-                  style={styles.enquiryAvatar}
-                />
+                <View style={styles.enquiryAvatarWrap}>
+                  <Image
+                    source={{
+                      uri:
+                        lead.avatar ||
+                        "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&q=80",
+                    }}
+                    style={styles.enquiryAvatar}
+                    resizeMode="cover"
+                  />
+                </View>
 
                 {/* Middle Info */}
                 <View style={styles.enquiryInfo}>
@@ -795,7 +798,7 @@ const styles = StyleSheet.create({
     shadowRadius: 6,
     elevation: 2,
   },
-  enquiryAvatar: {
+  enquiryAvatarWrap: {
     width: 44,
     height: 44,
     borderRadius: 22,
@@ -803,6 +806,14 @@ const styles = StyleSheet.create({
     backgroundColor: "#F1F5F9",
     borderWidth: 1.5,
     borderColor: "#EEF2F6",
+    overflow: "hidden",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  enquiryAvatar: {
+    width: "100%",
+    height: "100%",
+    borderRadius: 22,
   },
   enquiryInfo: {
     flex: 1,
