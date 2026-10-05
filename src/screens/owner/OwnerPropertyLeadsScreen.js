@@ -37,6 +37,7 @@ import StatusBadge from "../../components/owner/StatusBadge";
 import EmptyState from "../../components/owner/EmptyState";
 import OwnerSiteVisitModal from "./OwnerSiteVisitModal";
 import OwnerCloseLeadModal from "./OwnerCloseLeadModal";
+import OwnerPropertyDetailModal from "./OwnerPropertyDetailModal";
 
 const LEAD_TABS = [
   "All",
@@ -67,6 +68,7 @@ export default function OwnerPropertyLeadsScreen({ route, navigation }) {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedLeadForVisit, setSelectedLeadForVisit] = useState(null);
   const [selectedLeadForClose, setSelectedLeadForClose] = useState(null);
+  const [showPropertyModal, setShowPropertyModal] = useState(false);
 
   // Filter leads specifically for this property
   const projectLeads = useMemo(() => {
@@ -259,7 +261,7 @@ export default function OwnerPropertyLeadsScreen({ route, navigation }) {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* ================= HERO PROJECT SUMMARY CARD ================= */}
+        {/* ================= HERO PROJECT SUMMARY CARD (MATCHING REFERENCE DESIGN) ================= */}
         {property && (
           <View style={styles.projectHeroCard}>
             <View style={styles.projectImageWrap}>
@@ -281,37 +283,23 @@ export default function OwnerPropertyLeadsScreen({ route, navigation }) {
             </View>
 
             <View style={styles.projectDetails}>
-              <Text style={styles.projectTitle} numberOfLines={1}>
-                {property.title}
-              </Text>
-              <View style={styles.projectLocalityRow}>
-                <MapPin size={12} color="#64748B" style={{ marginRight: 4 }} />
-                <Text style={styles.projectLocality} numberOfLines={1}>
-                  {property.locality || "Chennai"}, {property.city || "Tamil Nadu"}
+              <View>
+                <Text style={styles.projectTitle} numberOfLines={1}>
+                  {property.title}
+                </Text>
+                <Text style={styles.projectDesc} numberOfLines={3}>
+                  {property.description ||
+                    `${property.propertyType || "Residential"} in ${property.locality || "Chennai"}. ${formattedPrice}. Verified property listing with ${property.views || "1.2K"} views and ${projectLeads.length} leads.`}
                 </Text>
               </View>
 
-              <Text style={styles.projectPrice}>{formattedPrice}</Text>
-
-              {/* Quick Metrics Strip */}
-              <View style={styles.projectMetricsRow}>
-                <View style={styles.metricItem}>
-                  <Eye size={12} color="#64748B" style={{ marginRight: 4 }} />
-                  <Text style={styles.metricText}>{property.views || "1.2K"} Views</Text>
-                </View>
-                <Text style={styles.metricDot}>•</Text>
-                <View style={styles.metricItem}>
-                  <MessageSquare size={12} color={COLORS.primary} style={{ marginRight: 4 }} />
-                  <Text style={[styles.metricText, { color: COLORS.primary, fontWeight: "700" }]}>
-                    {projectLeads.length} Enquiries
-                  </Text>
-                </View>
-                <Text style={styles.metricDot}>•</Text>
-                <View style={styles.metricItem}>
-                  <Calendar size={12} color="#64748B" style={{ marginRight: 4 }} />
-                  <Text style={styles.metricText}>{property.visits || 8} Visits</Text>
-                </View>
-              </View>
+              <TouchableOpacity
+                style={styles.exploreBtn}
+                activeOpacity={0.85}
+                onPress={() => setShowPropertyModal(true)}
+              >
+                <Text style={styles.exploreBtnText}>Explore More</Text>
+              </TouchableOpacity>
             </View>
           </View>
         )}
@@ -514,6 +502,19 @@ export default function OwnerPropertyLeadsScreen({ route, navigation }) {
           }}
         />
       )}
+
+      {/* Property Details Preview Modal (Opened via Explore More) */}
+      {property && (
+        <OwnerPropertyDetailModal
+          visible={showPropertyModal}
+          property={property}
+          onClose={() => setShowPropertyModal(false)}
+          onEdit={() => {
+            setShowPropertyModal(false);
+            navigation.navigate("Add", { editingProperty: property });
+          }}
+        />
+      )}
     </SafeAreaView>
   );
 }
@@ -587,28 +588,29 @@ const styles = StyleSheet.create({
     color: "#2563EB",
   },
 
-  /* HERO PROJECT SUMMARY CARD */
+  /* HERO PROJECT SUMMARY CARD (MATCHING REFERENCE HORIZONTAL CARD) */
   projectHeroCard: {
     flexDirection: "row",
+    alignItems: "center",
     backgroundColor: "#FFFFFF",
-    borderRadius: 20,
-    padding: 14,
+    borderRadius: 24,
+    padding: 12,
     marginBottom: 16,
     borderWidth: 1,
     borderColor: "#EEF2F6",
-    shadowColor: "#000000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.04,
-    shadowRadius: 8,
+    shadowColor: "#0F172A",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
     elevation: 2,
   },
   projectImageWrap: {
-    width: 90,
-    height: 90,
-    borderRadius: 14,
+    width: 122,
+    height: 122,
+    borderRadius: 18,
     overflow: "hidden",
     position: "relative",
-    marginRight: 14,
+    backgroundColor: "#E2E8F0",
   },
   projectImage: {
     width: "100%",
@@ -625,55 +627,42 @@ const styles = StyleSheet.create({
   },
   projectStatusBadgeText: {
     color: "#FFFFFF",
-    fontSize: 9,
+    fontSize: 8.5,
     fontWeight: "800",
     letterSpacing: 0.5,
   },
   projectDetails: {
     flex: 1,
-    justifyContent: "center",
+    height: 122,
+    paddingLeft: 13,
+    paddingRight: 4,
+    justifyContent: "space-between",
   },
   projectTitle: {
-    fontSize: 15,
+    fontSize: 15.5,
     fontWeight: "700",
     color: "#0F172A",
-    letterSpacing: -0.3,
+    letterSpacing: -0.2,
   },
-  projectLocalityRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginTop: 3,
-  },
-  projectLocality: {
-    fontSize: 12,
+  projectDesc: {
+    fontSize: 11.5,
     color: "#64748B",
-    flex: 1,
-  },
-  projectPrice: {
-    fontSize: 15,
-    fontWeight: "800",
-    color: COLORS.primary,
+    lineHeight: 16,
     marginTop: 4,
   },
-  projectMetricsRow: {
-    flexDirection: "row",
-    alignItems: "center",
+  exploreBtn: {
+    backgroundColor: "#0F172A",
+    paddingHorizontal: 15,
+    paddingVertical: 7,
+    borderRadius: 20,
+    alignSelf: "flex-start",
     marginTop: 6,
-    flexWrap: "wrap",
   },
-  metricItem: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  metricText: {
-    fontSize: 11,
-    color: "#64748B",
-    fontWeight: "500",
-  },
-  metricDot: {
-    fontSize: 10,
-    color: "#CBD5E1",
-    marginHorizontal: 5,
+  exploreBtnText: {
+    color: "#FFFFFF",
+    fontSize: 11.5,
+    fontWeight: "600",
+    letterSpacing: -0.1,
   },
 
   /* SEARCH BAR */
