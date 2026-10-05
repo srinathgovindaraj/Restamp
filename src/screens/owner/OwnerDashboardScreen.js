@@ -389,7 +389,7 @@ export default function OwnerDashboardScreen({ navigation }) {
                     }
                     activeOpacity={0.7}
                   >
-                    <Phone size={14} color="#0F172A" />
+                    <Phone size={14} color="#0F172A" fill="#0F172A" />
                   </TouchableOpacity>
                 </TouchableOpacity>
               );
