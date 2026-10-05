@@ -407,7 +407,7 @@ export default function OwnerDashboardScreen({ navigation }) {
           </View>
         </View>
 
-        <View style={{ height: 90 }} />
+        <View style={{ height: 32 }} />
       </ScrollView>
     </View>
   );

@@ -41,11 +41,11 @@ const tabConfig = {
     Icon: Search,
   },
   Activity: {
-    label: "My Activity",
+    label: "Activity",
     Icon: Clock,
   },
   Saved: {
-    label: "My Activity",
+    label: "Activity",
     Icon: Clock,
   },
   Profile: {
@@ -70,41 +70,35 @@ function MainTabs() {
           tabBarShowLabel: true,
           tabBarHideOnKeyboard: true,
           tabBarActiveTintColor: "#2563EB",
-          tabBarInactiveTintColor: "#94A3B8",
+          tabBarInactiveTintColor: "#64748B",
 
           tabBarLabel: config.label,
 
           tabBarLabelStyle: {
-            fontSize: 10,
-            fontWeight: "600",
-            marginTop: 2,
+            fontSize: 11,
+            fontWeight: "500",
+            marginTop: 3,
             marginBottom: Platform.OS === "ios" ? 0 : 2,
           },
 
           tabBarItemStyle: {
             justifyContent: "center",
             alignItems: "center",
-            paddingVertical: 6,
+            paddingVertical: 2,
           },
 
           tabBarStyle: {
-            position: "absolute",
-            bottom: Platform.OS === "ios" ? 24 : 16,
-            left: 16,
-            right: 16,
-            height: 64,
             backgroundColor: "#FFFFFF",
-            borderRadius: 32,
-            borderTopWidth: 0,
+            borderTopWidth: 1,
+            borderTopColor: "#EEF2F6",
+            height: Platform.OS === "ios" ? 84 : 62,
+            paddingTop: 8,
+            paddingBottom: Platform.OS === "ios" ? 24 : 8,
             shadowColor: "#000000",
-            shadowOffset: { width: 0, height: 6 },
-            shadowOpacity: 0.12,
-            shadowRadius: 16,
-            elevation: 10,
-            paddingBottom: Platform.OS === "ios" ? 8 : 6,
-            paddingTop: 6,
-            borderWidth: Platform.OS === "web" ? 1 : 0,
-            borderColor: "#F0F0F0",
+            shadowOffset: { width: 0, height: -2 },
+            shadowOpacity: 0.04,
+            shadowRadius: 6,
+            elevation: 8,
           },
 
           tabBarIcon: ({ color, focused }) => {

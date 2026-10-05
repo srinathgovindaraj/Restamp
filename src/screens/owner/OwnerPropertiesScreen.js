@@ -472,7 +472,7 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingHorizontal: 20,
     paddingTop: 4,
-    paddingBottom: 90,
+    paddingBottom: 24,
   },
   switchBanner: {
     flexDirection: "row",
