@@ -26,11 +26,19 @@ import {
   Bell,
   MoreHorizontal,
   ArrowUpRight,
+  User,
 } from "lucide-react-native";
 
 import COLORS from "../../constants/colors";
 import { useOwner } from "../../context/OwnerContext";
 import RestampLogo from "../../components/RestampLogo";
+
+const LEAD_BADGE_CONFIG = [
+  { bg: "#2563EB", icon: User },
+  { bg: "#F97316", icon: Building2 },
+  { bg: "#F43F5E", icon: Calendar },
+  { bg: "#EAB308", icon: ShieldCheck },
+];
 
 export default function OwnerDashboardScreen({ navigation }) {
   const insets = useSafeAreaInsets();
@@ -52,7 +60,7 @@ export default function OwnerDashboardScreen({ navigation }) {
   const totalVisits = properties.reduce((acc, p) => acc + (p.visits || 0), 0);
 
   // Latest leads & primary property
-  const recentLeads = leads.slice(0, 3);
+  const recentLeads = leads.slice(0, 4);
   const primaryProperty = properties.find((p) => p.status === "active") || properties[0];
 
   // Dynamic date matching reference design ("Wednesday, 11 May")
@@ -318,10 +326,15 @@ export default function OwnerDashboardScreen({ navigation }) {
           <ArrowRight size={18} color="#FFFFFF" />
         </TouchableOpacity>
 
-        {/* 5. RECENT ENQUIRIES / LEADS (Minimal Streamlined List) */}
+        {/* 5. RECENT ENQUIRIES (Matching Workout-Card Reference Design) */}
         <View style={styles.minimalSection}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Recent Enquiries</Text>
+          <View style={styles.sectionHeaderWithSub}>
+            <View>
+              <Text style={styles.sectionTitle}>Recent Enquiries</Text>
+              <Text style={styles.sectionSubtitle}>
+                {leads.length} enquiries • <Text style={styles.sectionSubtitleAccent}>Active today</Text>
+              </Text>
+            </View>
             <TouchableOpacity
               onPress={handleViewLeads}
               activeOpacity={0.7}
@@ -332,50 +345,57 @@ export default function OwnerDashboardScreen({ navigation }) {
             </TouchableOpacity>
           </View>
 
-          <View style={styles.minimalListCard}>
-            {recentLeads.map((lead, idx) => (
-              <TouchableOpacity
-                key={lead.id || idx}
-                style={[
-                  styles.leadRow,
-                  idx !== recentLeads.length - 1 && styles.leadRowDivider,
-                ]}
-                onPress={() => navigation.navigate("OwnerLeadDetail", { lead })}
-                activeOpacity={0.7}
-              >
-                <Image
-                  source={{
-                    uri:
-                      lead.avatar ||
-                      "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&q=80",
-                  }}
-                  style={styles.leadAvatar}
-                />
+          <View style={styles.enquiriesList}>
+            {recentLeads.map((lead, idx) => {
+              const badge = LEAD_BADGE_CONFIG[idx % LEAD_BADGE_CONFIG.length];
+              const BadgeIcon = badge.icon;
 
-                <View style={styles.leadInfo}>
-                  <View style={styles.leadNameRow}>
-                    <Text style={styles.leadName}>{lead.customerName}</Text>
-                    <Text style={styles.leadTimeText}>
-                      {lead.timestamp || "Today"}
-                    </Text>
-                  </View>
-                  <Text style={styles.leadPropertyText} numberOfLines={1}>
-                    {lead.propertyTitle} • {lead.budget || "Budget verified"}
-                  </Text>
-                  <Text style={styles.leadSnippet} numberOfLines={1}>
-                    Interested in site visit this weekend
-                  </Text>
-                </View>
-
+              return (
                 <TouchableOpacity
-                  style={styles.leadCallBtn}
-                  onPress={() => Alert.alert("Call", `Dialing ${lead.phone || "+91 98765 43210"}`)}
-                  activeOpacity={0.7}
+                  key={lead.id || idx}
+                  style={styles.enquiryCard}
+                  onPress={() => navigation.navigate("OwnerLeadDetail", { lead })}
+                  activeOpacity={0.75}
                 >
-                  <Phone size={14} color="#0F172A" />
+                  {/* Left vibrant rounded square badge matching reference */}
+                  <View style={[styles.enquiryBadge, { backgroundColor: badge.bg }]}>
+                    <BadgeIcon size={20} color="#FFFFFF" strokeWidth={2.2} />
+                  </View>
+
+                  {/* Middle Info */}
+                  <View style={styles.enquiryInfo}>
+                    <Text style={styles.enquiryName} numberOfLines={1}>
+                      {lead.customerName}
+                    </Text>
+                    <View style={styles.enquirySubRow}>
+                      <View style={styles.enquiryChip}>
+                        <Text style={styles.enquiryChipText} numberOfLines={1}>
+                          {lead.propertyTitle || "2 BHK Luxury"}
+                        </Text>
+                      </View>
+                      <Text style={styles.enquiryDot}>•</Text>
+                      <Text style={styles.enquiryStatusText} numberOfLines={1}>
+                        {lead.budget || lead.timestamp || "Verified"}
+                      </Text>
+                    </View>
+                  </View>
+
+                  {/* Right Action: Call button */}
+                  <TouchableOpacity
+                    style={styles.enquiryCallBtn}
+                    onPress={() =>
+                      Alert.alert("Call Lead", `Dialing ${lead.phone || "+91 98765 43210"}?`, [
+                        { text: "Cancel", style: "cancel" },
+                        { text: "Call", onPress: () => {} },
+                      ])
+                    }
+                    activeOpacity={0.7}
+                  >
+                    <Phone size={14} color="#0F172A" />
+                  </TouchableOpacity>
                 </TouchableOpacity>
-              </TouchableOpacity>
-            ))}
+              );
+            })}
           </View>
         </View>
 
@@ -721,9 +741,16 @@ const styles = StyleSheet.create({
 
   // 5. Minimal List Sections
   minimalSection: {
-    marginBottom: 22,
+    marginBottom: 20,
   },
   sectionHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 12,
+    paddingHorizontal: 2,
+  },
+  sectionHeaderWithSub: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
@@ -736,6 +763,17 @@ const styles = StyleSheet.create({
     color: "#0F172A",
     letterSpacing: -0.3,
   },
+  sectionSubtitle: {
+    fontSize: 12.5,
+    fontWeight: "500",
+    color: "#64748B",
+    marginTop: 2,
+    letterSpacing: -0.1,
+  },
+  sectionSubtitleAccent: {
+    color: "#2563EB",
+    fontWeight: "600",
+  },
   viewAllRow: {
     flexDirection: "row",
     alignItems: "center",
@@ -745,61 +783,71 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     color: COLORS.primary,
   },
-  minimalListCard: {
+  enquiriesList: {
+    gap: 10,
+  },
+  enquiryCard: {
     backgroundColor: "#FFFFFF",
     borderRadius: 16,
-    borderWidth: 1,
-    borderColor: "#EEF2F6",
-    overflow: "hidden",
-  },
-  leadRow: {
-    flexDirection: "row",
-    alignItems: "center",
     paddingHorizontal: 16,
     paddingVertical: 14,
-    backgroundColor: "#FFFFFF",
+    flexDirection: "row",
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#EEF2F6",
+    shadowColor: "#000000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.03,
+    shadowRadius: 6,
+    elevation: 2,
   },
-  leadRowDivider: {
-    borderBottomWidth: 1,
-    borderBottomColor: "#F1F5F9",
-  },
-  leadAvatar: {
+  enquiryBadge: {
     width: 44,
     height: 44,
-    borderRadius: 22,
-    marginRight: 12,
+    borderRadius: 12,
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 14,
   },
-  leadInfo: {
+  enquiryInfo: {
     flex: 1,
     marginRight: 10,
   },
-  leadNameRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    marginBottom: 3,
-  },
-  leadName: {
-    fontSize: 14,
+  enquiryName: {
+    fontSize: 15,
     fontWeight: "700",
     color: "#0F172A",
+    letterSpacing: -0.2,
+    marginBottom: 5,
   },
-  leadTimeText: {
+  enquirySubRow: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  enquiryChip: {
+    backgroundColor: "#F1F5F9",
+    paddingHorizontal: 8,
+    paddingVertical: 2.5,
+    borderRadius: 6,
+    maxWidth: "58%",
+  },
+  enquiryChipText: {
     fontSize: 11.5,
-    color: "#94A3B8",
-    fontWeight: "500",
+    fontWeight: "600",
+    color: "#475569",
   },
-  leadPropertyText: {
-    fontSize: 12.5,
+  enquiryDot: {
+    fontSize: 11,
+    color: "#94A3B8",
+    marginHorizontal: 6,
+  },
+  enquiryStatusText: {
+    fontSize: 12,
+    fontWeight: "500",
     color: "#64748B",
-    fontWeight: "500",
+    flexShrink: 1,
   },
-  leadSnippet: {
-    fontSize: 11.5,
-    color: "#94A3B8",
-    marginTop: 2,
-  },
-  leadCallBtn: {
+  enquiryCallBtn: {
     width: 36,
     height: 36,
     borderRadius: 18,
@@ -808,6 +856,13 @@ const styles = StyleSheet.create({
     borderColor: "#E2E8F0",
     justifyContent: "center",
     alignItems: "center",
+  },
+  minimalListCard: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: "#EEF2F6",
+    overflow: "hidden",
   },
 
   // Plan Details
