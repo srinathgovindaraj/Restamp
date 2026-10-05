@@ -398,12 +398,12 @@ const styles = StyleSheet.create({
   searchBarWrapper: {
     paddingHorizontal: 20,
     paddingBottom: 10,
-    backgroundColor: "#F1F5F9",
+    backgroundColor: "#FFFFFF",
   },
   searchBarCard: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#F8FAFC",
     borderRadius: 16,
     borderWidth: 1,
     borderColor: "#EEF2F6",
@@ -417,7 +417,7 @@ const styles = StyleSheet.create({
     color: COLORS.textDark,
   },
   tabsContainer: {
-    backgroundColor: "#F1F5F9",
+    backgroundColor: "#FFFFFF",
     paddingBottom: 10,
   },
   tabsScroll: {
@@ -430,7 +430,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 7,
     borderRadius: 20,
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#F8FAFC",
     borderWidth: 1,
     borderColor: "#EEF2F6",
   },
@@ -452,7 +452,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 6,
     paddingVertical: 1,
     borderRadius: 10,
-    backgroundColor: "#F1F5F9",
+    backgroundColor: "#EEF2F6",
   },
   tabCountBadgeActive: {
     backgroundColor: "rgba(255, 255, 255, 0.25)",
@@ -467,18 +467,19 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
-    backgroundColor: "#F1F5F9",
+    backgroundColor: "#FFFFFF",
   },
   scrollContent: {
     paddingHorizontal: 20,
     paddingTop: 4,
     paddingBottom: 24,
+    backgroundColor: "#FFFFFF",
   },
   switchBanner: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#F8FAFC",
     borderRadius: 20,
     paddingHorizontal: 16,
     paddingVertical: 12,
