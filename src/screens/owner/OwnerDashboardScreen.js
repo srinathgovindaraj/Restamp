@@ -391,7 +391,7 @@ export default function OwnerDashboardScreen({ navigation }) {
                     }
                     activeOpacity={0.7}
                   >
-                    <Phone size={14} color="#0F172A" fill="#0F172A" />
+                    <Phone size={14} color={COLORS.primary} fill={COLORS.primary} />
                   </TouchableOpacity>
                 </TouchableOpacity>
               );
@@ -875,9 +875,9 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: "#F8FAFC",
+    backgroundColor: "#EFF6FF",
     borderWidth: 1,
-    borderColor: "#E2E8F0",
+    borderColor: "#DBEAFE",
     justifyContent: "center",
     alignItems: "center",
   },
