@@ -165,11 +165,8 @@ export default function HomeScreen({ navigation }) {
   const { subscription } = useOwner();
 
   const handlePostProperty = () => {
-    if (subscription?.active) {
-      navigation.navigate("OwnerNavigator", { screen: "Add" });
-    } else {
-      navigation.navigate("OwnerPlans");
-    }
+    // Testing mode: skip payment steps and go straight to Owner Add Property
+    navigation.navigate("OwnerNavigator", { screen: "Add" });
   };
 
   // Selected Property for Detail Modal
@@ -368,8 +365,17 @@ export default function HomeScreen({ navigation }) {
             </Text>
           </View>
 
-          {/* Right Side Header Actions: Notification Bell */}
+          {/* Right Side Header Actions: Quick Switch to Owner (Testing) + Notification Bell */}
           <View style={styles.headerRightActions}>
+            <TouchableOpacity
+              style={styles.switchOwnerPill}
+              activeOpacity={0.8}
+              onPress={() => navigation.navigate("OwnerNavigator", { screen: "Dashboard" })}
+            >
+              <Building2 size={13} color="#2563EB" style={{ marginRight: 4 }} />
+              <Text style={styles.switchOwnerText}>Owner</Text>
+            </TouchableOpacity>
+
             <TouchableOpacity
               style={styles.notificationBtn}
               activeOpacity={0.8}
@@ -1035,6 +1041,21 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 8,
+  },
+  switchOwnerPill: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#EFF6FF",
+    borderWidth: 1,
+    borderColor: "#BFDBFE",
+    borderRadius: 20,
+    paddingHorizontal: 11,
+    paddingVertical: 6,
+  },
+  switchOwnerText: {
+    fontSize: 12.5,
+    fontWeight: "700",
+    color: "#2563EB",
   },
   menuHeaderBtn: {
     width: 42,
