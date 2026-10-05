@@ -11,7 +11,6 @@ import {
   Alert,
   Platform,
   TextInput,
-  Share,
 } from "react-native";
 import {
   ArrowLeft,
@@ -30,7 +29,6 @@ import {
   SlidersHorizontal,
   X,
   MoreVertical,
-  Share2,
 } from "lucide-react-native";
 
 import COLORS from "../../constants/colors";
@@ -198,37 +196,14 @@ export default function OwnerPropertyLeadsScreen({ route, navigation }) {
     );
   };
 
-  const handleShare = async (lead) => {
-    try {
-      await Share.share({
-        title: `Enquiry from ${lead.customerName}`,
-        message: `Property Lead Enquiry:\nCustomer: ${lead.customerName}\nPhone: ${lead.phone || "+91 98840 12345"}\nProperty: ${property?.title || "Property"}\nBudget: ${lead.budget || formattedPrice}\nNote: "${lead.message || "Interested in listing"}"`,
-      });
-    } catch (error) {
-      console.log("Error sharing lead:", error);
-    }
-  };
-
   const handleMoreOptions = (lead) => {
     Alert.alert(
       lead.customerName,
-      `Status: ${(lead.status || "NEW").toUpperCase()}\nPhone: ${lead.phone || "+91 98840 12345"}\nBudget: ${lead.budget || formattedPrice}`,
+      `Status: ${(lead.status || "NEW").toUpperCase()} • ${lead.phone || ""}`,
       [
         {
           text: "Schedule Visit",
           onPress: () => setSelectedLeadForVisit(lead),
-        },
-        {
-          text: "Call Customer",
-          onPress: () => handleCall(lead),
-        },
-        {
-          text: "WhatsApp / Chat",
-          onPress: () => handleChat(lead),
-        },
-        {
-          text: "View Full Details",
-          onPress: () => navigation.navigate("OwnerLeadDetail", { lead }),
         },
         {
           text: "Close Lead",
@@ -236,9 +211,10 @@ export default function OwnerPropertyLeadsScreen({ route, navigation }) {
           onPress: () => setSelectedLeadForClose(lead),
         },
         {
-          text: "Cancel",
-          style: "cancel",
+          text: "View Details",
+          onPress: () => navigation.navigate("OwnerLeadDetail", { lead }),
         },
+        { text: "Cancel", style: "cancel" },
       ]
     );
   };
@@ -444,7 +420,7 @@ export default function OwnerPropertyLeadsScreen({ route, navigation }) {
                   activeOpacity={0.92}
                   onPress={() => navigation.navigate("OwnerLeadDetail", { lead })}
                 >
-                  {/* Header Row: Avatar, Name + Subtitle (Author • Friday 3:12 PM), 3-Dots Menu */}
+                  {/* Top Header: Avatar, Author/Name, Role & Timestamp, Menu */}
                   <View style={styles.leadHeaderRow}>
                     <Image
                       source={{
@@ -459,89 +435,64 @@ export default function OwnerPropertyLeadsScreen({ route, navigation }) {
                       <Text style={styles.leadCustomerName} numberOfLines={1}>
                         {lead.customerName}
                       </Text>
-                      <Text style={styles.leadSubtitle} numberOfLines={1}>
-                        {isNew
-                          ? "New Enquiry"
-                          : isVisitScheduled
-                          ? "Visit Scheduled"
-                          : lead.status === "contacted"
-                          ? "Contacted"
-                          : "Verified Buyer"}{" "}
-                        • {lead.timestamp || "Today • 10:35 AM"}
+                      <Text style={styles.leadSubMeta} numberOfLines={1}>
+                        {isNew ? "New Enquiry" : "Verified Customer"} • {lead.timestamp || "Today"}
                       </Text>
                     </View>
 
-                    <TouchableOpacity
-                      style={styles.moreOptionsBtn}
-                      onPress={() => handleMoreOptions(lead)}
-                      hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-                      activeOpacity={0.7}
-                    >
-                      <MoreVertical size={18} color="#94A3B8" />
-                    </TouchableOpacity>
+                    <View style={styles.headerRightActions}>
+                      <StatusBadge status={lead.status} />
+                      <TouchableOpacity
+                        style={styles.moreOptionsBtn}
+                        onPress={() => handleMoreOptions(lead)}
+                        activeOpacity={0.7}
+                        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                      >
+                        <MoreVertical size={18} color="#94A3B8" />
+                      </TouchableOpacity>
+                    </View>
                   </View>
 
-                  {/* Body Content: Clean natural text */}
-                  <Text style={styles.leadBodyText}>
+                  {/* Body Text: Lead Message Quote / Enquiry Paragraph */}
+                  <Text style={styles.leadMessageText} numberOfLines={3}>
                     {lead.message ||
-                      `Interested in ${property?.title || "this property"}. Looking for ${lead.requirement || "Rent"}. Please schedule a site visit.`}
+                      `Hi, I am interested in your property. Looking for quick move-in. Please share full details.`}
                   </Text>
 
-                  {/* Hashtags Row: #rent #budget #locality #status matching reference */}
-                  <View style={styles.leadTagsRow}>
-                    <Text style={styles.leadTag}>
-                      #{lead.requirement ? lead.requirement.replace(/\s+/g, "") : "Rent"}
+                  {/* Tags / Sub-details Row (Matching #coffee #cafe #relax) */}
+                  <View style={styles.tagsRow}>
+                    <Text style={styles.tagText}>
+                      #{lead.requirement?.toLowerCase().replace(/\s+/g, "_") || "rent"}
                     </Text>
-                    <Text style={styles.leadTag}>
-                      #{lead.budget ? lead.budget.replace(/[^a-zA-Z0-9]/g, "") : "Budget"}
+                    <Text style={styles.tagText}>
+                      #budget_{String(lead.budget || formattedPrice || "open").replace(/[^a-zA-Z0-9]/g, "")}
                     </Text>
-                    <Text style={styles.leadTag}>
-                      #{property?.locality ? property.locality.replace(/[^a-zA-Z0-9]/g, "") : "Chennai"}
-                    </Text>
-                    <Text style={[styles.leadTag, { color: COLORS.primary }]}>
-                      #{lead.status ? lead.status.replace(/_/g, "") : "Enquiry"}
-                    </Text>
+                    {property?.locality ? (
+                      <Text style={styles.tagText}>
+                        #{property.locality.toLowerCase().replace(/[^a-z0-9]/g, "")}
+                      </Text>
+                    ) : null}
                   </View>
 
-                  {/* Visit Scheduled Alert Chip (if applicable) */}
+                  {/* Visit Scheduled Alert Chip (Preserving visit details) */}
                   {isVisitScheduled && lead.visitData && (
                     <View style={styles.visitChipRow}>
-                      <Calendar size={13} color="#D97706" style={{ marginRight: 6 }} />
+                      <Calendar size={13} color="#D97706" style={{ marginRight: 5 }} />
                       <Text style={styles.visitChipText}>
                         Visit Booked: {lead.visitData.date}, {lead.visitData.time}
                       </Text>
                     </View>
                   )}
 
-                  {/* Footer Action Row: [ Phone/Call ]  [ Chat ]  ...  [ Share ] */}
+                  {/* Bottom Action: View Details Button (Share, Call, Chat Removed) */}
                   <View style={styles.leadFooterRow}>
-                    <View style={styles.footerLeftActions}>
-                      <TouchableOpacity
-                        style={styles.footerActionBtn}
-                        onPress={() => handleCall(lead)}
-                        activeOpacity={0.7}
-                      >
-                        <Phone size={17} color="#64748B" />
-                        <Text style={styles.footerActionText}>Call</Text>
-                      </TouchableOpacity>
-
-                      <TouchableOpacity
-                        style={styles.footerActionBtn}
-                        onPress={() => handleChat(lead)}
-                        activeOpacity={0.7}
-                      >
-                        <MessageSquare size={17} color="#64748B" />
-                        <Text style={styles.footerActionText}>Chat</Text>
-                      </TouchableOpacity>
-                    </View>
-
                     <TouchableOpacity
-                      style={styles.footerShareBtn}
-                      onPress={() => handleShare(lead)}
-                      activeOpacity={0.7}
+                      style={styles.viewDetailFullBtn}
+                      onPress={() => navigation.navigate("OwnerLeadDetail", { lead })}
+                      activeOpacity={0.8}
                     >
-                      <Share2 size={17} color="#64748B" />
-                      <Text style={styles.footerShareText}>Share</Text>
+                      <Text style={styles.viewDetailFullBtnText}>View Details</Text>
+                      <ChevronRight size={15} color={COLORS.primary} />
                     </TouchableOpacity>
                   </View>
                 </TouchableOpacity>
@@ -838,21 +789,22 @@ const styles = StyleSheet.create({
     fontWeight: "800",
   },
 
-  /* LEADS LIST (MATCHING REFERENCE SOCIAL POST CARD DESIGN) */
+  /* LEADS LIST */
   leadsList: {
-    gap: 14,
+    gap: 12,
   },
   leadCard: {
     backgroundColor: "#FFFFFF",
     borderRadius: 22,
-    padding: 16,
+    padding: 18,
     borderWidth: 1,
     borderColor: "#EEF2F6",
-    shadowColor: "#000000",
-    shadowOffset: { width: 0, height: 2 },
+    shadowColor: "#0F172A",
+    shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.04,
-    shadowRadius: 8,
+    shadowRadius: 10,
     elevation: 2,
+    marginBottom: 4,
   },
   leadHeaderRow: {
     flexDirection: "row",
@@ -863,7 +815,7 @@ const styles = StyleSheet.create({
     height: 46,
     borderRadius: 23,
     marginRight: 12,
-    backgroundColor: "#F1F5F9",
+    backgroundColor: "#E2E8F0",
   },
   leadInfoCol: {
     flex: 1,
@@ -874,34 +826,40 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     color: "#0F172A",
     letterSpacing: -0.2,
+    marginBottom: 2,
   },
-  leadSubtitle: {
+  leadSubMeta: {
     fontSize: 12.5,
-    color: "#94A3B8",
-    fontWeight: "500",
-    marginTop: 2,
+    color: "#64748B",
+    fontWeight: "400",
+  },
+  headerRightActions: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
   },
   moreOptionsBtn: {
-    padding: 6,
-    marginRight: -4,
+    padding: 4,
+    borderRadius: 8,
   },
-  leadBodyText: {
+  leadMessageText: {
     fontSize: 14,
-    lineHeight: 21,
     color: "#334155",
-    marginTop: 12,
-    marginBottom: 8,
+    lineHeight: 21,
+    marginTop: 13,
+    fontWeight: "400",
   },
-  leadTagsRow: {
+  tagsRow: {
     flexDirection: "row",
     flexWrap: "wrap",
+    alignItems: "center",
     gap: 8,
-    marginBottom: 6,
+    marginTop: 10,
   },
-  leadTag: {
-    fontSize: 13,
-    color: "#64748B",
-    fontWeight: "500",
+  tagText: {
+    fontSize: 12.5,
+    fontWeight: "600",
+    color: COLORS.primary,
   },
   visitChipRow: {
     flexDirection: "row",
@@ -909,52 +867,38 @@ const styles = StyleSheet.create({
     backgroundColor: "#FFFBEB",
     borderWidth: 1,
     borderColor: "#FDE68A",
-    borderRadius: 8,
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    marginTop: 4,
-    marginBottom: 6,
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    marginTop: 12,
     alignSelf: "flex-start",
   },
   visitChipText: {
-    fontSize: 11.5,
+    fontSize: 12,
     fontWeight: "600",
     color: "#B45309",
   },
   leadFooterRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    marginTop: 10,
+    marginTop: 14,
     paddingTop: 12,
     borderTopWidth: 1,
     borderTopColor: "#F1F5F9",
   },
-  footerLeftActions: {
+  viewDetailFullBtn: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 22,
-  },
-  footerActionBtn: {
-    flexDirection: "row",
-    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#EFF6FF",
+    borderRadius: 14,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderWidth: 1,
+    borderColor: "#DBEAFE",
     gap: 6,
-    paddingVertical: 2,
   },
-  footerActionText: {
-    fontSize: 13,
-    color: "#64748B",
-    fontWeight: "500",
-  },
-  footerShareBtn: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-    paddingVertical: 2,
-  },
-  footerShareText: {
-    fontSize: 13,
-    color: "#64748B",
-    fontWeight: "500",
+  viewDetailFullBtnText: {
+    fontSize: 13.5,
+    fontWeight: "700",
+    color: COLORS.primary,
   },
 });

@@ -1,43 +1,16 @@
 import React from "react";
-import { View, Text, StyleSheet, TouchableOpacity, Image, Share, Alert } from "react-native";
-import { Phone, MessageSquare, Calendar, ChevronRight, MoreVertical, Share2 } from "lucide-react-native";
+import { View, Text, StyleSheet, TouchableOpacity, Image } from "react-native";
+import { Phone, MessageSquare, Calendar, ChevronRight, Eye } from "lucide-react-native";
 import COLORS from "../../constants/colors";
+import StatusBadge from "./StatusBadge";
 
 export default function LeadCard({
   lead,
   onViewDetails,
-  onCall,
-  onChat,
-  onScheduleVisit,
   compact = false,
 }) {
   const isNew = lead.status === "new";
   const isVisitScheduled = lead.status === "visit_scheduled";
-
-  const handleShare = async () => {
-    try {
-      await Share.share({
-        title: `Enquiry from ${lead.customerName}`,
-        message: `Property Lead Enquiry:\nCustomer: ${lead.customerName}\nPhone: ${lead.phone || "N/A"}\nProperty: ${lead.propertyTitle || "Listing"}\nBudget: ${lead.budget || "N/A"}\nNote: "${lead.message || "Interested in listing"}"`,
-      });
-    } catch (err) {
-      console.log("Error sharing lead:", err);
-    }
-  };
-
-  const handleMore = () => {
-    Alert.alert(
-      lead.customerName,
-      `Status: ${(lead.status || "NEW").toUpperCase()}\nPhone: ${lead.phone || "+91 98840 12345"}\nBudget: ${lead.budget || "N/A"}`,
-      [
-        { text: "Schedule Visit", onPress: () => onScheduleVisit?.(lead) },
-        { text: "Call Customer", onPress: () => onCall?.(lead) },
-        { text: "WhatsApp / Chat", onPress: () => onChat?.(lead) },
-        { text: "View Details", onPress: () => onViewDetails?.(lead) },
-        { text: "Cancel", style: "cancel" },
-      ]
-    );
-  };
 
   return (
     <TouchableOpacity
@@ -45,7 +18,7 @@ export default function LeadCard({
       onPress={() => onViewDetails?.(lead)}
       activeOpacity={0.92}
     >
-      {/* Header Row: Avatar, Name + Subtitle (Author • Friday 3:12 PM), 3-Dots */}
+      {/* Top Header: Avatar, Name, Role & StatusBadge */}
       <View style={styles.topRow}>
         <Image
           source={{
@@ -61,94 +34,55 @@ export default function LeadCard({
             {lead.customerName}
           </Text>
           <Text style={styles.customerRole} numberOfLines={1}>
-            {isNew
-              ? "New Enquiry"
-              : isVisitScheduled
-              ? "Visit Scheduled"
-              : "Verified Buyer"}{" "}
-            • {lead.timestamp || "Today • 11:20 AM"}
+            {isNew ? "New Enquiry" : "Verified Customer"} • {lead.timestamp || "Today"}
           </Text>
         </View>
 
-        <TouchableOpacity
-          style={styles.moreBtn}
-          onPress={handleMore}
-          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-          activeOpacity={0.7}
-        >
-          <MoreVertical size={18} color="#94A3B8" />
-        </TouchableOpacity>
+        <StatusBadge status={lead.status} />
       </View>
 
-      {/* Body Text */}
-      <Text style={styles.bodyText}>
+      {/* Body: Enquiry Snippet / Message */}
+      <Text style={styles.messageText} numberOfLines={3}>
         {lead.message ||
-          `Interested in ${lead.propertyTitle || "your property"}${
-            lead.propertyLocality ? ` in ${lead.propertyLocality}` : ""
-          }. ${lead.requirement || "Looking for property in this locality."}`}
+          `Interested in ${lead.propertyTitle || "Property"}${
+            lead.propertyLocality ? ` • ${lead.propertyLocality}` : ""
+          }${lead.requirement ? `. ${lead.requirement}` : ". Enquiry submitted."}`}
       </Text>
 
-      {/* Hashtags Row */}
+      {/* Tags / Sub-details Row */}
       <View style={styles.tagsRow}>
-        <Text style={styles.tag}>
-          #{lead.requirement ? lead.requirement.replace(/\s+/g, "") : "Rent"}
+        <Text style={styles.tagText}>
+          #{lead.requirement?.toLowerCase().replace(/\s+/g, "_") || "enquiry"}
         </Text>
-        {lead.budget && (
-          <Text style={styles.tag}>
-            #{lead.budget.replace(/[^a-zA-Z0-9]/g, "") || "Budget"}
+        <Text style={styles.tagText}>
+          #budget_{String(lead.budget || "open").replace(/[^a-zA-Z0-9]/g, "")}
+        </Text>
+        {lead.propertyLocality ? (
+          <Text style={styles.tagText}>
+            #{lead.propertyLocality.toLowerCase().replace(/[^a-z0-9]/g, "")}
           </Text>
-        )}
-        {lead.propertyLocality && (
-          <Text style={styles.tag}>
-            #{lead.propertyLocality.replace(/[^a-zA-Z0-9]/g, "")}
-          </Text>
-        )}
-        {lead.status && (
-          <Text style={[styles.tag, { color: COLORS.primary }]}>
-            #{lead.status.replace(/_/g, "")}
-          </Text>
-        )}
+        ) : null}
       </View>
 
-      {/* Visit Booked Chip (if applicable) */}
+      {/* Visit Scheduled Alert Chip (if applicable) */}
       {isVisitScheduled && lead.visitData && (
-        <View style={styles.visitChip}>
-          <Calendar size={13} color="#D97706" style={{ marginRight: 6 }} />
+        <View style={styles.visitChipRow}>
+          <Calendar size={13} color="#D97706" style={{ marginRight: 5 }} />
           <Text style={styles.visitChipText}>
-            Visit Booked: {lead.visitData.date}, {lead.visitData.time}
+            Visit: {lead.visitData.date}, {lead.visitData.time}
           </Text>
         </View>
       )}
 
-      {/* Footer Row: [ Phone/Call ]  [ Chat ]  ...  [ Share ] */}
+      {/* Footer: View Details Button Only (No share, call, chat) */}
       <View style={styles.footerRow}>
-        <View style={styles.footerLeftActions}>
-          <TouchableOpacity
-            style={styles.footerActionBtn}
-            onPress={() => onCall?.(lead)}
-            activeOpacity={0.7}
-          >
-            <Phone size={17} color="#64748B" />
-            <Text style={styles.footerActionText}>Call</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.footerActionBtn}
-            onPress={() => onChat?.(lead)}
-            activeOpacity={0.7}
-          >
-            <MessageSquare size={17} color="#64748B" />
-            <Text style={styles.footerActionText}>Chat</Text>
-          </TouchableOpacity>
-        </View>
-
         <TouchableOpacity
-          style={styles.footerShareBtn}
-          onPress={handleShare}
-          activeOpacity={0.7}
+          style={styles.viewDetailsBtn}
+          onPress={() => onViewDetails?.(lead)}
+          activeOpacity={0.8}
         >
-          <Share2 size={17} color="#64748B" />
-          <Text style={styles.footerShareText}>Share</Text>
+          <Text style={styles.viewDetailsBtnText}>View Details</Text>
+          <ChevronRight size={15} color={COLORS.primary} />
         </TouchableOpacity>
       </View>
     </TouchableOpacity>
@@ -159,15 +93,15 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: "#FFFFFF",
     borderRadius: 22,
-    padding: 16,
+    padding: 18,
     borderWidth: 1,
     borderColor: "#EEF2F6",
-    marginBottom: 14,
-    shadowColor: "#000000",
-    shadowOffset: { width: 0, height: 2 },
+    shadowColor: "#0F172A",
+    shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.04,
-    shadowRadius: 8,
+    shadowRadius: 10,
     elevation: 2,
+    marginBottom: 12,
   },
   topRow: {
     flexDirection: "row",
@@ -178,7 +112,7 @@ const styles = StyleSheet.create({
     height: 46,
     borderRadius: 23,
     marginRight: 12,
-    backgroundColor: "#F1F5F9",
+    backgroundColor: "#E2E8F0",
   },
   customerInfo: {
     flex: 1,
@@ -189,87 +123,70 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     color: "#0F172A",
     letterSpacing: -0.2,
+    marginBottom: 2,
   },
   customerRole: {
     fontSize: 12.5,
-    color: "#94A3B8",
-    marginTop: 2,
-    fontWeight: "500",
+    color: "#64748B",
+    fontWeight: "400",
   },
-  moreBtn: {
-    padding: 6,
-    marginRight: -4,
-  },
-  bodyText: {
+  messageText: {
     fontSize: 14,
-    lineHeight: 21,
     color: "#334155",
-    marginTop: 12,
-    marginBottom: 8,
+    lineHeight: 21,
+    marginTop: 13,
+    fontWeight: "400",
   },
   tagsRow: {
     flexDirection: "row",
     flexWrap: "wrap",
+    alignItems: "center",
     gap: 8,
-    marginBottom: 6,
+    marginTop: 10,
   },
-  tag: {
-    fontSize: 13,
-    color: "#64748B",
-    fontWeight: "500",
+  tagText: {
+    fontSize: 12.5,
+    fontWeight: "600",
+    color: COLORS.primary,
   },
-  visitChip: {
+  visitChipRow: {
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: "#FFFBEB",
     borderWidth: 1,
     borderColor: "#FDE68A",
-    borderRadius: 8,
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    marginTop: 4,
-    marginBottom: 6,
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    marginTop: 12,
     alignSelf: "flex-start",
   },
   visitChipText: {
-    fontSize: 11.5,
+    fontSize: 12,
     fontWeight: "600",
     color: "#B45309",
   },
   footerRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
+    marginTop: 14,
+    paddingTop: 12,
     borderTopWidth: 1,
     borderTopColor: "#F1F5F9",
-    paddingTop: 12,
-    marginTop: 10,
   },
-  footerLeftActions: {
+  viewDetailsBtn: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 22,
-  },
-  footerActionBtn: {
-    flexDirection: "row",
-    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#EFF6FF",
+    borderRadius: 14,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderWidth: 1,
+    borderColor: "#DBEAFE",
     gap: 6,
-    paddingVertical: 2,
   },
-  footerActionText: {
-    fontSize: 13,
-    color: "#64748B",
-    fontWeight: "500",
-  },
-  footerShareBtn: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-    paddingVertical: 2,
-  },
-  footerShareText: {
-    fontSize: 13,
-    color: "#64748B",
-    fontWeight: "500",
+  viewDetailsBtnText: {
+    fontSize: 13.5,
+    fontWeight: "700",
+    color: COLORS.primary,
   },
 });
