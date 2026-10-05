@@ -33,13 +33,6 @@ import COLORS from "../../constants/colors";
 import { useOwner } from "../../context/OwnerContext";
 import RestampLogo from "../../components/RestampLogo";
 
-const LEAD_BADGE_CONFIG = [
-  { bg: "#2563EB", icon: User },
-  { bg: "#F97316", icon: Building2 },
-  { bg: "#F43F5E", icon: Calendar },
-  { bg: "#EAB308", icon: ShieldCheck },
-];
-
 export default function OwnerDashboardScreen({ navigation }) {
   const insets = useSafeAreaInsets();
   const topInset = Math.max(
@@ -346,21 +339,22 @@ export default function OwnerDashboardScreen({ navigation }) {
           </View>
 
           <View style={styles.enquiriesList}>
-            {recentLeads.map((lead, idx) => {
-              const badge = LEAD_BADGE_CONFIG[idx % LEAD_BADGE_CONFIG.length];
-              const BadgeIcon = badge.icon;
-
-              return (
-                <TouchableOpacity
-                  key={lead.id || idx}
-                  style={styles.enquiryCard}
-                  onPress={() => navigation.navigate("OwnerLeadDetail", { lead })}
-                  activeOpacity={0.75}
-                >
-                  {/* Left vibrant rounded square badge matching reference */}
-                  <View style={[styles.enquiryBadge, { backgroundColor: badge.bg }]}>
-                    <BadgeIcon size={20} color="#FFFFFF" strokeWidth={2.2} />
-                  </View>
+            {recentLeads.map((lead, idx) => (
+              <TouchableOpacity
+                key={lead.id || idx}
+                style={styles.enquiryCard}
+                onPress={() => navigation.navigate("OwnerLeadDetail", { lead })}
+                activeOpacity={0.75}
+              >
+                {/* Customer Profile Image */}
+                <Image
+                  source={{
+                    uri:
+                      lead.avatar ||
+                      "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&q=80",
+                  }}
+                  style={styles.enquiryAvatar}
+                />
 
                   {/* Middle Info */}
                   <View style={styles.enquiryInfo}>
@@ -801,12 +795,13 @@ const styles = StyleSheet.create({
     shadowRadius: 6,
     elevation: 2,
   },
-  enquiryBadge: {
+  enquiryAvatar: {
     width: 44,
     height: 44,
     borderRadius: 12,
-    alignItems: "center",
-    justifyContent: "center",
+    backgroundColor: "#F1F5F9",
+    borderWidth: 1,
+    borderColor: "#EEF2F6",
     marginRight: 14,
   },
   enquiryInfo: {
