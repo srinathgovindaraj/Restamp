@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from "react";
 import {
   View,
+  Text,
   TouchableOpacity,
   StyleSheet,
   Platform,
   Keyboard,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import {
   LayoutGrid,
@@ -24,6 +26,7 @@ import OwnerProfileScreen from "../screens/owner/OwnerProfileScreen";
 const Tab = createBottomTabNavigator();
 
 function OwnerTabBar({ state, descriptors, navigation }) {
+  const insets = useSafeAreaInsets();
   const [keyboardVisible, setKeyboardVisible] = useState(false);
 
   useEffect(() => {
@@ -41,19 +44,32 @@ function OwnerTabBar({ state, descriptors, navigation }) {
 
   if (keyboardVisible) return null;
 
-  // Hide the floating tab bar when on Add property screen or when requested
+  // Hide the tab bar when on Add property screen or when explicitly requested
   const currentRoute = state.routes[state.index];
-  const currentOptions = descriptors[currentRoute.key]?.options;
+  const currentOptions = descriptors[currentRoute?.key]?.options;
   if (currentRoute?.name === "Add" || currentOptions?.tabBarStyle?.display === "none") {
     return null;
   }
 
+  const bottomInset = Math.max(insets.bottom, Platform.OS === "ios" ? 14 : 8);
+
   return (
-    <View style={styles.floatingWrapper} pointerEvents="box-none">
-      <View style={styles.pillContainer}>
+    <View style={[styles.bottomBarContainer, { paddingBottom: bottomInset }]}>
+      <View style={styles.tabsRow}>
         {state.routes.map((route, index) => {
           const { options } = descriptors[route.key];
           const isFocused = state.index === index;
+
+          const label =
+            options.tabBarLabel !== undefined
+              ? options.tabBarLabel
+              : options.title !== undefined
+              ? options.title
+              : route.name;
+
+          const activeColor = "#2563EB";
+          const inactiveColor = "#64748B";
+          const color = isFocused ? activeColor : inactiveColor;
 
           const onPress = () => {
             const event = navigation.emit({
@@ -79,18 +95,32 @@ function OwnerTabBar({ state, descriptors, navigation }) {
               key={route.key}
               accessibilityRole="button"
               accessibilityState={isFocused ? { selected: true } : {}}
-              accessibilityLabel={options.tabBarAccessibilityLabel || route.name}
+              accessibilityLabel={options.tabBarAccessibilityLabel || label}
               testID={options.tabBarTestID}
               onPress={onPress}
               onLongPress={onLongPress}
               style={styles.tabButton}
               activeOpacity={0.7}
             >
-              {options.tabBarIcon?.({
-                focused: isFocused,
-                color: isFocused ? "#2563EB" : "#94A3B8",
-                size: 24,
-              })}
+              <View style={styles.iconWrapper}>
+                {options.tabBarIcon?.({
+                  focused: isFocused,
+                  color,
+                  size: 22,
+                })}
+              </View>
+              <Text
+                style={[
+                  styles.tabLabel,
+                  {
+                    color,
+                    fontWeight: isFocused ? "700" : "500",
+                  },
+                ]}
+                numberOfLines={1}
+              >
+                {label}
+              </Text>
             </TouchableOpacity>
           );
         })}
@@ -113,10 +143,11 @@ export default function OwnerNavigator() {
         name="Dashboard"
         component={OwnerDashboardScreen}
         options={{
+          tabBarLabel: "Dashboard",
           tabBarAccessibilityLabel: "Dashboard",
           tabBarIcon: ({ color, focused }) => (
             <LayoutGrid
-              size={24}
+              size={22}
               color={color}
               strokeWidth={focused ? 2.4 : 1.8}
             />
@@ -129,10 +160,11 @@ export default function OwnerNavigator() {
         name="Properties"
         component={OwnerPropertiesScreen}
         options={{
+          tabBarLabel: "Properties",
           tabBarAccessibilityLabel: "Properties",
           tabBarIcon: ({ color, focused }) => (
             <Building2
-              size={24}
+              size={22}
               color={color}
               strokeWidth={focused ? 2.4 : 1.8}
             />
@@ -146,10 +178,11 @@ export default function OwnerNavigator() {
         component={OwnerAddPropertyScreen}
         options={{
           tabBarStyle: { display: "none" },
+          tabBarLabel: "Add",
           tabBarAccessibilityLabel: "Add Property",
           tabBarIcon: ({ color, focused }) => (
             <PlusCircle
-              size={26}
+              size={24}
               color={color}
               strokeWidth={focused ? 2.4 : 1.8}
             />
@@ -162,10 +195,11 @@ export default function OwnerNavigator() {
         name="Leads"
         component={OwnerLeadsScreen}
         options={{
+          tabBarLabel: "Leads",
           tabBarAccessibilityLabel: "Leads",
           tabBarIcon: ({ color, focused }) => (
             <Users
-              size={24}
+              size={22}
               color={color}
               strokeWidth={focused ? 2.4 : 1.8}
             />
@@ -178,10 +212,11 @@ export default function OwnerNavigator() {
         name="Profile"
         component={OwnerProfileScreen}
         options={{
+          tabBarLabel: "Profile",
           tabBarAccessibilityLabel: "Profile",
           tabBarIcon: ({ color, focused }) => (
             <User
-              size={24}
+              size={22}
               color={color}
               strokeWidth={focused ? 2.4 : 1.8}
             />
@@ -193,34 +228,42 @@ export default function OwnerNavigator() {
 }
 
 const styles = StyleSheet.create({
-  floatingWrapper: {
+  bottomBarContainer: {
     position: "absolute",
-    bottom: Platform.OS === "ios" ? 24 : 16,
-    left: 20,
-    right: 20,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  pillContainer: {
-    flexDirection: "row",
-    height: 64,
-    width: "100%",
+    bottom: 0,
+    left: 0,
+    right: 0,
     backgroundColor: "#FFFFFF",
-    borderRadius: 32,
+    borderTopWidth: 1,
+    borderTopColor: "#EEF2F6",
+    shadowColor: "#000000",
+    shadowOffset: { width: 0, height: -2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 6,
+    elevation: 8,
+  },
+  tabsRow: {
+    flexDirection: "row",
+    height: 54,
     alignItems: "center",
     justifyContent: "space-around",
-    borderWidth: 1,
-    borderColor: "#EEF2F6",
-    shadowColor: "#000000",
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.08,
-    shadowRadius: 16,
-    elevation: 8,
+    paddingTop: 6,
   },
   tabButton: {
     flex: 1,
-    height: 64,
+    height: "100%",
     justifyContent: "center",
     alignItems: "center",
+    paddingVertical: 2,
+  },
+  iconWrapper: {
+    alignItems: "center",
+    justifyContent: "center",
+    height: 24,
+  },
+  tabLabel: {
+    fontSize: 10.5,
+    marginTop: 3,
+    letterSpacing: 0.1,
   },
 });
