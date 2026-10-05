@@ -236,23 +236,20 @@ export default function OwnerPropertiesScreen({ route, navigation }) {
           </View>
         )}
 
-        {/* Horizontally Scrollable Status Tabs */}
+        {/* Horizontally Scrollable Status Tabs (Matching Buyer Search Properties Filter Bar) */}
         <View style={styles.tabsContainer}>
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.tabsScroll}
           >
-            {/* Filter Toggle Icon Pill */}
+            {/* Main Filter Icon Button */}
             <TouchableOpacity
-              style={[styles.filterIconBtn, showSearch && styles.filterIconBtnActive]}
-              onPress={() => setShowSearch(!showSearch)}
+              style={[styles.filterIconPill, showSearch && styles.filterIconPillActive]}
               activeOpacity={0.8}
+              onPress={() => setShowSearch(!showSearch)}
             >
-              <SlidersHorizontal
-                size={15}
-                color={showSearch ? COLORS.primary : "#334155"}
-              />
+              <SlidersHorizontal size={15} color={showSearch ? COLORS.primary : "#334155"} />
             </TouchableOpacity>
 
             {STATUS_TABS.map((tab) => {
@@ -265,11 +262,11 @@ export default function OwnerPropertiesScreen({ route, navigation }) {
               return (
                 <TouchableOpacity
                   key={tab}
-                  style={[styles.tabChip, isActive && styles.tabChipActive]}
+                  style={[styles.filterDropdownPill, isActive && styles.filterDropdownPillActive]}
                   onPress={() => setActiveTab(tab)}
-                  activeOpacity={0.75}
+                  activeOpacity={0.8}
                 >
-                  <Text style={[styles.tabText, isActive && styles.tabTextActive]}>
+                  <Text style={[styles.filterDropdownText, isActive && styles.filterDropdownTextActive]}>
                     {tab}
                   </Text>
                   <View style={[styles.tabCountBadge, isActive && styles.tabCountBadgeActive]}>
@@ -435,10 +432,12 @@ const styles = StyleSheet.create({
   },
   tabsScroll: {
     paddingHorizontal: 20,
-    gap: 8,
+    paddingVertical: 4,
+    flexDirection: "row",
     alignItems: "center",
+    gap: 8,
   },
-  filterIconBtn: {
+  filterIconPill: {
     width: 36,
     height: 34,
     borderRadius: 8,
@@ -448,32 +447,31 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-  filterIconBtnActive: {
+  filterIconPillActive: {
     borderColor: COLORS.primary,
     backgroundColor: "#EFF6FF",
   },
-  tabChip: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 13,
+  filterDropdownPill: {
     height: 34,
+    paddingHorizontal: 12,
     borderRadius: 17,
-    backgroundColor: "#FFFFFF",
     borderWidth: 1,
     borderColor: "#CBD5E1",
+    backgroundColor: "#FFFFFF",
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
   },
-  tabChipActive: {
-    backgroundColor: "#EFF6FF",
+  filterDropdownPillActive: {
     borderColor: COLORS.primary,
+    backgroundColor: "#EFF6FF",
   },
-  tabText: {
+  filterDropdownText: {
     fontSize: 13,
-    fontWeight: "500",
     color: "#334155",
-    marginRight: 6,
-    letterSpacing: -0.2,
+    fontWeight: "500",
   },
-  tabTextActive: {
+  filterDropdownTextActive: {
     color: COLORS.primary,
     fontWeight: "700",
   },
@@ -485,13 +483,14 @@ const styles = StyleSheet.create({
     backgroundColor: "#F1F5F9",
     justifyContent: "center",
     alignItems: "center",
+    marginLeft: 2,
   },
   tabCountBadgeActive: {
     backgroundColor: "#DBEAFE",
   },
   tabCountText: {
     fontSize: 10.5,
-    fontWeight: "600",
+    fontWeight: "700",
     color: "#64748B",
     textAlign: "center",
     includeFontPadding: false,

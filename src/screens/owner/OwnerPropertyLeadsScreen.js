@@ -10,12 +10,12 @@ import {
   Image,
   Alert,
   Platform,
+  TextInput,
 } from "react-native";
 import {
   ArrowLeft,
   Search,
   Filter,
-  SlidersHorizontal,
   Phone,
   MessageSquare,
   Calendar,
@@ -26,6 +26,8 @@ import {
   ChevronRight,
   UserCheck,
   CheckCircle2,
+  SlidersHorizontal,
+  X,
 } from "lucide-react-native";
 
 import COLORS from "../../constants/colors";
@@ -60,6 +62,8 @@ export default function OwnerPropertyLeadsScreen({ route, navigation }) {
   }, [routeProperty, routePropertyId, properties]);
 
   const [activeTab, setActiveTab] = useState("All");
+  const [showSearch, setShowSearch] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
   const [selectedLeadForVisit, setSelectedLeadForVisit] = useState(null);
   const [selectedLeadForClose, setSelectedLeadForClose] = useState(null);
 
@@ -153,15 +157,28 @@ export default function OwnerPropertyLeadsScreen({ route, navigation }) {
     ];
   }, [leads, property]);
 
-  // Tab-filtered leads
+  // Tab and search filtered leads
   const filteredLeads = useMemo(() => {
-    if (activeTab === "All") return projectLeads;
-    const normalizedTab = activeTab.toLowerCase().replace(" ", "_");
-    return projectLeads.filter((l) => {
-      if (activeTab === "Visit Scheduled") return l.status === "visit_scheduled";
-      return l.status === normalizedTab;
-    });
-  }, [projectLeads, activeTab]);
+    let list = projectLeads;
+    if (activeTab !== "All") {
+      const normalizedTab = activeTab.toLowerCase().replace(" ", "_");
+      list = list.filter((l) => {
+        if (activeTab === "Visit Scheduled") return l.status === "visit_scheduled";
+        return l.status === normalizedTab;
+      });
+    }
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase().trim();
+      list = list.filter(
+        (l) =>
+          l.customerName?.toLowerCase().includes(q) ||
+          l.phone?.toLowerCase().includes(q) ||
+          l.message?.toLowerCase().includes(q) ||
+          l.requirement?.toLowerCase().includes(q)
+      );
+    }
+    return list;
+  }, [projectLeads, activeTab, searchQuery]);
 
   const handleCall = (lead) => {
     Alert.alert("Calling Customer", `Dialing ${lead.customerName} at ${lead.phone || "+91 98840 12345"}...`, [
@@ -275,17 +292,43 @@ export default function OwnerPropertyLeadsScreen({ route, navigation }) {
           </View>
         )}
 
-        {/* ================= STATUS TABS FILTER ================= */}
+        {/* Search Input Bar (Expandable) */}
+        {showSearch && (
+          <View style={styles.searchBarWrapper}>
+            <View style={styles.searchBarCard}>
+              <Search size={16} color="#64748B" style={{ marginRight: 8 }} />
+              <TextInput
+                style={styles.searchInput}
+                placeholder="Search leads by customer name, phone..."
+                placeholderTextColor="#94A3B8"
+                value={searchQuery}
+                onChangeText={setSearchQuery}
+                autoFocus
+              />
+              {searchQuery.length > 0 && (
+                <TouchableOpacity onPress={() => setSearchQuery("")} activeOpacity={0.7}>
+                  <X size={16} color="#64748B" />
+                </TouchableOpacity>
+              )}
+            </View>
+          </View>
+        )}
+
+        {/* ================= STATUS TABS FILTER (Buyer Search Properties Filter Bar Design) ================= */}
         <View style={styles.tabsContainer}>
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.tabsScroll}
           >
-            {/* Filter Toggle Icon Pill */}
-            <View style={styles.filterIconBtn}>
-              <SlidersHorizontal size={15} color="#334155" />
-            </View>
+            {/* Main Filter Icon Button */}
+            <TouchableOpacity
+              style={[styles.filterIconPill, showSearch && styles.filterIconPillActive]}
+              activeOpacity={0.8}
+              onPress={() => setShowSearch(!showSearch)}
+            >
+              <SlidersHorizontal size={15} color={showSearch ? COLORS.primary : "#334155"} />
+            </TouchableOpacity>
 
             {LEAD_TABS.map((tab) => {
               const count =
@@ -301,11 +344,11 @@ export default function OwnerPropertyLeadsScreen({ route, navigation }) {
               return (
                 <TouchableOpacity
                   key={tab}
-                  style={[styles.tabChip, isActive && styles.tabChipActive]}
+                  style={[styles.filterDropdownPill, isActive && styles.filterDropdownPillActive]}
                   onPress={() => setActiveTab(tab)}
-                  activeOpacity={0.75}
+                  activeOpacity={0.8}
                 >
-                  <Text style={[styles.tabText, isActive && styles.tabTextActive]}>
+                  <Text style={[styles.filterDropdownText, isActive && styles.filterDropdownTextActive]}>
                     {tab}
                   </Text>
                   <View
@@ -355,14 +398,22 @@ export default function OwnerPropertyLeadsScreen({ route, navigation }) {
                 >
                   {/* Lead Header */}
                   <View style={styles.leadHeaderRow}>
-                    <Image
-                      source={{
-                        uri:
-                          lead.avatar ||
-                          "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&q=80",
-                      }}
-                      style={styles.leadAvatar}
-                    />
+                    <View style={styles.avatarWrap}>
+                      <Image
+                        source={{
+                          uri:
+                            lead.avatar ||
+                            "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&q=80",
+                        }}
+                        style={styles.leadAvatar}
+                      />
+                      <View
+                        style={[
+                          styles.avatarStatusDot,
+                          isNew ? styles.dotNew : styles.dotActive,
+                        ]}
+                      />
+                    </View>
 
                     <View style={styles.leadInfoCol}>
                       <View style={styles.leadNameRow}>
@@ -371,20 +422,47 @@ export default function OwnerPropertyLeadsScreen({ route, navigation }) {
                         </Text>
                         <StatusBadge status={lead.status} />
                       </View>
-                      <Text style={styles.leadBudgetSub} numberOfLines={1}>
-                        {isNew ? "New Enquiry" : "Verified Customer"} • Budget:{" "}
-                        <Text style={{ fontWeight: "700", color: "#0F172A" }}>
-                          {lead.budget || formattedPrice}
-                        </Text>
-                      </Text>
+                      
+                      <View style={styles.leadMetaRow}>
+                        <View style={styles.leadMetaTag}>
+                          <UserCheck
+                            size={11}
+                            color={isNew ? COLORS.primary : "#16A34A"}
+                            style={{ marginRight: 3 }}
+                          />
+                          <Text
+                            style={[
+                              styles.leadMetaTagText,
+                              isNew && { color: COLORS.primary },
+                            ]}
+                          >
+                            {isNew ? "New Enquiry" : "Verified Customer"}
+                          </Text>
+                        </View>
+                        <Text style={styles.leadMetaDot}>•</Text>
+                        <View style={styles.leadBudgetTag}>
+                          <Text style={styles.leadBudgetLabel}>Budget: </Text>
+                          <Text style={styles.leadBudgetValue}>
+                            {lead.budget || formattedPrice}
+                          </Text>
+                        </View>
+                      </View>
                     </View>
                   </View>
 
-                  {/* Message Preview Quote */}
+                  {/* Message Preview */}
                   {lead.message ? (
                     <View style={styles.messageBox}>
+                      <View style={styles.messageHeaderRow}>
+                        <MessageSquare
+                          size={12}
+                          color="#64748B"
+                          style={{ marginRight: 5 }}
+                        />
+                        <Text style={styles.messageLabel}>Enquiry Note</Text>
+                      </View>
                       <Text style={styles.messageText} numberOfLines={2}>
-                        "{lead.message}"
+                        {lead.message}
                       </Text>
                     </View>
                   ) : null}
@@ -392,7 +470,11 @@ export default function OwnerPropertyLeadsScreen({ route, navigation }) {
                   {/* Visit Scheduled Alert Chip */}
                   {isVisitScheduled && lead.visitData && (
                     <View style={styles.visitChipRow}>
-                      <Calendar size={13} color="#D97706" style={{ marginRight: 5 }} />
+                      <Calendar
+                        size={13}
+                        color="#D97706"
+                        style={{ marginRight: 6 }}
+                      />
                       <Text style={styles.visitChipText}>
                         Visit Booked: {lead.visitData.date}, {lead.visitData.time}
                       </Text>
@@ -401,32 +483,53 @@ export default function OwnerPropertyLeadsScreen({ route, navigation }) {
 
                   {/* Footer Action Bar */}
                   <View style={styles.leadFooterRow}>
-                    <Text style={styles.leadTimestamp}>{lead.timestamp || "Today"}</Text>
+                    <View style={styles.timestampWrap}>
+                      <Clock
+                        size={12}
+                        color="#94A3B8"
+                        style={{ marginRight: 4 }}
+                      />
+                      <Text style={styles.leadTimestamp}>
+                        {lead.timestamp || "Today"}
+                      </Text>
+                    </View>
 
                     <View style={styles.leadActionBtns}>
                       <TouchableOpacity
-                        style={styles.actionCircleBtn}
+                        style={styles.actionCircleBtnChat}
                         onPress={() => handleChat(lead)}
-                        activeOpacity={0.7}
+                        activeOpacity={0.75}
+                        accessibilityLabel="WhatsApp"
                       >
-                        <MessageSquare size={14} color="#475569" />
+                        <MessageSquare size={14} color="#16A34A" />
                       </TouchableOpacity>
 
                       <TouchableOpacity
                         style={styles.actionCircleBtnPrimary}
                         onPress={() => handleCall(lead)}
-                        activeOpacity={0.7}
+                        activeOpacity={0.75}
+                        accessibilityLabel="Call"
                       >
-                        <Phone size={14} color={COLORS.primary} fill={COLORS.primary} />
+                        <Phone
+                          size={14}
+                          color={COLORS.primary}
+                          fill={COLORS.primary}
+                        />
                       </TouchableOpacity>
 
                       <TouchableOpacity
                         style={styles.viewDetailsBtn}
-                        onPress={() => navigation.navigate("OwnerLeadDetail", { lead })}
+                        onPress={() =>
+                          navigation.navigate("OwnerLeadDetail", { lead })
+                        }
                         activeOpacity={0.8}
                       >
                         <Text style={styles.viewDetailsText}>View Details</Text>
-                        <ChevronRight size={13} color={COLORS.primary} />
+                        <ChevronRight
+                          size={13}
+                          color={COLORS.primary}
+                          strokeWidth={2.4}
+                        />
                       </TouchableOpacity>
                     </View>
                   </View>
@@ -626,7 +729,29 @@ const styles = StyleSheet.create({
     marginHorizontal: 5,
   },
 
-  /* STATUS TABS */
+  /* SEARCH BAR */
+  searchBarWrapper: {
+    marginBottom: 12,
+    backgroundColor: "#FFFFFF",
+  },
+  searchBarCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#F8FAFC",
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: "#EEF2F6",
+    paddingHorizontal: 14,
+    height: 44,
+  },
+  searchInput: {
+    flex: 1,
+    height: 44,
+    fontSize: 13,
+    color: "#0F172A",
+  },
+
+  /* STATUS TABS (BUYER SEARCH FILTER DESIGN) */
   tabsContainer: {
     marginHorizontal: -20,
     marginBottom: 16,
@@ -634,10 +759,12 @@ const styles = StyleSheet.create({
   },
   tabsScroll: {
     paddingHorizontal: 20,
-    gap: 8,
+    paddingVertical: 4,
+    flexDirection: "row",
     alignItems: "center",
+    gap: 8,
   },
-  filterIconBtn: {
+  filterIconPill: {
     width: 36,
     height: 34,
     borderRadius: 8,
@@ -647,28 +774,31 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-  tabChip: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 13,
+  filterIconPillActive: {
+    borderColor: COLORS.primary,
+    backgroundColor: "#EFF6FF",
+  },
+  filterDropdownPill: {
     height: 34,
+    paddingHorizontal: 12,
     borderRadius: 17,
-    backgroundColor: "#FFFFFF",
     borderWidth: 1,
     borderColor: "#CBD5E1",
+    backgroundColor: "#FFFFFF",
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
   },
-  tabChipActive: {
-    backgroundColor: "#EFF6FF",
+  filterDropdownPillActive: {
     borderColor: COLORS.primary,
+    backgroundColor: "#EFF6FF",
   },
-  tabText: {
+  filterDropdownText: {
     fontSize: 13,
-    fontWeight: "500",
     color: "#334155",
-    marginRight: 6,
-    letterSpacing: -0.2,
+    fontWeight: "500",
   },
-  tabTextActive: {
+  filterDropdownTextActive: {
     color: COLORS.primary,
     fontWeight: "700",
   },
@@ -680,48 +810,70 @@ const styles = StyleSheet.create({
     backgroundColor: "#F1F5F9",
     justifyContent: "center",
     alignItems: "center",
+    marginLeft: 2,
   },
   tabCountBadgeActive: {
     backgroundColor: "#DBEAFE",
   },
   tabCountText: {
     fontSize: 10.5,
-    fontWeight: "600",
+    fontWeight: "700",
     color: "#64748B",
     textAlign: "center",
     includeFontPadding: false,
   },
   tabCountTextActive: {
     color: COLORS.primary,
-    fontWeight: "700",
+    fontWeight: "800",
   },
 
   /* LEADS LIST */
   leadsList: {
-    gap: 12,
+    gap: 14,
   },
   leadCard: {
     backgroundColor: "#FFFFFF",
-    borderRadius: 18,
-    padding: 15,
+    borderRadius: 20,
+    padding: 16,
     borderWidth: 1,
-    borderColor: "#EEF2F6",
-    shadowColor: "#000000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.03,
-    shadowRadius: 6,
+    borderColor: "#E2E8F0",
+    shadowColor: "#0F172A",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.04,
+    shadowRadius: 10,
     elevation: 2,
   },
   leadHeaderRow: {
     flexDirection: "row",
     alignItems: "center",
   },
-  leadAvatar: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+  avatarWrap: {
+    position: "relative",
     marginRight: 12,
+  },
+  leadAvatar: {
+    width: 46,
+    height: 46,
+    borderRadius: 23,
     backgroundColor: "#E2E8F0",
+    borderWidth: 1.5,
+    borderColor: "#F1F5F9",
+  },
+  avatarStatusDot: {
+    position: "absolute",
+    bottom: -1,
+    right: -1,
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    borderWidth: 2,
+    borderColor: "#FFFFFF",
+  },
+  dotNew: {
+    backgroundColor: COLORS.primary,
+  },
+  dotActive: {
+    backgroundColor: "#10B981",
   },
   leadInfoCol: {
     flex: 1,
@@ -730,34 +882,80 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    marginBottom: 3,
+    marginBottom: 4,
   },
   leadCustomerName: {
-    fontSize: 15,
+    fontSize: 16,
     fontWeight: "700",
     color: "#0F172A",
     letterSpacing: -0.2,
     flex: 1,
     marginRight: 8,
   },
-  leadBudgetSub: {
-    fontSize: 12,
+  leadMetaRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    flexWrap: "wrap",
+  },
+  leadMetaTag: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#F8FAFC",
+    paddingHorizontal: 7,
+    paddingVertical: 2.5,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: "#EEF2F6",
+  },
+  leadMetaTagText: {
+    fontSize: 11,
+    fontWeight: "600",
+    color: "#16A34A",
+  },
+  leadMetaDot: {
+    fontSize: 10,
+    color: "#CBD5E1",
+    marginHorizontal: 6,
+  },
+  leadBudgetTag: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  leadBudgetLabel: {
+    fontSize: 11.5,
     color: "#64748B",
+  },
+  leadBudgetValue: {
+    fontSize: 11.5,
+    fontWeight: "700",
+    color: "#0F172A",
   },
   messageBox: {
     backgroundColor: "#F8FAFC",
-    borderRadius: 10,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    marginTop: 10,
-    borderLeftWidth: 3,
-    borderLeftColor: COLORS.primary,
+    borderRadius: 14,
+    paddingHorizontal: 13,
+    paddingVertical: 10,
+    marginTop: 12,
+    borderWidth: 1,
+    borderColor: "#EEF2F6",
+  },
+  messageHeaderRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 4,
+  },
+  messageLabel: {
+    fontSize: 10.5,
+    fontWeight: "700",
+    color: "#64748B",
+    letterSpacing: 0.4,
+    textTransform: "uppercase",
   },
   messageText: {
-    fontSize: 12,
-    color: "#475569",
-    lineHeight: 17,
-    fontStyle: "italic",
+    fontSize: 12.5,
+    color: "#334155",
+    lineHeight: 18,
+    fontWeight: "400",
   },
   visitChipRow: {
     flexDirection: "row",
@@ -765,9 +963,9 @@ const styles = StyleSheet.create({
     backgroundColor: "#FFFBEB",
     borderWidth: 1,
     borderColor: "#FDE68A",
-    borderRadius: 8,
-    paddingHorizontal: 10,
-    paddingVertical: 5,
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 7,
     marginTop: 10,
     alignSelf: "flex-start",
   },
@@ -780,10 +978,14 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    marginTop: 12,
-    paddingTop: 10,
+    marginTop: 14,
+    paddingTop: 12,
     borderTopWidth: 1,
     borderTopColor: "#F1F5F9",
+  },
+  timestampWrap: {
+    flexDirection: "row",
+    alignItems: "center",
   },
   leadTimestamp: {
     fontSize: 11.5,
@@ -795,20 +997,20 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 8,
   },
-  actionCircleBtn: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: "#F8FAFC",
+  actionCircleBtnChat: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    backgroundColor: "#F0FDF4",
     borderWidth: 1,
-    borderColor: "#E2E8F0",
+    borderColor: "#DCFCE7",
     justifyContent: "center",
     alignItems: "center",
   },
   actionCircleBtnPrimary: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    width: 34,
+    height: 34,
+    borderRadius: 17,
     backgroundColor: "#EFF6FF",
     borderWidth: 1,
     borderColor: "#DBEAFE",
@@ -818,17 +1020,17 @@ const styles = StyleSheet.create({
   viewDetailsBtn: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#F8FAFC",
-    borderRadius: 16,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
+    backgroundColor: "#FFFFFF",
+    borderRadius: 17,
+    paddingHorizontal: 12,
+    height: 34,
     borderWidth: 1,
-    borderColor: "#E2E8F0",
+    borderColor: "#CBD5E1",
+    gap: 3,
   },
   viewDetailsText: {
     fontSize: 11.5,
     fontWeight: "700",
     color: COLORS.primary,
-    marginRight: 2,
   },
 });
