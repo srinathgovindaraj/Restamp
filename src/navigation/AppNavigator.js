@@ -20,6 +20,7 @@ import OwnerPaymentSuccessScreen from "../screens/owner/OwnerPaymentSuccessScree
 import OwnerPaymentFailedScreen from "../screens/owner/OwnerPaymentFailedScreen";
 import OwnerPublishSuccessScreen from "../screens/owner/OwnerPublishSuccessScreen";
 import OwnerLeadDetailScreen from "../screens/owner/OwnerLeadDetailScreen";
+import OwnerPropertyLeadsScreen from "../screens/owner/OwnerPropertyLeadsScreen";
 
 import AgentNavigator from "./AgentNavigator";
 import AgentLocationSelectScreen from "../screens/agent/AgentLocationSelectScreen";
@@ -172,6 +173,7 @@ export default function AppNavigator() {
         <Stack.Screen name="OwnerNavigator" component={OwnerNavigator} />
         <Stack.Screen name="OwnerPublishSuccess" component={OwnerPublishSuccessScreen} />
         <Stack.Screen name="OwnerLeadDetail" component={OwnerLeadDetailScreen} />
+        <Stack.Screen name="OwnerPropertyLeads" component={OwnerPropertyLeadsScreen} />
 
         {/* AGENT FLOW (Entry, Location Select, Confirm, Payment, Success, Navigator, Detail) */}
         <Stack.Screen name="AgentLocationSelect" component={AgentLocationSelectScreen} />

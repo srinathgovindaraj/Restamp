@@ -98,7 +98,7 @@ export default function OwnerPropertiesScreen({ route, navigation }) {
 
   // Handlers for property card actions
   const handleViewLeads = (property) => {
-    navigation.navigate("Leads", { propertyId: property.id });
+    navigation.navigate("OwnerPropertyLeads", { property });
   };
 
   const handleViewProperty = (property) => {
