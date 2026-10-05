@@ -339,28 +339,29 @@ export default function OwnerDashboardScreen({ navigation }) {
           </View>
 
           <View style={styles.enquiriesList}>
-            {recentLeads.map((lead, idx) => (
-              <TouchableOpacity
-                key={lead.id || idx}
-                style={styles.enquiryCard}
-                onPress={() => navigation.navigate("OwnerLeadDetail", { lead })}
-                activeOpacity={0.75}
-              >
-                {/* Round Profile Avatar Image */}
-                <View style={styles.enquiryAvatarWrap}>
-                  <Image
-                    source={{
-                      uri:
-                        lead.avatar ||
-                        "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&q=80",
-                    }}
-                    style={styles.enquiryAvatar}
-                    resizeMode="cover"
-                  />
-                </View>
+            {recentLeads.map((lead, idx) => {
+              return (
+                <TouchableOpacity
+                  key={lead.id || idx}
+                  style={styles.enquiryCard}
+                  onPress={() => navigation.navigate("OwnerLeadDetail", { lead })}
+                  activeOpacity={0.75}
+                >
+                  {/* Round Profile Avatar Image */}
+                  <View style={styles.enquiryAvatarWrap}>
+                    <Image
+                      source={{
+                        uri:
+                          lead.avatar ||
+                          "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&q=80",
+                      }}
+                      style={styles.enquiryAvatar}
+                      resizeMode="cover"
+                    />
+                  </View>
 
-                {/* Middle Info */}
-                <View style={styles.enquiryInfo}>
+                  {/* Middle Info */}
+                  <View style={styles.enquiryInfo}>
                     <Text style={styles.enquiryName} numberOfLines={1}>
                       {lead.customerName}
                     </Text>
