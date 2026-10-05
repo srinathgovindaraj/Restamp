@@ -58,25 +58,28 @@ export default function OwnerNavigator() {
           tabBarLabel: config.label,
 
           tabBarLabelStyle: {
-            fontSize: 11,
+            fontSize: 10.5,
             fontWeight: "500",
             marginTop: 3,
             marginBottom: Platform.OS === "ios" ? 0 : 2,
+            letterSpacing: -0.2,
           },
 
           tabBarItemStyle: {
             justifyContent: "center",
             alignItems: "center",
             paddingVertical: 2,
+            paddingHorizontal: 2,
           },
 
           tabBarStyle: {
             backgroundColor: "#FFFFFF",
             borderTopWidth: 1,
             borderTopColor: "#EEF2F6",
-            height: Platform.OS === "ios" ? 84 : 62,
+            height: Platform.OS === "ios" ? 84 : 64,
             paddingTop: 8,
             paddingBottom: Platform.OS === "ios" ? 24 : 8,
+            paddingHorizontal: 12,
             shadowColor: "#000000",
             shadowOffset: { width: 0, height: -2 },
             shadowOpacity: 0.04,
