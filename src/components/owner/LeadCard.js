@@ -34,7 +34,7 @@ export default function LeadCard({
             {lead.customerName}
           </Text>
           <Text style={styles.customerRole} numberOfLines={1}>
-            {isNew ? "New Enquiry" : "Verified Customer"} • {lead.timestamp || "Today"}
+            {isNew ? "New Enquiry" : "Verified Customer"} • {lead.budget ? `${lead.budget} • ` : ""}{lead.timestamp || "Today"}
           </Text>
         </View>
 
@@ -48,21 +48,6 @@ export default function LeadCard({
             lead.propertyLocality ? ` • ${lead.propertyLocality}` : ""
           }${lead.requirement ? `. ${lead.requirement}` : ". Enquiry submitted."}`}
       </Text>
-
-      {/* Tags / Sub-details Row */}
-      <View style={styles.tagsRow}>
-        <Text style={styles.tagText}>
-          #{lead.requirement?.toLowerCase().replace(/\s+/g, "_") || "enquiry"}
-        </Text>
-        <Text style={styles.tagText}>
-          #budget_{String(lead.budget || "open").replace(/[^a-zA-Z0-9]/g, "")}
-        </Text>
-        {lead.propertyLocality ? (
-          <Text style={styles.tagText}>
-            #{lead.propertyLocality.toLowerCase().replace(/[^a-z0-9]/g, "")}
-          </Text>
-        ) : null}
-      </View>
 
       {/* Visit Scheduled Alert Chip (if applicable) */}
       {isVisitScheduled && lead.visitData && (
@@ -136,18 +121,6 @@ const styles = StyleSheet.create({
     lineHeight: 21,
     marginTop: 13,
     fontWeight: "400",
-  },
-  tagsRow: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    alignItems: "center",
-    gap: 8,
-    marginTop: 10,
-  },
-  tagText: {
-    fontSize: 12.5,
-    fontWeight: "600",
-    color: COLORS.primary,
   },
   visitChipRow: {
     flexDirection: "row",

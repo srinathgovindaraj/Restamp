@@ -436,7 +436,7 @@ export default function OwnerPropertyLeadsScreen({ route, navigation }) {
                         {lead.customerName}
                       </Text>
                       <Text style={styles.leadSubMeta} numberOfLines={1}>
-                        {isNew ? "New Enquiry" : "Verified Customer"} • {lead.timestamp || "Today"}
+                        {isNew ? "New Enquiry" : "Verified Customer"} • {lead.budget || formattedPrice} • {lead.timestamp || "Today"}
                       </Text>
                     </View>
 
@@ -458,21 +458,6 @@ export default function OwnerPropertyLeadsScreen({ route, navigation }) {
                     {lead.message ||
                       `Hi, I am interested in your property. Looking for quick move-in. Please share full details.`}
                   </Text>
-
-                  {/* Tags / Sub-details Row (Matching #coffee #cafe #relax) */}
-                  <View style={styles.tagsRow}>
-                    <Text style={styles.tagText}>
-                      #{lead.requirement?.toLowerCase().replace(/\s+/g, "_") || "rent"}
-                    </Text>
-                    <Text style={styles.tagText}>
-                      #budget_{String(lead.budget || formattedPrice || "open").replace(/[^a-zA-Z0-9]/g, "")}
-                    </Text>
-                    {property?.locality ? (
-                      <Text style={styles.tagText}>
-                        #{property.locality.toLowerCase().replace(/[^a-z0-9]/g, "")}
-                      </Text>
-                    ) : null}
-                  </View>
 
                   {/* Visit Scheduled Alert Chip (Preserving visit details) */}
                   {isVisitScheduled && lead.visitData && (
@@ -848,18 +833,6 @@ const styles = StyleSheet.create({
     lineHeight: 21,
     marginTop: 13,
     fontWeight: "400",
-  },
-  tagsRow: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    alignItems: "center",
-    gap: 8,
-    marginTop: 10,
-  },
-  tagText: {
-    fontSize: 12.5,
-    fontWeight: "600",
-    color: COLORS.primary,
   },
   visitChipRow: {
     flexDirection: "row",
