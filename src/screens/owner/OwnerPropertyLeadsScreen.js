@@ -637,23 +637,23 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     height: 36,
     borderRadius: 18,
-    backgroundColor: "#F8FAFC",
+    backgroundColor: "#FFFFFF",
     borderWidth: 1,
     borderColor: "#E2E8F0",
   },
   tabChipActive: {
-    backgroundColor: COLORS.primary,
+    backgroundColor: "#EFF6FF",
     borderColor: COLORS.primary,
   },
   tabText: {
     fontSize: 13,
-    fontWeight: "600",
+    fontWeight: "500",
     color: "#475569",
     marginRight: 6,
     letterSpacing: -0.2,
   },
   tabTextActive: {
-    color: "#FFFFFF",
+    color: COLORS.primary,
     fontWeight: "700",
   },
   tabCountBadge: {
@@ -661,22 +661,23 @@ const styles = StyleSheet.create({
     height: 20,
     paddingHorizontal: 5,
     borderRadius: 10,
-    backgroundColor: "#E2E8F0",
+    backgroundColor: "#F1F5F9",
     justifyContent: "center",
     alignItems: "center",
   },
   tabCountBadgeActive: {
-    backgroundColor: "rgba(255, 255, 255, 0.25)",
+    backgroundColor: "#DBEAFE",
   },
   tabCountText: {
     fontSize: 11,
-    fontWeight: "700",
-    color: "#0F172A",
+    fontWeight: "600",
+    color: "#64748B",
     textAlign: "center",
     includeFontPadding: false,
   },
   tabCountTextActive: {
-    color: "#FFFFFF",
+    color: COLORS.primary,
+    fontWeight: "700",
   },
 
   /* LEADS LIST */
