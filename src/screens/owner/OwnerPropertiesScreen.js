@@ -243,6 +243,18 @@ export default function OwnerPropertiesScreen({ route, navigation }) {
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.tabsScroll}
           >
+            {/* Filter Toggle Icon Pill */}
+            <TouchableOpacity
+              style={[styles.filterIconBtn, showSearch && styles.filterIconBtnActive]}
+              onPress={() => setShowSearch(!showSearch)}
+              activeOpacity={0.8}
+            >
+              <SlidersHorizontal
+                size={15}
+                color={showSearch ? COLORS.primary : "#334155"}
+              />
+            </TouchableOpacity>
+
             {STATUS_TABS.map((tab) => {
               const count =
                 tab === "All"
@@ -426,15 +438,29 @@ const styles = StyleSheet.create({
     gap: 8,
     alignItems: "center",
   },
+  filterIconBtn: {
+    width: 36,
+    height: 34,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "#CBD5E1",
+    backgroundColor: "#FFFFFF",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  filterIconBtnActive: {
+    borderColor: COLORS.primary,
+    backgroundColor: "#EFF6FF",
+  },
   tabChip: {
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: 14,
-    height: 36,
-    borderRadius: 18,
+    paddingHorizontal: 13,
+    height: 34,
+    borderRadius: 17,
     backgroundColor: "#FFFFFF",
     borderWidth: 1,
-    borderColor: "#E2E8F0",
+    borderColor: "#CBD5E1",
   },
   tabChipActive: {
     backgroundColor: "#EFF6FF",
@@ -443,7 +469,7 @@ const styles = StyleSheet.create({
   tabText: {
     fontSize: 13,
     fontWeight: "500",
-    color: "#475569",
+    color: "#334155",
     marginRight: 6,
     letterSpacing: -0.2,
   },
@@ -452,10 +478,10 @@ const styles = StyleSheet.create({
     fontWeight: "700",
   },
   tabCountBadge: {
-    minWidth: 20,
-    height: 20,
-    paddingHorizontal: 5,
-    borderRadius: 10,
+    minWidth: 18,
+    height: 18,
+    paddingHorizontal: 4,
+    borderRadius: 9,
     backgroundColor: "#F1F5F9",
     justifyContent: "center",
     alignItems: "center",
@@ -464,7 +490,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#DBEAFE",
   },
   tabCountText: {
-    fontSize: 11,
+    fontSize: 10.5,
     fontWeight: "600",
     color: "#64748B",
     textAlign: "center",
