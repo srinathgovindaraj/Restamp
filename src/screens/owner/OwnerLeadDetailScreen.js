@@ -560,13 +560,12 @@ const styles = StyleSheet.create({
 
   /* SECTION DIVIDERS & BLOCKS */
   sectionDivider: {
-    height: 8,
-    backgroundColor: "#F8FAFC",
-    borderTopWidth: 1,
-    borderBottomWidth: 1,
-    borderColor: "#F1F5F9",
+    height: 1,
+    backgroundColor: "#F1F5F9",
+    marginHorizontal: 20,
   },
   sectionBlock: {
+    backgroundColor: "#FFFFFF",
     paddingHorizontal: 20,
     paddingVertical: 18,
   },
@@ -597,7 +596,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 20,
-    backgroundColor: "#F8FAFC",
+    backgroundColor: "#FFFFFF",
     borderWidth: 1,
     borderColor: "#E2E8F0",
     gap: 6,
@@ -614,7 +613,7 @@ const styles = StyleSheet.create({
     width: 20,
     height: 20,
     borderRadius: 10,
-    backgroundColor: "#E2E8F0",
+    backgroundColor: "#F1F5F9",
     justifyContent: "center",
     alignItems: "center",
   },
@@ -650,10 +649,15 @@ const styles = StyleSheet.create({
   propertyBanner: {
     borderRadius: 16,
     overflow: "hidden",
-    backgroundColor: "#F8FAFC",
+    backgroundColor: "#FFFFFF",
     borderWidth: 1,
     borderColor: "#EEF2F6",
     marginTop: 8,
+    shadowColor: "#000000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.03,
+    shadowRadius: 6,
+    elevation: 1,
   },
   propertyBannerImage: {
     width: "100%",
@@ -676,6 +680,7 @@ const styles = StyleSheet.create({
   },
   propertyBannerContent: {
     padding: 14,
+    backgroundColor: "#FFFFFF",
   },
   propertyBannerTitle: {
     fontSize: 16,
@@ -743,9 +748,11 @@ const styles = StyleSheet.create({
 
   /* 5. CUSTOMER MESSAGE */
   messageBlockQuote: {
-    backgroundColor: "#F8FAFC",
+    backgroundColor: "#FFFFFF",
     borderLeftWidth: 3,
     borderLeftColor: COLORS.primary,
+    borderWidth: 1,
+    borderColor: "#EEF2F6",
     padding: 14,
     borderRadius: 10,
     marginTop: 8,
@@ -791,6 +798,7 @@ const styles = StyleSheet.create({
   actionsFooter: {
     paddingHorizontal: 20,
     paddingTop: 18,
+    backgroundColor: "#FFFFFF",
   },
   errorContainer: {
     flex: 1,
