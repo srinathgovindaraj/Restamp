@@ -307,16 +307,18 @@ export default function OwnerDashboardScreen({ navigation }) {
         >
           <View style={styles.addBannerLeft}>
             <View style={styles.addBannerIconWrap}>
-              <Plus size={20} color="#FFFFFF" strokeWidth={2.6} />
+              <Plus size={18} color={COLORS.primary} strokeWidth={2.8} />
             </View>
-            <View>
+            <View style={styles.addBannerTextWrap}>
               <Text style={styles.addBannerTitle}>List a New Property</Text>
               <Text style={styles.addBannerSub}>
                 Add rental, lease, or resale property in minutes
               </Text>
             </View>
           </View>
-          <ArrowRight size={18} color="#FFFFFF" />
+          <View style={styles.addBannerArrowWrap}>
+            <ArrowRight size={16} color="#FFFFFF" strokeWidth={2.2} />
+          </View>
         </TouchableOpacity>
 
         {/* 5. RECENT ENQUIRIES (Matching Workout-Card Reference Design) */}
@@ -696,7 +698,7 @@ const styles = StyleSheet.create({
 
   // 4. Quick Action Banner
   addPropertyBanner: {
-    backgroundColor: "#0F172A",
+    backgroundColor: COLORS.primary,
     borderRadius: 16,
     paddingHorizontal: 16,
     paddingVertical: 14,
@@ -705,9 +707,9 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     marginTop: 14,
     marginBottom: 16,
-    shadowColor: "#0F172A",
+    shadowColor: COLORS.primary,
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.16,
+    shadowOpacity: 0.22,
     shadowRadius: 10,
     elevation: 4,
   },
@@ -718,23 +720,38 @@ const styles = StyleSheet.create({
     marginRight: 10,
   },
   addBannerIconWrap: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: COLORS.primary,
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: "#FFFFFF",
     justifyContent: "center",
     alignItems: "center",
     marginRight: 12,
+  },
+  addBannerTextWrap: {
+    flex: 1,
+    justifyContent: "center",
   },
   addBannerTitle: {
     color: "#FFFFFF",
     fontSize: 15,
     fontWeight: "700",
+    letterSpacing: -0.2,
   },
   addBannerSub: {
-    color: "#94A3B8",
+    color: "#DBEAFE",
     fontSize: 11.5,
     marginTop: 2,
+    lineHeight: 16,
+  },
+  addBannerArrowWrap: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: "rgba(255, 255, 255, 0.18)",
+    justifyContent: "center",
+    alignItems: "center",
+    marginLeft: 4,
   },
 
   // 5. Minimal List Sections
