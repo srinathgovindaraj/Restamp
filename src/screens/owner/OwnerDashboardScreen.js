@@ -192,8 +192,10 @@ export default function OwnerDashboardScreen({ navigation }) {
             activeOpacity={0.85}
           >
             <View style={styles.metricCardTop}>
-              <Building2 size={22} color="#0F172A" strokeWidth={1.8} />
-              <ArrowRight size={17} color="#8E9BAE" />
+              <View style={styles.metricIconWrap}>
+                <Building2 size={17} color="#1E293B" strokeWidth={1.8} />
+              </View>
+              <ArrowRight size={14} color="#94A3B8" />
             </View>
             <Text style={styles.metricNumber}>
               {String(activeCount).padStart(2, "0")}
@@ -208,8 +210,10 @@ export default function OwnerDashboardScreen({ navigation }) {
             activeOpacity={0.85}
           >
             <View style={styles.metricCardTop}>
-              <Clock size={22} color="#0F172A" strokeWidth={1.8} />
-              <ArrowRight size={17} color="#8E9BAE" />
+              <View style={styles.metricIconWrap}>
+                <Clock size={17} color="#1E293B" strokeWidth={1.8} />
+              </View>
+              <ArrowRight size={14} color="#94A3B8" />
             </View>
             <Text style={styles.metricNumber}>
               {String(pendingCount).padStart(2, "0")}
@@ -219,7 +223,7 @@ export default function OwnerDashboardScreen({ navigation }) {
         </View>
 
         {/* Row 2: Total Inquiries & Property Views */}
-        <View style={[styles.metricsGrid, { marginTop: 12 }]}>
+        <View style={[styles.metricsGrid, { marginTop: 10 }]}>
           {/* Card 3: Total Inquiries */}
           <TouchableOpacity
             style={styles.metricCard}
@@ -227,8 +231,10 @@ export default function OwnerDashboardScreen({ navigation }) {
             activeOpacity={0.85}
           >
             <View style={styles.metricCardTop}>
-              <MessageSquare size={22} color="#0F172A" strokeWidth={1.8} />
-              <ArrowRight size={17} color="#8E9BAE" />
+              <View style={styles.metricIconWrap}>
+                <MessageSquare size={17} color="#1E293B" strokeWidth={1.8} />
+              </View>
+              <ArrowRight size={14} color="#94A3B8" />
             </View>
             <Text style={styles.metricNumber}>{totalEnquiries || 14}</Text>
             <Text style={styles.metricLabel}>Total inquiries</Text>
@@ -241,8 +247,10 @@ export default function OwnerDashboardScreen({ navigation }) {
             activeOpacity={0.85}
           >
             <View style={styles.metricCardTop}>
-              <Eye size={22} color="#0F172A" strokeWidth={1.8} />
-              <ArrowRight size={17} color="#8E9BAE" />
+              <View style={styles.metricIconWrap}>
+                <Eye size={17} color="#1E293B" strokeWidth={1.8} />
+              </View>
+              <ArrowRight size={14} color="#94A3B8" />
             </View>
             <Text style={styles.metricNumber}>
               {totalViews > 0 ? totalViews.toLocaleString("en-IN") : "1,248"}
@@ -252,7 +260,7 @@ export default function OwnerDashboardScreen({ navigation }) {
         </View>
 
         {/* Row 3: Site Visits & Closed Listings */}
-        <View style={[styles.metricsGrid, { marginTop: 12 }]}>
+        <View style={[styles.metricsGrid, { marginTop: 10 }]}>
           {/* Card 5: Site Visits Booked */}
           <TouchableOpacity
             style={styles.metricCard}
@@ -260,8 +268,10 @@ export default function OwnerDashboardScreen({ navigation }) {
             activeOpacity={0.85}
           >
             <View style={styles.metricCardTop}>
-              <Calendar size={22} color="#0F172A" strokeWidth={1.8} />
-              <ArrowRight size={17} color="#8E9BAE" />
+              <View style={styles.metricIconWrap}>
+                <Calendar size={17} color="#1E293B" strokeWidth={1.8} />
+              </View>
+              <ArrowRight size={14} color="#94A3B8" />
             </View>
             <Text style={styles.metricNumber}>
               {String(totalVisits || 6).padStart(2, "0")}
@@ -276,8 +286,10 @@ export default function OwnerDashboardScreen({ navigation }) {
             activeOpacity={0.85}
           >
             <View style={styles.metricCardTop}>
-              <ShieldCheck size={22} color="#0F172A" strokeWidth={1.8} />
-              <ArrowRight size={17} color="#8E9BAE" />
+              <View style={styles.metricIconWrap}>
+                <ShieldCheck size={17} color="#1E293B" strokeWidth={1.8} />
+              </View>
+              <ArrowRight size={14} color="#94A3B8" />
             </View>
             <Text style={styles.metricNumber}>
               {String(closedCount).padStart(2, "0")}
@@ -526,50 +538,50 @@ const styles = StyleSheet.create({
     borderColor: "#FFFFFF",
   },
 
-  // 2. Greeting Section (Matching reference photo: "Good morning / Arunavo,")
+  // 2. Greeting Section
   greetingSection: {
-    marginBottom: 20,
-    marginTop: 14,
+    marginBottom: 16,
+    marginTop: 10,
   },
   dateText: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: "500",
-    color: "#8E9BAE",
+    color: "#64748B",
     letterSpacing: -0.2,
-    marginBottom: 6,
+    marginBottom: 4,
   },
   greetingMainText: {
-    fontSize: 34,
+    fontSize: 26,
     fontWeight: "800",
     color: "#0F172A",
-    letterSpacing: -0.8,
-    lineHeight: 40,
+    letterSpacing: -0.6,
+    lineHeight: 32,
   },
   greetingSubName: {
-    fontSize: 32,
+    fontSize: 24,
     fontWeight: "600",
-    color: "#8E9BAE",
-    letterSpacing: -0.6,
-    lineHeight: 38,
+    color: "#64748B",
+    letterSpacing: -0.5,
+    lineHeight: 30,
     marginTop: 2,
   },
 
-  // 3. Feature Status Card (Matching reference photo: "Current Meeting / Budget Review / now ->")
+  // 3. Feature Status Card: Primary Active Listing
   featureCard: {
     backgroundColor: "#FFFFFF",
-    borderRadius: 24,
-    paddingHorizontal: 22,
-    paddingVertical: 20,
+    borderRadius: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    marginBottom: 14,
+    marginBottom: 10,
     borderWidth: 1,
     borderColor: "#EEF2F6",
     shadowColor: "#000000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.04,
-    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.03,
+    shadowRadius: 8,
     elevation: 2,
   },
   featureLeftCol: {
@@ -577,13 +589,15 @@ const styles = StyleSheet.create({
     marginRight: 12,
   },
   featureCardSub: {
-    fontSize: 13,
-    fontWeight: "500",
-    color: "#8E9BAE",
-    marginBottom: 5,
+    fontSize: 11.5,
+    fontWeight: "600",
+    color: "#64748B",
+    letterSpacing: 0.3,
+    textTransform: "uppercase",
+    marginBottom: 2,
   },
   featureCardTitle: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: "700",
     color: "#0F172A",
     letterSpacing: -0.3,
@@ -593,72 +607,86 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   nowBadge: {
-    backgroundColor: "#16A34A",
-    borderRadius: 14,
-    paddingHorizontal: 12,
-    paddingVertical: 4,
+    borderRadius: 10,
+    paddingHorizontal: 10,
+    paddingVertical: 3.5,
   },
   liveBadge: {
-    backgroundColor: "#16A34A",
+    backgroundColor: "#ECFDF5",
+    borderWidth: 1,
+    borderColor: "#A7F3D0",
   },
   startBadge: {
-    backgroundColor: COLORS.primary,
+    backgroundColor: "#EFF6FF",
+    borderWidth: 1,
+    borderColor: "#BFDBFE",
   },
   nowBadgeText: {
-    color: "#FFFFFF",
-    fontSize: 12,
-    fontWeight: "600",
+    color: "#059669",
+    fontSize: 11.5,
+    fontWeight: "700",
     letterSpacing: 0.2,
   },
 
-  // 4. 2-Column Metrics Grid (Matching reference photo)
+  // 4. 2-Column Metrics Grid
   metricsGrid: {
     flexDirection: "row",
-    gap: 14,
+    gap: 10,
   },
   metricCard: {
     flex: 1,
     backgroundColor: "#FFFFFF",
-    borderRadius: 24,
-    padding: 20,
+    borderRadius: 16,
+    padding: 13,
     borderWidth: 1,
     borderColor: "#EEF2F6",
     shadowColor: "#000000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.04,
-    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.03,
+    shadowRadius: 6,
     elevation: 2,
   },
   metricCardTop: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    marginBottom: 20,
+    marginBottom: 10,
+  },
+  metricIconWrap: {
+    width: 32,
+    height: 32,
+    borderRadius: 8,
+    backgroundColor: "#F8FAFC",
+    borderWidth: 1,
+    borderColor: "#F1F5F9",
+    alignItems: "center",
+    justifyContent: "center",
   },
   metricNumber: {
-    fontSize: 32,
+    fontSize: 22,
     fontWeight: "800",
     color: "#0F172A",
-    letterSpacing: -0.6,
+    letterSpacing: -0.5,
   },
   metricLabel: {
-    fontSize: 13.5,
+    fontSize: 12,
     fontWeight: "500",
-    color: "#8E9BAE",
-    marginTop: 4,
+    color: "#64748B",
+    marginTop: 2,
+    letterSpacing: -0.1,
   },
 
   // 4. Quick Action Banner
   addPropertyBanner: {
     backgroundColor: "#0F172A",
-    borderRadius: 20,
-    paddingHorizontal: 18,
-    paddingVertical: 16,
+    borderRadius: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    marginTop: 18,
-    marginBottom: 18,
+    marginTop: 14,
+    marginBottom: 16,
     shadowColor: "#0F172A",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.16,
@@ -719,7 +747,7 @@ const styles = StyleSheet.create({
   },
   minimalListCard: {
     backgroundColor: "#FFFFFF",
-    borderRadius: 20,
+    borderRadius: 16,
     borderWidth: 1,
     borderColor: "#EEF2F6",
     overflow: "hidden",
