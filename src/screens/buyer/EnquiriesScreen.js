@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -24,6 +24,7 @@ import {
   X,
   Copy,
   Building,
+  ArrowLeft,
 } from "lucide-react-native";
 import COLORS from "../../constants/colors";
 import ALL_PROPERTIES from "../../data/properties";
@@ -107,11 +108,17 @@ const INITIAL_ENQUIRIES = [
 
 const FILTER_TABS = ["All", "Site Visits", "Negotiating", "Closed"];
 
-export default function EnquiriesScreen({ navigation }) {
+export default function EnquiriesScreen({ navigation, route }) {
   const { wishlist, isWishlisted, toggleWishlist } = useWishlist();
   const [enquiries, setEnquiries] = useState(INITIAL_ENQUIRIES);
-  const [activeTab, setActiveTab] = useState("All");
+  const [activeTab, setActiveTab] = useState(route?.params?.initialTab || "All");
   const [searchQuery, setSearchQuery] = useState("");
+
+  useEffect(() => {
+    if (route?.params?.initialTab) {
+      setActiveTab(route?.params?.initialTab);
+    }
+  }, [route?.params?.initialTab]);
 
   // Modals
   const [selectedProperty, setSelectedProperty] = useState(null);
@@ -187,7 +194,20 @@ export default function EnquiriesScreen({ navigation }) {
 
       {/* TOP HEADER: Title | More Button | Add Button (Matching Screenshot) */}
       <View style={styles.topHeader}>
-        <Text style={styles.screenTitle}>Enquiries</Text>
+        <View style={{ flexDirection: "row", alignItems: "center" }}>
+          {navigation?.canGoBack?.() && (
+            <TouchableOpacity
+              onPress={() => navigation.goBack()}
+              style={{ marginRight: 10, padding: 4 }}
+              activeOpacity={0.7}
+            >
+              <ArrowLeft size={22} color="#0F172A" />
+            </TouchableOpacity>
+          )}
+          <Text style={styles.screenTitle}>
+            {activeTab === "Site Visits" ? "Site Visits" : "Enquiries"}
+          </Text>
+        </View>
         <View style={styles.headerActions}>
           <TouchableOpacity
             style={styles.moreIconBtn}

@@ -51,6 +51,7 @@ export default function AgentNavigator() {
         return {
           headerShown: false,
           tabBarShowLabel: true,
+          tabBarLabelPosition: "below-icon",
           tabBarHideOnKeyboard: true,
           tabBarActiveTintColor: "#2563EB",
           tabBarInactiveTintColor: "#64748B",
@@ -63,6 +64,7 @@ export default function AgentNavigator() {
             marginTop: 3,
             marginBottom: Platform.OS === "ios" ? 0 : 2,
             letterSpacing: -0.2,
+            textAlign: "center",
           },
 
           tabBarItemStyle: {

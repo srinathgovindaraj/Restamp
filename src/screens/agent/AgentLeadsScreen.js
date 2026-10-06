@@ -29,6 +29,7 @@ import {
 } from "lucide-react-native";
 import COLORS from "../../constants/colors";
 import { useAgent } from "../../context/AgentContext";
+import AppBrandHeader from "../../components/AppBrandHeader";
 
 const LEAD_TABS = [
   { id: "all", label: "All" },
@@ -99,9 +100,12 @@ export default function AgentLeadsScreen({ navigation }) {
     <SafeAreaView style={styles.safeArea}>
       <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
 
-      {/* HEADER */}
-      <View style={styles.header}>
-        <View>
+      {/* TOP BRAND HEADER (Matching Buyer Page) */}
+      <AppBrandHeader currentRole="agent" />
+
+      {/* Screen Title */}
+      <View style={{ paddingHorizontal: 16, paddingTop: 4, paddingBottom: 10, flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
+        <View style={{ flex: 1, marginRight: 8 }}>
           <Text style={styles.headerTitle}>Client Inquiries & Leads</Text>
           <Text style={styles.headerSubtitle}>
             Verified buyer & tenant leads for your localities

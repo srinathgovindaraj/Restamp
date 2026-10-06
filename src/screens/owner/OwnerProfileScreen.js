@@ -31,10 +31,12 @@ import {
   Sparkles,
   ArrowRight,
   Search,
+  Pencil,
 } from "lucide-react-native";
 import COLORS from "../../constants/colors";
 import { useOwner } from "../../context/OwnerContext";
 import ConfirmationModal from "../../components/owner/ConfirmationModal";
+import AppBrandHeader from "../../components/AppBrandHeader";
 
 export default function OwnerProfileScreen({ navigation }) {
   const { ownerProfile, properties, leads, subscription } = useOwner();
@@ -65,10 +67,8 @@ export default function OwnerProfileScreen({ navigation }) {
     <SafeAreaView style={styles.safeArea}>
       <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
 
-      {/* Header */}
-      <View style={styles.screenHeader}>
-        <Text style={styles.screenHeaderTitle}>Profile</Text>
-      </View>
+      {/* TOP BRAND HEADER (Matching Buyer Page) */}
+      <AppBrandHeader currentRole="owner" />
 
       <ScrollView
         style={styles.container}
@@ -80,7 +80,15 @@ export default function OwnerProfileScreen({ navigation }) {
           <Image source={{ uri: ownerProfile.avatar }} style={styles.avatar} />
 
           <View style={styles.profileInfo}>
-            <Text style={styles.ownerName}>{ownerProfile.name}</Text>
+            <TouchableOpacity
+              style={styles.nameRow}
+              onPress={() => Alert.alert("Edit Profile", "Owner profile editor")}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.ownerName}>{ownerProfile.name}</Text>
+              <Pencil size={15} color="#475569" style={styles.pencilIcon} />
+            </TouchableOpacity>
+
             <Text style={styles.phoneText}>{ownerProfile.phone}</Text>
             <Text style={styles.emailText}>{ownerProfile.email}</Text>
 
@@ -91,14 +99,6 @@ export default function OwnerProfileScreen({ navigation }) {
               </View>
             )}
           </View>
-
-          <TouchableOpacity
-            style={styles.editProfileBtn}
-            onPress={() => Alert.alert("Edit Profile", "Owner profile editor")}
-            activeOpacity={0.7}
-          >
-            <Text style={styles.editProfileBtnText}>Edit</Text>
-          </TouchableOpacity>
         </View>
 
         {/* MODE SWITCH BUTTON (Prominent: Switch to Find Property) */}
@@ -415,35 +415,50 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: "#FFFFFF",
-    borderRadius: 20,
+    borderRadius: 22,
     borderWidth: 1,
     borderColor: "#EEF2F6",
     padding: 16,
     marginBottom: 16,
+    shadowColor: "#000000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 8,
+    elevation: 2,
   },
   avatar: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
+    width: 52,
+    height: 52,
+    borderRadius: 14,
     marginRight: 14,
+    backgroundColor: "#F1F5F9",
   },
   profileInfo: {
     flex: 1,
+    justifyContent: "center",
+  },
+  nameRow: {
+    flexDirection: "row",
+    alignItems: "center",
   },
   ownerName: {
-    fontSize: 17,
-    fontWeight: "500",
-    color: COLORS.textDark,
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#0F172A",
+    letterSpacing: -0.3,
+  },
+  pencilIcon: {
+    marginLeft: 8,
   },
   phoneText: {
-    fontSize: 12,
-    color: COLORS.textSecondary,
-    marginTop: 2,
+    fontSize: 12.5,
+    color: "#64748B",
+    marginTop: 3,
     fontWeight: "400",
   },
   emailText: {
     fontSize: 12,
-    color: COLORS.textSecondary,
+    color: "#94A3B8",
     marginTop: 1,
     fontWeight: "400",
   },
@@ -461,17 +476,6 @@ const styles = StyleSheet.create({
     fontSize: 10,
     fontWeight: "500",
     color: "#16A34A",
-  },
-  editProfileBtn: {
-    backgroundColor: "#F1F5F9",
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 8,
-  },
-  editProfileBtnText: {
-    fontSize: 12,
-    fontWeight: "500",
-    color: COLORS.textDark,
   },
   modeSwitchBanner: {
     flexDirection: "row",

@@ -17,13 +17,13 @@ import {
   Building2,
   X,
   Filter,
-  ArrowLeft,
   ArrowUpRight,
   MoreHorizontal,
 } from "lucide-react-native";
 import COLORS from "../../constants/colors";
 import { useOwner } from "../../context/OwnerContext";
 import RestampLogo from "../../components/RestampLogo";
+import AppBrandHeader from "../../components/AppBrandHeader";
 import OwnerHeader from "../../components/owner/OwnerHeader";
 import OwnerPropertyCard from "../../components/owner/OwnerPropertyCard";
 import EmptyState from "../../components/owner/EmptyState";
@@ -51,14 +51,6 @@ export default function OwnerPropertiesScreen({ route, navigation }) {
   const [activeTab, setActiveTab] = useState(initialTab);
   const [searchQuery, setSearchQuery] = useState("");
   const [showSearch, setShowSearch] = useState(false);
-
-
-  const handleSwitchToBuyer = () => {
-    navigation.reset({
-      index: 0,
-      routes: [{ name: "MainTabs" }],
-    });
-  };
 
   // Modals state
   const [selectedPropertyForPreview, setSelectedPropertyForPreview] = useState(null);
@@ -162,36 +154,30 @@ export default function OwnerPropertiesScreen({ route, navigation }) {
     <SafeAreaView style={styles.safeArea}>
       <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
 
-      {/* TOP HEADER: Brand Logo | Subtitle & Title | Search & Add Circle Buttons */}
-      <View style={styles.topHeader}>
-        <View style={styles.headerLeft}>
-          <View style={styles.brandIconWrapper}>
-            <RestampLogo size={32} />
-          </View>
-          <View style={styles.headerTitles}>
-            <Text style={styles.headerSubtitle}>RESTAMP Owner Studio</Text>
-            <Text style={styles.headerTitle}>My Properties</Text>
-          </View>
-        </View>
+      {/* TOP BRAND HEADER (Matching Buyer Page) */}
+      <AppBrandHeader
+        currentRole="owner"
+        rightActions={
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+            <TouchableOpacity
+              style={[styles.headerCircleBtn, showSearch && styles.headerCircleBtnActive]}
+              onPress={() => setShowSearch(!showSearch)}
+              activeOpacity={0.7}
+            >
+              <Search size={18} color={showSearch ? COLORS.primary : "#111111"} strokeWidth={2.2} />
+            </TouchableOpacity>
 
-        <View style={styles.headerRight}>
-          <TouchableOpacity
-            style={[styles.headerCircleBtn, showSearch && styles.headerCircleBtnActive]}
-            onPress={() => setShowSearch(!showSearch)}
-            activeOpacity={0.7}
-          >
-            <Search size={19} color={showSearch ? COLORS.primary : "#111111"} strokeWidth={2.2} />
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.addPropertyCircleBtn}
-            onPress={() => navigation.navigate("Add")}
-            activeOpacity={0.8}
-          >
-            <Plus size={20} color="#FFFFFF" strokeWidth={2.4} />
-          </TouchableOpacity>
-        </View>
-      </View>
+            <TouchableOpacity
+              style={styles.addPropertyCircleBtn}
+              onPress={() => navigation.navigate("Add")}
+              activeOpacity={0.8}
+            >
+              <Plus size={18} color="#FFFFFF" strokeWidth={2.4} />
+            </TouchableOpacity>
+          </View>
+        }
+        showNotification={false}
+      />
 
       {/* Main Scrollable View */}
       <ScrollView
@@ -199,21 +185,6 @@ export default function OwnerPropertiesScreen({ route, navigation }) {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Quick Switch Mode Pill Banner */}
-        <TouchableOpacity
-          style={styles.switchBanner}
-          onPress={handleSwitchToBuyer}
-          activeOpacity={0.8}
-        >
-          <View style={styles.switchBannerLeft}>
-            <ArrowLeft size={15} color="#111111" strokeWidth={2.4} style={{ marginRight: 8 }} />
-            <Text style={styles.switchBannerTitle}>Back to Buyer App</Text>
-          </View>
-          <View style={styles.switchBannerBadge}>
-            <Text style={styles.switchBannerBadgeText}>Switch Mode</Text>
-          </View>
-        </TouchableOpacity>
-
         {/* Search Input Bar (Expandable) */}
         {showSearch && (
           <View style={styles.searchBarWrapper}>
@@ -236,6 +207,16 @@ export default function OwnerPropertiesScreen({ route, navigation }) {
             </View>
           </View>
         )}
+
+        {/* Screen Title */}
+        <View style={{ paddingHorizontal: 20, paddingTop: 6, paddingBottom: 10 }}>
+          <Text style={{ fontSize: 20, fontWeight: "700", color: "#0F172A", letterSpacing: -0.4 }}>
+            My Properties
+          </Text>
+          <Text style={{ fontSize: 12, color: "#64748B", marginTop: 2 }}>
+            Manage and track your active property listings
+          </Text>
+        </View>
 
         {/* Horizontally Scrollable Status Tabs (Matching Buyer Search Properties Filter Bar) */}
         <View style={styles.tabsContainer}>
@@ -511,38 +492,6 @@ const styles = StyleSheet.create({
     paddingTop: 4,
     paddingBottom: 24,
     backgroundColor: "#FFFFFF",
-  },
-  switchBanner: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    backgroundColor: "#F8FAFC",
-    borderRadius: 20,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    marginBottom: 16,
-    borderWidth: 1,
-    borderColor: "#EEF2F6",
-  },
-  switchBannerLeft: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  switchBannerTitle: {
-    fontSize: 13,
-    fontWeight: "500",
-    color: "#111111",
-  },
-  switchBannerBadge: {
-    backgroundColor: "#F1F5F9",
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 12,
-  },
-  switchBannerBadgeText: {
-    fontSize: 11,
-    fontWeight: "500",
-    color: "#64748B",
   },
   bigCard: {
     backgroundColor: "#FFFFFF",

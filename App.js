@@ -35,6 +35,14 @@ if (Platform.OS === "web" && typeof document !== "undefined") {
     }
   `;
   document.head.appendChild(style);
+
+  if (!document.getElementById("google-fonts-dancing-script")) {
+    const fontLink = document.createElement("link");
+    fontLink.id = "google-fonts-dancing-script";
+    fontLink.rel = "stylesheet";
+    fontLink.href = "https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600;700&display=swap";
+    document.head.appendChild(fontLink);
+  }
 }
 
 export default function App() {

@@ -32,6 +32,7 @@ import {
 import COLORS from "../../constants/colors";
 import { useOwner } from "../../context/OwnerContext";
 import RestampLogo from "../../components/RestampLogo";
+import AppBrandHeader from "../../components/AppBrandHeader";
 
 export default function OwnerDashboardScreen({ navigation }) {
   const insets = useSafeAreaInsets();
@@ -101,43 +102,9 @@ export default function OwnerDashboardScreen({ navigation }) {
     <View style={styles.screenWrapper}>
       <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
 
-      {/* ================= FIXED BRAND HEADER (Like Buyer Page) ================= */}
+      {/* ================= FIXED BRAND HEADER (Matching Buyer Page) ================= */}
       <View style={[styles.headerWrapper, { paddingTop: topInset }]}>
-        <View style={styles.header}>
-          {/* Left Side Restamp Logotype */}
-          <View style={styles.logoContainer}>
-            <View style={styles.logoIconBg}>
-              <RestampLogo size={30} />
-            </View>
-            <Text style={styles.logoText}>
-              Res<Text style={styles.logoTextAccent}>tamp</Text>
-            </Text>
-            <View style={styles.ownerBadge}>
-              <Text style={styles.ownerBadgeText}>OWNER</Text>
-            </View>
-          </View>
-
-          {/* Right Side Actions: Switch to Buyer & Notification Bell */}
-          <View style={styles.headerRightActions}>
-            <TouchableOpacity
-              style={styles.switchModePill}
-              onPress={handleSwitchToBuyer}
-              activeOpacity={0.75}
-            >
-              <ArrowLeft size={13} color="#0F172A" style={{ marginRight: 4 }} />
-              <Text style={styles.switchModeText}>Buyer</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={styles.notificationBtn}
-              activeOpacity={0.8}
-              onPress={() => Alert.alert("Notifications", "You have no unread notifications.")}
-            >
-              <Bell size={20} color="#0F172A" />
-              <View style={styles.notificationDot} />
-            </TouchableOpacity>
-          </View>
-        </View>
+        <AppBrandHeader currentRole="owner" />
       </View>
 
       <ScrollView

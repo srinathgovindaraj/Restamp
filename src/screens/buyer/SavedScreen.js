@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -36,6 +36,7 @@ import {
 import COLORS from "../../constants/colors";
 import { useWishlist } from "../../context/WishlistContext";
 import PropertyDetailModal from "../../components/PropertyDetailModal";
+import AppBrandHeader from "../../components/AppBrandHeader";
 import ALL_PROPERTIES from "../../data/properties";
 
 const INITIAL_VIEWED_PROPERTIES = [
@@ -93,11 +94,17 @@ const INITIAL_CALL_HISTORY = [
   },
 ];
 
-export default function SavedScreen({ navigation }) {
+export default function SavedScreen({ navigation, route }) {
   const { wishlist, removeFromWishlist, isWishlisted, toggleWishlist } = useWishlist();
 
   // Active tab state: "wishlist" | "viewed" | "call"
-  const [activeTab, setActiveTab] = useState("wishlist");
+  const [activeTab, setActiveTab] = useState(route?.params?.initialTab || "wishlist");
+
+  useEffect(() => {
+    if (route?.params?.initialTab) {
+      setActiveTab(route?.params?.initialTab);
+    }
+  }, [route?.params?.initialTab]);
 
   // Selected property modal
   const [selectedProperty, setSelectedProperty] = useState(null);
@@ -189,13 +196,8 @@ export default function SavedScreen({ navigation }) {
     <SafeAreaView style={styles.safeArea}>
       <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
 
-      {/* Screen Header */}
-      <View style={styles.header}>
-        <View>
-          <Text style={styles.headerTitle}>My Activity</Text>
-          <Text style={styles.headerSubtitle}>Saved properties, viewed listings & call history</Text>
-        </View>
-      </View>
+      {/* TOP BRAND HEADER (Matching Buyer Home) */}
+      <AppBrandHeader currentRole="buyer" />
 
       <ScrollView
         style={styles.container}

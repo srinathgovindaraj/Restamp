@@ -11,6 +11,7 @@ import SavedScreen from "../screens/buyer/SavedScreen";
 import ExploreScreen from "../screens/buyer/ExploreScreen";
 import ProfileScreen from "../screens/buyer/ProfileScreen";
 import MenuScreen from "../screens/buyer/MenuScreen";
+import EnquiriesScreen from "../screens/buyer/EnquiriesScreen";
 
 import OwnerNavigator from "./OwnerNavigator";
 import OwnerPlansScreen from "../screens/owner/OwnerPlansScreen";
@@ -70,6 +71,7 @@ function MainTabs() {
         return {
           headerShown: false,
           tabBarShowLabel: true,
+          tabBarLabelPosition: "below-icon",
           tabBarHideOnKeyboard: true,
           tabBarActiveTintColor: "#2563EB",
           tabBarInactiveTintColor: "#64748B",
@@ -82,6 +84,7 @@ function MainTabs() {
             marginTop: 3,
             marginBottom: Platform.OS === "ios" ? 0 : 2,
             letterSpacing: -0.2,
+            textAlign: "center",
           },
 
           tabBarItemStyle: {
@@ -156,6 +159,7 @@ export default function AppNavigator() {
         <Stack.Screen name="Profile" component={ProfileScreen} />
         <Stack.Screen name="Activity" component={SavedScreen} />
         <Stack.Screen name="Saved" component={SavedScreen} />
+        <Stack.Screen name="Enquiries" component={EnquiriesScreen} />
         <Stack.Screen name="Explore" component={ExploreScreen} />
         <Stack.Screen
           name="Menu"

@@ -21,7 +21,6 @@ import {
   Building2,
   Heart,
   MessageSquare,
-  Calendar,
   Bell,
   Globe,
   HelpCircle,
@@ -31,6 +30,7 @@ import {
   LogOut,
   ArrowRight,
   X,
+  Pencil,
 } from "lucide-react-native";
 import COLORS from "../../constants/colors";
 import { useNavigation } from "@react-navigation/native";
@@ -38,6 +38,7 @@ import { useWishlist } from "../../context/WishlistContext";
 import { useOwner } from "../../context/OwnerContext";
 import { useAuth } from "../../context/AuthContext";
 import ConfirmationModal from "../../components/owner/ConfirmationModal";
+import AppBrandHeader from "../../components/AppBrandHeader";
 
 export default function ProfileScreen({ navigation }) {
   const nav = useNavigation() || navigation;
@@ -77,10 +78,8 @@ export default function ProfileScreen({ navigation }) {
     <SafeAreaView style={styles.safeArea}>
       <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
 
-      {/* Screen Header */}
-      <View style={styles.screenHeader}>
-        <Text style={styles.screenHeaderTitle}>Profile</Text>
-      </View>
+      {/* TOP BRAND HEADER (Matching Buyer Home) */}
+      <AppBrandHeader currentRole="buyer" />
 
       <ScrollView
         style={styles.container}
@@ -92,7 +91,19 @@ export default function ProfileScreen({ navigation }) {
           <Image source={{ uri: userProfile.avatar }} style={styles.avatar} />
 
           <View style={styles.profileInfo}>
-            <Text style={styles.ownerName}>{userProfile.name}</Text>
+            <TouchableOpacity
+              style={styles.nameRow}
+              onPress={() => {
+                setEditName(userProfile.name);
+                setEditPhone(userProfile.phone);
+                setIsEditing(true);
+              }}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.ownerName}>{userProfile.name}</Text>
+              <Pencil size={15} color="#475569" style={styles.pencilIcon} />
+            </TouchableOpacity>
+
             <Text style={styles.phoneText}>{userProfile.phone}</Text>
             <Text style={styles.emailText}>{userProfile.email}</Text>
 
@@ -103,18 +114,6 @@ export default function ProfileScreen({ navigation }) {
               </View>
             )}
           </View>
-
-          <TouchableOpacity
-            style={styles.editProfileBtn}
-            onPress={() => {
-              setEditName(userProfile.name);
-              setEditPhone(userProfile.phone);
-              setIsEditing(true);
-            }}
-            activeOpacity={0.7}
-          >
-            <Text style={styles.editProfileBtnText}>Edit</Text>
-          </TouchableOpacity>
         </View>
 
         {/* Mode Switch Button (Switch to Post Property) */}
@@ -158,26 +157,6 @@ export default function ProfileScreen({ navigation }) {
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={styles.menuRow}
-            onPress={() =>
-              Alert.alert(
-                "KYC & Verification",
-                "Aadhaar / ID Verification Status: VERIFIED"
-              )
-            }
-            activeOpacity={0.7}
-          >
-            <View style={styles.menuLeft}>
-              <ShieldCheck size={18} color="#334155" style={styles.menuIcon} />
-              <Text style={styles.menuLabel}>KYC / Verification</Text>
-            </View>
-            <View style={styles.badgeRow}>
-              <Text style={styles.kycStatusText}>Verified</Text>
-              <ChevronRight size={16} color="#94A3B8" />
-            </View>
-          </TouchableOpacity>
-
-          <TouchableOpacity
             style={[styles.menuRow, { borderBottomWidth: 0 }]}
             onPress={() =>
               Alert.alert(
@@ -201,7 +180,7 @@ export default function ProfileScreen({ navigation }) {
 
           <TouchableOpacity
             style={styles.menuRow}
-            onPress={() => nav.navigate("Activity")}
+            onPress={() => nav.navigate("Activity", { initialTab: "wishlist" })}
             activeOpacity={0.7}
           >
             <View style={styles.menuLeft}>
@@ -217,8 +196,8 @@ export default function ProfileScreen({ navigation }) {
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={styles.menuRow}
-            onPress={() => nav.navigate("Activity", { initialTab: "Contacted" })}
+            style={[styles.menuRow, { borderBottomWidth: 0 }]}
+            onPress={() => nav.navigate("Enquiries", { initialTab: "All" })}
             activeOpacity={0.7}
           >
             <View style={styles.menuLeft}>
@@ -228,25 +207,6 @@ export default function ProfileScreen({ navigation }) {
             <View style={styles.badgeRow}>
               <View style={styles.countBadge}>
                 <Text style={styles.countText}>{enquiriesCount}</Text>
-              </View>
-              <ChevronRight size={16} color="#94A3B8" />
-            </View>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[styles.menuRow, { borderBottomWidth: 0 }]}
-            onPress={() =>
-              Alert.alert("Site Visits", "You have 2 scheduled site visits.")
-            }
-            activeOpacity={0.7}
-          >
-            <View style={styles.menuLeft}>
-              <Calendar size={18} color="#334155" style={styles.menuIcon} />
-              <Text style={styles.menuLabel}>Site Visits</Text>
-            </View>
-            <View style={styles.badgeRow}>
-              <View style={styles.countBadge}>
-                <Text style={styles.countText}>2</Text>
               </View>
               <ChevronRight size={16} color="#94A3B8" />
             </View>
@@ -263,12 +223,12 @@ export default function ProfileScreen({ navigation }) {
             activeOpacity={0.7}
           >
             <View style={styles.menuLeft}>
-              <User size={18} color="#2563EB" style={styles.menuIcon} />
-              <Text style={[styles.menuLabel, { color: "#2563EB", fontWeight: "600" }]}>
+              <User size={18} color="#334155" style={styles.menuIcon} />
+              <Text style={styles.menuLabel}>
                 Phone Login / Switch Account
               </Text>
             </View>
-            <ChevronRight size={16} color="#2563EB" />
+            <ChevronRight size={16} color="#94A3B8" />
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -485,35 +445,50 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: "#FFFFFF",
-    borderRadius: 20,
+    borderRadius: 22,
     borderWidth: 1,
     borderColor: "#EEF2F6",
     padding: 16,
     marginBottom: 16,
+    shadowColor: "#000000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 8,
+    elevation: 2,
   },
   avatar: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
+    width: 52,
+    height: 52,
+    borderRadius: 14,
     marginRight: 14,
+    backgroundColor: "#F1F5F9",
   },
   profileInfo: {
     flex: 1,
+    justifyContent: "center",
+  },
+  nameRow: {
+    flexDirection: "row",
+    alignItems: "center",
   },
   ownerName: {
-    fontSize: 17,
-    fontWeight: "500",
-    color: COLORS.textDark,
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#0F172A",
+    letterSpacing: -0.3,
+  },
+  pencilIcon: {
+    marginLeft: 8,
   },
   phoneText: {
-    fontSize: 12,
-    color: COLORS.textSecondary,
-    marginTop: 2,
+    fontSize: 12.5,
+    color: "#64748B",
+    marginTop: 3,
     fontWeight: "400",
   },
   emailText: {
     fontSize: 12,
-    color: COLORS.textSecondary,
+    color: "#94A3B8",
     marginTop: 1,
     fontWeight: "400",
   },
@@ -531,17 +506,6 @@ const styles = StyleSheet.create({
     fontSize: 10,
     fontWeight: "500",
     color: "#16A34A",
-  },
-  editProfileBtn: {
-    backgroundColor: "#F1F5F9",
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 8,
-  },
-  editProfileBtnText: {
-    fontSize: 12,
-    fontWeight: "500",
-    color: COLORS.textDark,
   },
   modeSwitchBanner: {
     flexDirection: "row",

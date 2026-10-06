@@ -35,6 +35,7 @@ import {
 import COLORS from "../../constants/colors";
 import { useAgent } from "../../context/AgentContext";
 import RestampLogo from "../../components/RestampLogo";
+import AppBrandHeader from "../../components/AppBrandHeader";
 
 export default function AgentDashboardScreen({ navigation }) {
   const {
@@ -84,57 +85,21 @@ export default function AgentDashboardScreen({ navigation }) {
     <SafeAreaView style={styles.safeArea}>
       <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
 
-      {/* TOP HEADER */}
-      <View style={styles.header}>
-        <View style={styles.headerLeft}>
-          <View style={styles.brandIconWrapper}>
-            <RestampLogo size={28} />
-          </View>
-          <View style={styles.headerTitleGroup}>
-            <Text style={styles.headerGreeting}>{getGreeting()}</Text>
-            <Text style={styles.headerAgentName}>
-              {agentProfile?.name || "Vikram Prabhu"}
-            </Text>
-          </View>
-        </View>
-
-        <View style={styles.headerRight}>
-          <TouchableOpacity
-            style={styles.headerCircleBtn}
-            onPress={() =>
-              Alert.alert(
-                "Notifications",
-                "• 2 New buyer inquiries in Anna Nagar\n• Site visit reminder for Suresh Babu today at 4:30 PM\n• New owner listed 3 BHK in Kilpauk"
-              )
-            }
-            activeOpacity={0.75}
-          >
-            <Bell size={19} color="#0F172A" />
-            <View style={styles.notificationDot} />
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.headerAvatarBtn}
-            onPress={() => navigation.navigate("Profile")}
-            activeOpacity={0.8}
-          >
-            <Image
-              source={{
-                uri:
-                  agentProfile?.avatar ||
-                  "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=80",
-              }}
-              style={styles.headerAvatar}
-            />
-          </TouchableOpacity>
-        </View>
-      </View>
+      {/* TOP HEADER (Matching Buyer Page) */}
+      <AppBrandHeader currentRole="agent" />
 
       <ScrollView
         style={styles.container}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
+        {/* WELCOME GREETING */}
+        <View style={styles.welcomeRow}>
+          <Text style={styles.headerGreeting}>{getGreeting()}</Text>
+          <Text style={styles.headerAgentName}>
+            {agentProfile?.name || "Vikram Prabhu"}
+          </Text>
+        </View>
         {/* EXPIRED PLAN BANNER (IF EXPIRED) */}
         {isPlanExpired && (
           <View style={styles.expiredBanner}>
@@ -521,6 +486,9 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
+  },
+  welcomeRow: {
+    marginBottom: 14,
   },
   expiredLeft: {
     flexDirection: "row",

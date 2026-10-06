@@ -37,6 +37,7 @@ import StatusBadge from "../../components/owner/StatusBadge";
 import EmptyState from "../../components/owner/EmptyState";
 import OwnerSiteVisitModal from "./OwnerSiteVisitModal";
 import OwnerCloseLeadModal from "./OwnerCloseLeadModal";
+import AppBrandHeader from "../../components/AppBrandHeader";
 
 const LEAD_FILTERS = [
   "All",
@@ -197,30 +198,23 @@ export default function OwnerLeadsScreen({ navigation }) {
     <SafeAreaView style={styles.safeArea}>
       <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
 
-      {/* ================= HEADER ================= */}
-      <View style={styles.header}>
-        <View style={styles.headerTitles}>
-          <Text style={styles.headerTitle}>Buyer Leads</Text>
-          <Text style={styles.headerSubtitle}>
-            Manage enquiries received for your properties
-          </Text>
-        </View>
-
-        <TouchableOpacity
-          style={styles.switchModeBtn}
-          onPress={handleSwitchToBuyer}
-          activeOpacity={0.7}
-        >
-          <ArrowLeft size={13} color="#2563EB" strokeWidth={2.4} style={{ marginRight: 4 }} />
-          <Text style={styles.switchModeText}>Buyer Mode</Text>
-        </TouchableOpacity>
-      </View>
+      {/* ================= TOP BRAND HEADER (Matching Buyer Page) ================= */}
+      <AppBrandHeader currentRole="owner" />
 
       <ScrollView
         style={styles.container}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
+        {/* Screen Title */}
+        <View style={{ marginBottom: 12 }}>
+          <Text style={{ fontSize: 20, fontWeight: "700", color: "#0F172A", letterSpacing: -0.4 }}>
+            Buyer Leads
+          </Text>
+          <Text style={{ fontSize: 12, color: "#64748B", marginTop: 2 }}>
+            Manage enquiries received for your properties
+          </Text>
+        </View>
         {/* ================= 1ST SECTION: SEGMENTED PILL BAR ================= */}
         <View style={styles.pillContainer}>
           <TouchableOpacity

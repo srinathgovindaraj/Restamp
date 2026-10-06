@@ -37,6 +37,7 @@ import {
 import COLORS from "../../constants/colors";
 import { useAgent } from "../../context/AgentContext";
 import PropertyDetailModal from "../../components/PropertyDetailModal";
+import AppBrandHeader from "../../components/AppBrandHeader";
 
 const DEAL_TYPES = ["All", "Rent", "Buy", "Lease"];
 const PROPERTY_TYPES = ["All Types", "Apartment", "Villa", "House", "Commercial", "Plot"];
@@ -148,9 +149,12 @@ export default function AgentPropertiesScreen({ navigation }) {
     <SafeAreaView style={styles.safeArea}>
       <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
 
-      {/* TOP HEADER */}
-      <View style={styles.header}>
-        <View>
+      {/* TOP BRAND HEADER (Matching Buyer Page) */}
+      <AppBrandHeader currentRole="agent" />
+
+      {/* Screen Title */}
+      <View style={{ paddingHorizontal: 16, paddingTop: 4, paddingBottom: 10, flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
+        <View style={{ flex: 1, marginRight: 8 }}>
           <Text style={styles.headerTitle}>Available Properties</Text>
           <Text style={styles.headerSubtitle}>
             Owner-listed homes in your {selectedLocalities.length} covered areas

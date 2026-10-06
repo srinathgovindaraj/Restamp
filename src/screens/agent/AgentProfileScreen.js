@@ -34,6 +34,7 @@ import {
 } from "lucide-react-native";
 import COLORS from "../../constants/colors";
 import { useAgent } from "../../context/AgentContext";
+import AppBrandHeader from "../../components/AppBrandHeader";
 
 export default function AgentProfileScreen({ navigation }) {
   const {
@@ -83,10 +84,8 @@ export default function AgentProfileScreen({ navigation }) {
     <SafeAreaView style={styles.safeArea}>
       <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
 
-      {/* Screen Title */}
-      <View style={styles.titleContainer}>
-        <Text style={styles.screenTitle}>Profile</Text>
-      </View>
+      {/* TOP BRAND HEADER (Matching Buyer Page) */}
+      <AppBrandHeader currentRole="agent" />
 
       <ScrollView
         style={styles.container}
