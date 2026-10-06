@@ -4,7 +4,6 @@ import {
   Text,
   StyleSheet,
   ScrollView,
-  SafeAreaView,
   StatusBar,
   TouchableOpacity,
   Image,
@@ -15,6 +14,7 @@ import {
   FlatList,
   Platform,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import {
   Search,
   Filter,

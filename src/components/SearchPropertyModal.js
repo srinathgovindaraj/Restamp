@@ -3,13 +3,13 @@ import {
   View,
   Text,
   StyleSheet,
-  SafeAreaView,
   TextInput,
   TouchableOpacity,
   ScrollView,
   Modal,
   Platform,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { Search, X, XCircle, Check, ChevronDown } from "lucide-react-native";
 import COLORS from "../constants/colors";
 import TYPOGRAPHY from "../constants/typography";

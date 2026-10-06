@@ -4,12 +4,13 @@ import {
   Text,
   StyleSheet,
   ScrollView,
-  SafeAreaView,
   StatusBar,
   TouchableOpacity,
   Image,
   Alert,
+  TextInput,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import {
   ArrowLeft,
   Phone,
@@ -19,11 +20,16 @@ import {
   MapPin,
   CheckCircle2,
   Check,
-  Building,
+  Building2,
   User,
-  ExternalLink,
   Mail,
+  Home,
+  XCircle,
+  FileText,
+  Send,
+  Plus,
 } from "lucide-react-native";
+
 import COLORS from "../../constants/colors";
 import { useOwner } from "../../context/OwnerContext";
 import StatusBadge from "../../components/owner/StatusBadge";
@@ -32,30 +38,24 @@ import SecondaryButton from "../../components/owner/SecondaryButton";
 import OwnerSiteVisitModal from "./OwnerSiteVisitModal";
 import OwnerCloseLeadModal from "./OwnerCloseLeadModal";
 
-const STATUS_STEPS = [
-  { id: "new", label: "New" },
-  { id: "contacted", label: "Contacted" },
-  { id: "visit_scheduled", label: "Visit Scheduled" },
-  { id: "visited", label: "Visited" },
-  { id: "negotiating", label: "Negotiating" },
-  { id: "closed", label: "Closed" },
-];
-
 export default function OwnerLeadDetailScreen({ route, navigation }) {
-  const { updateLeadStatus, scheduleVisit, closeLead } = useOwner();
+  const { updateLeadStatus, scheduleVisit, closeLead, addLeadNote } = useOwner();
   const initialLead = route?.params?.lead;
 
   const [lead, setLead] = useState(initialLead);
   const [showVisitModal, setShowVisitModal] = useState(false);
   const [showCloseModal, setShowCloseModal] = useState(false);
+  const [newNoteText, setNewNoteText] = useState("");
 
   if (!lead) {
     return (
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.errorContainer}>
-          <Text>Lead details not found.</Text>
+          <Text style={styles.errorText}>Lead details not found.</Text>
           <TouchableOpacity onPress={() => navigation.goBack()}>
-            <Text style={{ color: COLORS.primary, marginTop: 10 }}>Go Back</Text>
+            <Text style={{ color: COLORS.primary, marginTop: 10, fontWeight: "700" }}>
+              Go Back
+            </Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>
@@ -63,7 +63,7 @@ export default function OwnerLeadDetailScreen({ route, navigation }) {
   }
 
   const handleUpdateStatus = (newStatus) => {
-    if (newStatus === "closed") {
+    if (newStatus === "closed" || newStatus === "lost") {
       setShowCloseModal(true);
       return;
     }
@@ -76,24 +76,46 @@ export default function OwnerLeadDetailScreen({ route, navigation }) {
   };
 
   const handleCall = () => {
-    Alert.alert("Calling Customer", `Connecting call to ${lead.customerName} (${lead.phone})...`);
+    Alert.alert("Calling Customer", `Dialing ${lead.customerName} (${lead.phone})...`);
     if (lead.status === "new") {
       handleUpdateStatus("contacted");
     }
   };
 
   const handleWhatsApp = () => {
-    Alert.alert("WhatsApp Chat", `Opening WhatsApp chat with ${lead.customerName} (${lead.phone}).`);
+    Alert.alert(
+      "WhatsApp & Message",
+      `Opening direct chat with ${lead.customerName} (${lead.phone}).`
+    );
     if (lead.status === "new") {
       handleUpdateStatus("contacted");
     }
+  };
+
+  const handleAddNote = () => {
+    if (!newNoteText.trim()) return;
+    const noteContent = newNoteText.trim();
+    addLeadNote?.(lead.id, noteContent);
+
+    const newNoteObj = {
+      id: `note-${Date.now()}`,
+      text: noteContent,
+      timestamp: "Just now",
+    };
+
+    setLead((prev) => ({
+      ...prev,
+      internalNotes: [...(prev.internalNotes || []), newNoteObj],
+    }));
+
+    setNewNoteText("");
   };
 
   return (
     <SafeAreaView style={styles.safeArea}>
       <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
 
-      {/* Header */}
+      {/* ================= HEADER ================= */}
       <View style={styles.header}>
         <TouchableOpacity
           style={styles.backBtn}
@@ -102,12 +124,14 @@ export default function OwnerLeadDetailScreen({ route, navigation }) {
         >
           <ArrowLeft size={20} color="#0F172A" />
         </TouchableOpacity>
+
         <View style={styles.headerCenter}>
           <Text style={styles.headerTitle}>Lead Details</Text>
           <Text style={styles.headerSubtitle} numberOfLines={1}>
             {lead.customerName}
           </Text>
         </View>
+
         <StatusBadge status={lead.status} />
       </View>
 
@@ -116,168 +140,103 @@ export default function OwnerLeadDetailScreen({ route, navigation }) {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* ================= 1. CUSTOMER PROFILE HERO (BORDERLESS) ================= */}
-        <View style={styles.customerHeroSection}>
-          <View style={styles.customerTopRow}>
-            <View style={styles.avatarWrapper}>
-              <Image
-                source={{
-                  uri:
-                    lead.avatar ||
-                    "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&q=80",
-                }}
-                style={styles.avatar}
-              />
-              <View style={styles.verifiedDot}>
-                <Check size={10} color="#FFFFFF" strokeWidth={3} />
-              </View>
-            </View>
+        {/* ================= BUYER DETAILS ================= */}
+        <View style={styles.section}>
+          <View style={styles.buyerTopRow}>
+            <Image
+              source={{
+                uri:
+                  lead.avatar ||
+                  "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&q=80",
+              }}
+              style={styles.buyerAvatar}
+            />
 
-            <View style={styles.customerInfoCol}>
-              <Text style={styles.customerName}>{lead.customerName}</Text>
-              
+            <View style={styles.buyerInfoCol}>
+              <View style={styles.buyerNameRow}>
+                <Text style={styles.buyerNameText}>{lead.customerName}</Text>
+                <View style={styles.verifiedTag}>
+                  <Check size={10} color="#16A34A" strokeWidth={3} />
+                  <Text style={styles.verifiedTagText}>Verified</Text>
+                </View>
+              </View>
+
               <TouchableOpacity
-                style={styles.customerMetaRow}
+                style={styles.buyerContactRow}
                 onPress={handleCall}
                 activeOpacity={0.7}
               >
-                <Phone size={13} color={COLORS.primary} style={{ marginRight: 6 }} />
-                <Text style={styles.customerPhone}>{lead.phone}</Text>
+                <Phone size={13} color="#2563EB" style={{ marginRight: 6 }} />
+                <Text style={styles.buyerPhoneText}>{lead.phone}</Text>
               </TouchableOpacity>
 
               {lead.email ? (
-                <View style={styles.customerMetaRow}>
+                <View style={styles.buyerContactRow}>
                   <Mail size={13} color="#64748B" style={{ marginRight: 6 }} />
-                  <Text style={styles.customerEmail}>{lead.email}</Text>
+                  <Text style={styles.buyerEmailText}>{lead.email}</Text>
                 </View>
               ) : null}
             </View>
           </View>
 
-          {/* Quick Contact Buttons Row */}
-          <View style={styles.contactActionsRow}>
+          {/* Quick Contact Action Buttons */}
+          <View style={styles.buyerActionsRow}>
             <TouchableOpacity
-              style={[styles.contactActionBtn, styles.callActionBtn]}
+              style={[styles.buyerActionBtn, styles.callBtn]}
               onPress={handleCall}
               activeOpacity={0.8}
             >
-              <Phone size={15} color={COLORS.primary} fill={COLORS.primary} style={{ marginRight: 8 }} />
-              <Text style={styles.callActionBtnText}>Call Now</Text>
+              <Phone size={14} color="#2563EB" style={{ marginRight: 6 }} />
+              <Text style={styles.callBtnText}>Call Buyer</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
-              style={[styles.contactActionBtn, styles.whatsappActionBtn]}
+              style={[styles.buyerActionBtn, styles.whatsappBtn]}
               onPress={handleWhatsApp}
               activeOpacity={0.8}
             >
-              <MessageCircle size={16} color="#16A34A" style={{ marginRight: 8 }} />
-              <Text style={styles.whatsappActionBtnText}>WhatsApp</Text>
+              <MessageCircle size={15} color="#16A34A" style={{ marginRight: 6 }} />
+              <Text style={styles.whatsappBtnText}>WhatsApp Chat</Text>
             </TouchableOpacity>
           </View>
         </View>
 
         <View style={styles.sectionDivider} />
 
-        {/* ================= 2. PIPELINE STATUS (BORDERLESS TRACK) ================= */}
-        <View style={styles.sectionBlock}>
-          <Text style={styles.sectionTitle}>Pipeline Status</Text>
-          <Text style={styles.sectionSubtitle}>
-            Tap a stage to update this lead's conversion progress:
-          </Text>
+        {/* ================= INTERESTED PROPERTY ================= */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Interested Property</Text>
 
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.statusStepperScroll}
-          >
-            {STATUS_STEPS.map((s, idx) => {
-              const isCurrent = lead.status === s.id;
-              const isPast =
-                STATUS_STEPS.findIndex((x) => x.id === lead.status) > idx;
-
-              return (
-                <TouchableOpacity
-                  key={s.id}
-                  style={[
-                    styles.stepperPill,
-                    isCurrent && styles.stepperPillActive,
-                    isPast && styles.stepperPillPast,
-                  ]}
-                  onPress={() => handleUpdateStatus(s.id)}
-                  activeOpacity={0.8}
-                >
-                  <View
-                    style={[
-                      styles.stepperDot,
-                      isCurrent && styles.stepperDotActive,
-                      isPast && styles.stepperDotPast,
-                    ]}
-                  >
-                    {isPast ? (
-                      <Check size={11} color="#FFFFFF" strokeWidth={3} />
-                    ) : (
-                      <Text
-                        style={[
-                          styles.stepperDotNum,
-                          isCurrent && styles.stepperDotNumActive,
-                        ]}
-                      >
-                        {idx + 1}
-                      </Text>
-                    )}
-                  </View>
-                  <Text
-                    style={[
-                      styles.stepperLabel,
-                      isCurrent && styles.stepperLabelActive,
-                      isPast && styles.stepperLabelPast,
-                    ]}
-                    numberOfLines={1}
-                  >
-                    {s.label}
-                  </Text>
-                </TouchableOpacity>
-              );
-            })}
-          </ScrollView>
-        </View>
-
-        <View style={styles.sectionDivider} />
-
-        {/* ================= 3. PROPERTY INTERESTED IN (FULL PROPERTY BANNER) ================= */}
-        <View style={styles.sectionBlock}>
-          <Text style={styles.sectionTitle}>Property Interested In</Text>
-
-          <View style={styles.propertyBanner}>
+          <View style={styles.propertyRow}>
             <Image
               source={{
                 uri:
                   lead.propertyImage ||
-                  "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=600&q=80",
+                  "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=500&q=80",
               }}
-              style={styles.propertyBannerImage}
-              resizeMode="cover"
+              style={styles.propertyImage}
             />
-            <View style={styles.propertyBannerBadge}>
-              <Text style={styles.propertyBannerBadgeText}>
-                {(lead.requirement || "FOR RENT").toUpperCase()}
-              </Text>
-            </View>
 
-            <View style={styles.propertyBannerContent}>
-              <Text style={styles.propertyBannerTitle} numberOfLines={1}>
-                {lead.propertyTitle}
-              </Text>
-              
-              <View style={styles.propertyBannerLocRow}>
-                <MapPin size={13} color="#64748B" style={{ marginRight: 4 }} />
-                <Text style={styles.propertyBannerLoc} numberOfLines={1}>
-                  {lead.propertyLocality || "Chennai"}
+            <View style={styles.propertyInfo}>
+              <View style={styles.propertyBadgeWrap}>
+                <Text style={styles.propertyBadgeText}>
+                  {(lead.requirement || "FOR RENT").toUpperCase()}
                 </Text>
               </View>
 
-              <Text style={styles.propertyBannerPrice}>
-                {lead.propertyPrice}
+              <Text style={styles.propertyTitleText} numberOfLines={1}>
+                {lead.propertyTitle || "2 BHK Luxury Apartment"}
+              </Text>
+
+              <View style={styles.propertyLocRow}>
+                <MapPin size={12} color="#64748B" style={{ marginRight: 4 }} />
+                <Text style={styles.propertyLocText} numberOfLines={1}>
+                  {lead.propertyLocality || "Anna Nagar, Chennai"}
+                </Text>
+              </View>
+
+              <Text style={styles.propertyPriceText}>
+                {lead.propertyPrice || "₹25,000 / month"}
               </Text>
             </View>
           </View>
@@ -285,94 +244,160 @@ export default function OwnerLeadDetailScreen({ route, navigation }) {
 
         <View style={styles.sectionDivider} />
 
-        {/* ================= 4. INQUIRY SPECIFICATIONS (CLEAN SPEC LIST) ================= */}
-        <View style={styles.sectionBlock}>
-          <Text style={styles.sectionTitle}>Inquiry Specifications</Text>
+        {/* ================= BUYER REQUIREMENT ================= */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Buyer Requirement</Text>
 
-          <View style={styles.specList}>
-            <View style={styles.specRowItem}>
-              <View style={styles.specLabelCol}>
-                <Building size={15} color="#64748B" style={{ marginRight: 8 }} />
-                <Text style={styles.specLabelText}>Requirement</Text>
-              </View>
-              <View style={styles.specPillHighlight}>
-                <Text style={styles.specPillHighlightText}>
-                  {lead.requirement || "Residential"}
-                </Text>
-              </View>
-            </View>
-
-            <View style={styles.specRowItem}>
-              <View style={styles.specLabelCol}>
-                <Clock size={15} color="#64748B" style={{ marginRight: 8 }} />
-                <Text style={styles.specLabelText}>Budget</Text>
-              </View>
-              <Text style={styles.specValueHighlight}>
-                {lead.budget}
+          <View style={styles.specsGrid}>
+            <View style={styles.specItem}>
+              <Text style={styles.specLabel}>PROPERTY TYPE</Text>
+              <Text style={styles.specValue}>
+                {lead.propertyTitle?.includes("Villa")
+                  ? "Villa"
+                  : lead.propertyTitle?.includes("Office")
+                  ? "Commercial"
+                  : "2 BHK Apartment"}
               </Text>
             </View>
 
-            <View style={styles.specRowItem}>
-              <View style={styles.specLabelCol}>
-                <Calendar size={15} color="#64748B" style={{ marginRight: 8 }} />
-                <Text style={styles.specLabelText}>Preferred Visit</Text>
-              </View>
-              <Text style={styles.specValueRegular}>
-                {lead.preferredVisitDate || "Flexible"}
+            <View style={styles.specItem}>
+              <Text style={styles.specLabel}>BUDGET</Text>
+              <Text style={[styles.specValue, { color: "#2563EB", fontWeight: "700" }]}>
+                {lead.budget || lead.propertyPrice || "₹25,000 / month"}
               </Text>
             </View>
 
-            <View style={[styles.specRowItem, { borderBottomWidth: 0 }]}>
-              <View style={styles.specLabelCol}>
-                <CheckCircle2 size={15} color="#64748B" style={{ marginRight: 8 }} />
-                <Text style={styles.specLabelText}>Received Date</Text>
-              </View>
-              <Text style={styles.specValueRegular}>
-                {lead.timestamp}
+            <View style={styles.specItem}>
+              <Text style={styles.specLabel}>PREFERRED LOCALITY</Text>
+              <Text style={styles.specValue}>
+                {lead.propertyLocality?.split(",")[0] || "Anna Nagar"}
+              </Text>
+            </View>
+
+            <View style={styles.specItem}>
+              <Text style={styles.specLabel}>MOVE-IN / VISIT</Text>
+              <Text style={styles.specValue}>
+                {lead.preferredVisitDate || "Within 10 days"}
               </Text>
             </View>
           </View>
+
+          {lead.message ? (
+            <View style={styles.buyerMessageQuote}>
+              <Text style={styles.buyerMessageLabel}>Enquiry Note</Text>
+              <Text style={styles.buyerMessageText}>"{lead.message}"</Text>
+            </View>
+          ) : null}
         </View>
 
         <View style={styles.sectionDivider} />
 
-        {/* ================= 5. CUSTOMER MESSAGE ================= */}
-        <View style={styles.sectionBlock}>
-          <Text style={styles.sectionTitle}>Customer Message</Text>
-          <View style={styles.messageBlockQuote}>
-            <Text style={styles.messageBlockQuoteText}>
-              "{lead.message || "Customer expressed interest and requested callback."}"
-            </Text>
-          </View>
-        </View>
+        {/* ================= SITE VISIT ================= */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Site Visit</Text>
 
-        {/* ================= 6. SCHEDULED SITE VISIT (IF EXISTS) ================= */}
-        {lead.visitData && (
-          <>
-            <View style={styles.sectionDivider} />
-            <View style={styles.sectionBlock}>
-              <View style={styles.scheduledVisitBanner}>
-                <View style={styles.scheduledVisitHeader}>
-                  <Calendar size={18} color="#2563EB" style={{ marginRight: 8 }} />
-                  <Text style={styles.scheduledVisitTitle}>
-                    Scheduled Site Visit
+          {lead.visitData ? (
+            <View style={styles.visitScheduledRow}>
+              <View style={styles.visitCardTop}>
+                <View style={styles.visitIconWrap}>
+                  <Calendar size={18} color="#2563EB" />
+                </View>
+                <View style={styles.visitTimeCol}>
+                  <Text style={styles.visitStatusLabel}>VISIT CONFIRMED</Text>
+                  <Text style={styles.visitDateTime}>
+                    {lead.visitData.date} · {lead.visitData.time}
                   </Text>
                 </View>
-                <Text style={styles.visitDataText}>
-                  Date: {lead.visitData.date} at {lead.visitData.time}
-                </Text>
-                {lead.visitData.note && (
-                  <Text style={styles.visitNoteText}>Note: {lead.visitData.note}</Text>
-                )}
               </View>
+
+              {lead.visitData.note ? (
+                <View style={styles.visitNotesRow}>
+                  <Text style={styles.visitNotesLabel}>Notes: </Text>
+                  <Text style={styles.visitNotesText}>{lead.visitData.note}</Text>
+                </View>
+              ) : null}
+
+              <TouchableOpacity
+                style={styles.rescheduleBtn}
+                onPress={() => setShowVisitModal(true)}
+                activeOpacity={0.8}
+              >
+                <Calendar size={14} color="#2563EB" style={{ marginRight: 6 }} />
+                <Text style={styles.rescheduleBtnText}>Reschedule Visit</Text>
+              </TouchableOpacity>
             </View>
-          </>
-        )}
+          ) : (
+            <View style={styles.noVisitRow}>
+              <Text style={styles.noVisitText}>
+                No site visit scheduled for this buyer yet.
+              </Text>
+              <TouchableOpacity
+                style={styles.scheduleVisitSmallBtn}
+                onPress={() => setShowVisitModal(true)}
+                activeOpacity={0.8}
+              >
+                <Calendar size={14} color="#FFFFFF" style={{ marginRight: 6 }} />
+                <Text style={styles.scheduleVisitSmallBtnText}>Schedule Site Visit</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+        </View>
 
         <View style={styles.sectionDivider} />
 
-        {/* ================= 7. BOTTOM ACTION BUTTONS ================= */}
-        <View style={styles.actionsFooter}>
+        {/* ================= INTERNAL NOTES ================= */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Internal Notes</Text>
+          <Text style={styles.sectionSubtitle}>
+            Private notes visible only to you:
+          </Text>
+
+          {/* Add Note Input Box */}
+          <View style={styles.noteInputBox}>
+            <TextInput
+              style={styles.noteInput}
+              placeholder="Add an internal note about this buyer…"
+              placeholderTextColor="#94A3B8"
+              value={newNoteText}
+              onChangeText={setNewNoteText}
+              multiline
+            />
+            <TouchableOpacity
+              style={[
+                styles.saveNoteBtn,
+                !newNoteText.trim() && styles.saveNoteBtnDisabled,
+              ]}
+              onPress={handleAddNote}
+              disabled={!newNoteText.trim()}
+              activeOpacity={0.8}
+            >
+              <Plus size={14} color="#FFFFFF" style={{ marginRight: 4 }} />
+              <Text style={styles.saveNoteBtnText}>Save Note</Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* Existing Notes List */}
+          {lead.internalNotes && lead.internalNotes.length > 0 ? (
+            <View style={styles.savedNotesList}>
+              {lead.internalNotes.map((noteItem) => (
+                <View key={noteItem.id} style={styles.savedNoteItem}>
+                  <View style={styles.savedNoteHeader}>
+                    <FileText size={13} color="#2563EB" style={{ marginRight: 6 }} />
+                    <Text style={styles.savedNoteTime}>{noteItem.timestamp}</Text>
+                  </View>
+                  <Text style={styles.savedNoteContent}>{noteItem.text}</Text>
+                </View>
+              ))}
+            </View>
+          ) : (
+            <Text style={styles.noNotesPlaceholder}>
+              No internal notes added yet. Use the box above to keep private records.
+            </Text>
+          )}
+        </View>
+
+        {/* ================= BOTTOM ACTION BUTTONS ================= */}
+        <View style={styles.bottomButtonsRow}>
           <PrimaryButton
             title="Schedule Site Visit"
             onPress={() => setShowVisitModal(true)}
@@ -391,7 +416,7 @@ export default function OwnerLeadDetailScreen({ route, navigation }) {
         <View style={{ height: 40 }} />
       </ScrollView>
 
-      {/* Schedule Visit Modal */}
+      {/* Site Visit Modal */}
       <OwnerSiteVisitModal
         visible={showVisitModal}
         lead={lead}
@@ -415,7 +440,7 @@ export default function OwnerLeadDetailScreen({ route, navigation }) {
           closeLead(leadId, outcome, closeProp, propId);
           setLead((prev) => ({
             ...prev,
-            status: "closed",
+            status: outcome === "Not Converted" ? "lost" : "closed",
             closedOutcome: outcome,
           }));
         }}
@@ -429,20 +454,32 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#FFFFFF",
   },
+  container: {
+    flex: 1,
+    backgroundColor: "#FFFFFF",
+  },
+  scrollContent: {
+    paddingHorizontal: 20,
+    paddingTop: 8,
+    paddingBottom: 40,
+  },
+
+  /* HEADER */
   header: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingHorizontal: 20,
+    paddingTop: 10,
+    paddingBottom: 14,
+    backgroundColor: "#FFFFFF",
     borderBottomWidth: 1,
     borderBottomColor: "#F1F5F9",
-    backgroundColor: "#FFFFFF",
   },
   backBtn: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     backgroundColor: "#F8FAFC",
     borderWidth: 1,
     borderColor: "#E2E8F0",
@@ -451,366 +488,407 @@ const styles = StyleSheet.create({
   },
   headerCenter: {
     flex: 1,
-    alignItems: "center",
-    marginHorizontal: 12,
+    marginLeft: 12,
+    marginRight: 12,
   },
   headerTitle: {
-    fontSize: 16.5,
-    fontWeight: "700",
-    color: "#0F172A",
-    letterSpacing: -0.2,
-  },
-  headerSubtitle: {
-    fontSize: 11.5,
-    color: "#64748B",
-    marginTop: 1,
-  },
-  container: {
-    flex: 1,
-    backgroundColor: "#FFFFFF",
-  },
-  scrollContent: {
-    paddingBottom: 24,
-  },
-
-  /* 1. CUSTOMER HERO SECTION */
-  customerHeroSection: {
-    paddingHorizontal: 20,
-    paddingTop: 16,
-    paddingBottom: 18,
-  },
-  customerTopRow: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  avatarWrapper: {
-    position: "relative",
-    marginRight: 16,
-  },
-  avatar: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: "#F1F5F9",
-    borderWidth: 2,
-    borderColor: "#EFF6FF",
-  },
-  verifiedDot: {
-    position: "absolute",
-    bottom: -1,
-    right: -1,
-    width: 18,
-    height: 18,
-    borderRadius: 9,
-    backgroundColor: COLORS.primary,
-    justifyContent: "center",
-    alignItems: "center",
-    borderWidth: 2,
-    borderColor: "#FFFFFF",
-  },
-  customerInfoCol: {
-    flex: 1,
-    justifyContent: "center",
-  },
-  customerName: {
     fontSize: 18,
     fontWeight: "800",
     color: "#0F172A",
     letterSpacing: -0.3,
-    marginBottom: 4,
   },
-  customerMetaRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginTop: 3,
-  },
-  customerPhone: {
-    fontSize: 13.5,
-    color: COLORS.primary,
-    fontWeight: "600",
-  },
-  customerEmail: {
-    fontSize: 12.5,
+  headerSubtitle: {
+    fontSize: 12,
     color: "#64748B",
-  },
-  contactActionsRow: {
-    flexDirection: "row",
-    gap: 12,
-    marginTop: 16,
-  },
-  contactActionBtn: {
-    flex: 1,
-    height: 42,
-    borderRadius: 21,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    borderWidth: 1,
-  },
-  callActionBtn: {
-    backgroundColor: "#EFF6FF",
-    borderColor: "#BFDBFE",
-  },
-  callActionBtnText: {
-    color: COLORS.primary,
-    fontSize: 13.5,
-    fontWeight: "700",
-  },
-  whatsappActionBtn: {
-    backgroundColor: "#F0FDF4",
-    borderColor: "#BBF7D0",
-  },
-  whatsappActionBtnText: {
-    color: "#16A34A",
-    fontSize: 13.5,
-    fontWeight: "700",
+    marginTop: 1,
   },
 
-  /* SECTION DIVIDERS & BLOCKS */
+  /* MINIMAL SECTION */
+  section: {
+    paddingVertical: 18,
+  },
   sectionDivider: {
     height: 1,
     backgroundColor: "#F1F5F9",
-    marginHorizontal: 20,
-  },
-  sectionBlock: {
-    backgroundColor: "#FFFFFF",
-    paddingHorizontal: 20,
-    paddingVertical: 18,
+    marginVertical: 2,
   },
   sectionTitle: {
     fontSize: 16,
     fontWeight: "700",
     color: "#0F172A",
     letterSpacing: -0.2,
-    marginBottom: 4,
+    marginBottom: 14,
   },
   sectionSubtitle: {
-    fontSize: 12,
+    fontSize: 12.5,
     color: "#64748B",
-    marginBottom: 14,
-    lineHeight: 17,
+    marginBottom: 12,
   },
 
-  /* 2. PIPELINE STATUS TRACK */
-  statusStepperScroll: {
+  /* BUYER DETAILS */
+  buyerTopRow: {
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: 4,
-    gap: 8,
+    marginBottom: 16,
   },
-  stepperPill: {
+  buyerAvatar: {
+    width: 54,
+    height: 54,
+    borderRadius: 27,
+    backgroundColor: "#E2E8F0",
+    marginRight: 14,
+  },
+  buyerInfoCol: {
+    flex: 1,
+  },
+  buyerNameRow: {
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 20,
-    backgroundColor: "#FFFFFF",
-    borderWidth: 1,
-    borderColor: "#E2E8F0",
-    gap: 6,
+    marginBottom: 4,
   },
-  stepperPillActive: {
-    backgroundColor: "#EFF6FF",
-    borderColor: COLORS.primary,
-  },
-  stepperPillPast: {
-    backgroundColor: "#F0FDF4",
-    borderColor: "#BBF7D0",
-  },
-  stepperDot: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    backgroundColor: "#F1F5F9",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  stepperDotActive: {
-    backgroundColor: COLORS.primary,
-  },
-  stepperDotPast: {
-    backgroundColor: "#10B981",
-  },
-  stepperDotNum: {
-    fontSize: 10.5,
-    fontWeight: "700",
-    color: "#64748B",
-  },
-  stepperDotNumActive: {
-    color: "#FFFFFF",
-  },
-  stepperLabel: {
-    fontSize: 12,
-    color: "#475569",
-    fontWeight: "600",
-  },
-  stepperLabelActive: {
-    color: COLORS.primary,
-    fontWeight: "700",
-  },
-  stepperLabelPast: {
-    color: "#166534",
-    fontWeight: "600",
-  },
-
-  /* 3. PROPERTY BANNER */
-  propertyBanner: {
-    borderRadius: 16,
-    overflow: "hidden",
-    backgroundColor: "#FFFFFF",
-    borderWidth: 1,
-    borderColor: "#EEF2F6",
-    marginTop: 8,
-    shadowColor: "#000000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.03,
-    shadowRadius: 6,
-    elevation: 1,
-  },
-  propertyBannerImage: {
-    width: "100%",
-    height: 145,
-  },
-  propertyBannerBadge: {
-    position: "absolute",
-    top: 12,
-    left: 12,
-    backgroundColor: "#0F172A",
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 6,
-  },
-  propertyBannerBadgeText: {
-    color: "#FFFFFF",
-    fontSize: 10,
-    fontWeight: "800",
-    letterSpacing: 0.5,
-  },
-  propertyBannerContent: {
-    padding: 14,
-    backgroundColor: "#FFFFFF",
-  },
-  propertyBannerTitle: {
-    fontSize: 16,
+  buyerNameText: {
+    fontSize: 17,
     fontWeight: "700",
     color: "#0F172A",
-    marginBottom: 3,
+    letterSpacing: -0.2,
+    marginRight: 8,
   },
-  propertyBannerLocRow: {
+  verifiedTag: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 6,
+    backgroundColor: "#F0FDF4",
+    paddingHorizontal: 7,
+    paddingVertical: 2,
+    borderRadius: 6,
+    gap: 3,
   },
-  propertyBannerLoc: {
+  verifiedTagText: {
+    fontSize: 10,
+    fontWeight: "700",
+    color: "#16A34A",
+  },
+  buyerContactRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: 2,
+  },
+  buyerPhoneText: {
+    fontSize: 13.5,
+    fontWeight: "600",
+    color: "#2563EB",
+  },
+  buyerEmailText: {
     fontSize: 12.5,
     color: "#64748B",
   },
-  propertyBannerPrice: {
-    fontSize: 17,
-    fontWeight: "800",
-    color: COLORS.primary,
+  buyerActionsRow: {
+    flexDirection: "row",
+    gap: 10,
+  },
+  buyerActionBtn: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 10,
+    borderRadius: 12,
+    borderWidth: 1,
+  },
+  callBtn: {
+    backgroundColor: "#EFF6FF",
+    borderColor: "#BFDBFE",
+  },
+  callBtnText: {
+    fontSize: 13,
+    fontWeight: "700",
+    color: "#2563EB",
+  },
+  whatsappBtn: {
+    backgroundColor: "#F0FDF4",
+    borderColor: "#DCFCE7",
+  },
+  whatsappBtnText: {
+    fontSize: 13,
+    fontWeight: "700",
+    color: "#16A34A",
   },
 
-  /* 4. INQUIRY SPEC LIST */
-  specList: {
-    marginTop: 6,
+  /* INTERESTED PROPERTY */
+  propertyRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#F8FAFC",
+    borderRadius: 14,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: "#F1F5F9",
   },
-  specRowItem: {
+  propertyImage: {
+    width: 76,
+    height: 76,
+    borderRadius: 10,
+    backgroundColor: "#E2E8F0",
+  },
+  propertyInfo: {
+    flex: 1,
+    marginLeft: 12,
+    justifyContent: "space-between",
+  },
+  propertyBadgeWrap: {
+    alignSelf: "flex-start",
+    backgroundColor: "#EFF6FF",
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 5,
+  },
+  propertyBadgeText: {
+    fontSize: 9.5,
+    fontWeight: "800",
+    color: "#2563EB",
+  },
+  propertyTitleText: {
+    fontSize: 14.5,
+    fontWeight: "700",
+    color: "#0F172A",
+    marginTop: 3,
+  },
+  propertyLocRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: 2,
+  },
+  propertyLocText: {
+    fontSize: 12,
+    color: "#64748B",
+  },
+  propertyPriceText: {
+    fontSize: 13.5,
+    fontWeight: "700",
+    color: "#2563EB",
+    marginTop: 3,
+  },
+
+  /* BUYER REQUIREMENT */
+  specsGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+  },
+  specItem: {
+    width: "48%",
+    backgroundColor: "#F8FAFC",
+    padding: 12,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#F1F5F9",
+  },
+  specLabel: {
+    fontSize: 10,
+    fontWeight: "700",
+    color: "#94A3B8",
+    letterSpacing: 0.5,
+    marginBottom: 4,
+  },
+  specValue: {
+    fontSize: 13,
+    fontWeight: "600",
+    color: "#0F172A",
+  },
+  buyerMessageQuote: {
+    marginTop: 14,
+    backgroundColor: "#F8FAFC",
+    padding: 12,
+    borderRadius: 12,
+    borderLeftWidth: 3,
+    borderLeftColor: "#2563EB",
+  },
+  buyerMessageLabel: {
+    fontSize: 11,
+    fontWeight: "700",
+    color: "#64748B",
+    marginBottom: 3,
+  },
+  buyerMessageText: {
+    fontSize: 13,
+    color: "#334155",
+    fontStyle: "italic",
+    lineHeight: 19,
+  },
+
+  /* SITE VISIT */
+  visitScheduledRow: {
+    backgroundColor: "#FFFBEB",
+    borderRadius: 14,
+    padding: 14,
+    borderWidth: 1,
+    borderColor: "#FDE68A",
+  },
+  visitCardTop: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 8,
+  },
+  visitIconWrap: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: "#FFFFFF",
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 10,
+  },
+  visitTimeCol: {
+    flex: 1,
+  },
+  visitStatusLabel: {
+    fontSize: 10,
+    fontWeight: "800",
+    color: "#B45309",
+    letterSpacing: 0.5,
+  },
+  visitDateTime: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: "#0F172A",
+    marginTop: 1,
+  },
+  visitNotesRow: {
+    marginTop: 4,
+    marginBottom: 10,
+  },
+  visitNotesLabel: {
+    fontSize: 11,
+    fontWeight: "700",
+    color: "#92400E",
+  },
+  visitNotesText: {
+    fontSize: 12,
+    color: "#78350F",
+    marginTop: 1,
+  },
+  rescheduleBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#FFFFFF",
+    borderWidth: 1,
+    borderColor: "#CBD5E1",
+    paddingVertical: 8,
+    borderRadius: 10,
+    marginTop: 4,
+  },
+  rescheduleBtnText: {
+    fontSize: 12.5,
+    fontWeight: "700",
+    color: "#2563EB",
+  },
+  noVisitRow: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: "#F1F5F9",
+    backgroundColor: "#F8FAFC",
+    borderRadius: 14,
+    padding: 14,
+    borderWidth: 1,
+    borderColor: "#F1F5F9",
   },
-  specLabelCol: {
+  noVisitText: {
+    fontSize: 13,
+    color: "#64748B",
+    flex: 1,
+    marginRight: 10,
+  },
+  scheduleVisitSmallBtn: {
     flexDirection: "row",
     alignItems: "center",
+    backgroundColor: "#2563EB",
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 10,
   },
-  specLabelText: {
-    fontSize: 13.5,
-    color: "#475569",
-    fontWeight: "500",
-  },
-  specPillHighlight: {
-    backgroundColor: "#EFF6FF",
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 8,
-  },
-  specPillHighlightText: {
+  scheduleVisitSmallBtnText: {
     fontSize: 12.5,
     fontWeight: "700",
-    color: COLORS.primary,
-  },
-  specValueHighlight: {
-    fontSize: 14,
-    fontWeight: "700",
-    color: "#0F172A",
-  },
-  specValueRegular: {
-    fontSize: 13.5,
-    fontWeight: "600",
-    color: "#334155",
+    color: "#FFFFFF",
   },
 
-  /* 5. CUSTOMER MESSAGE */
-  messageBlockQuote: {
-    backgroundColor: "#FFFFFF",
-    borderLeftWidth: 3,
-    borderLeftColor: COLORS.primary,
+  /* INTERNAL NOTES */
+  noteInputBox: {
+    backgroundColor: "#F8FAFC",
+    borderRadius: 12,
+    padding: 12,
     borderWidth: 1,
-    borderColor: "#EEF2F6",
-    padding: 14,
-    borderRadius: 10,
-    marginTop: 8,
+    borderColor: "#E2E8F0",
+    marginBottom: 12,
   },
-  messageBlockQuoteText: {
-    fontSize: 14,
-    lineHeight: 22,
+  noteInput: {
+    minHeight: 60,
+    fontSize: 13,
+    color: "#0F172A",
+    textAlignVertical: "top",
+    paddingTop: 0,
+    marginBottom: 8,
+  },
+  saveNoteBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#2563EB",
+    alignSelf: "flex-end",
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 8,
+  },
+  saveNoteBtnDisabled: {
+    backgroundColor: "#94A3B8",
+  },
+  saveNoteBtnText: {
+    fontSize: 12,
+    fontWeight: "700",
+    color: "#FFFFFF",
+  },
+  savedNotesList: {
+    gap: 8,
+  },
+  savedNoteItem: {
+    backgroundColor: "#F8FAFC",
+    borderRadius: 10,
+    padding: 10,
+    borderWidth: 1,
+    borderColor: "#F1F5F9",
+  },
+  savedNoteHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 4,
+  },
+  savedNoteTime: {
+    fontSize: 11,
+    fontWeight: "600",
+    color: "#64748B",
+  },
+  savedNoteContent: {
+    fontSize: 12.5,
     color: "#334155",
+    lineHeight: 18,
+  },
+  noNotesPlaceholder: {
+    fontSize: 12,
+    color: "#94A3B8",
     fontStyle: "italic",
   },
 
-  /* 6. SCHEDULED SITE VISIT */
-  scheduledVisitBanner: {
-    backgroundColor: "#EFF6FF",
-    borderWidth: 1,
-    borderColor: "#BFDBFE",
-    borderRadius: 14,
-    padding: 16,
-  },
-  scheduledVisitHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 6,
-  },
-  scheduledVisitTitle: {
-    fontSize: 15,
-    fontWeight: "700",
-    color: "#1E40AF",
-  },
-  visitDataText: {
-    fontSize: 13.5,
-    fontWeight: "600",
-    color: "#1E3A8A",
-    marginBottom: 2,
-  },
-  visitNoteText: {
-    fontSize: 12.5,
-    color: "#2563EB",
-    lineHeight: 18,
-  },
-
-  /* 7. ACTIONS FOOTER */
-  actionsFooter: {
-    paddingHorizontal: 20,
-    paddingTop: 18,
-    backgroundColor: "#FFFFFF",
+  /* BOTTOM BUTTONS */
+  bottomButtonsRow: {
+    marginTop: 20,
+    marginBottom: 10,
   },
   errorContainer: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
+  },
+  errorText: {
+    fontSize: 15,
+    color: "#64748B",
   },
 });

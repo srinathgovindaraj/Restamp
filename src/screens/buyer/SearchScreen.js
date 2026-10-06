@@ -3,7 +3,6 @@ import {
   View,
   Text,
   StyleSheet,
-  SafeAreaView,
   TextInput,
   TouchableOpacity,
   ScrollView,
@@ -18,6 +17,7 @@ import {
   Dimensions,
   DeviceEventEmitter,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import {
   Search as SearchIcon,
   ArrowLeft,

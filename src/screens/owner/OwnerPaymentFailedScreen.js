@@ -3,9 +3,9 @@ import {
   View,
   Text,
   StyleSheet,
-  SafeAreaView,
   StatusBar,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { AlertCircle, RefreshCw, Layers, ArrowLeft } from "lucide-react-native";
 import COLORS from "../../constants/colors";
 import PrimaryButton from "../../components/owner/PrimaryButton";

@@ -28,6 +28,7 @@ import AgentPlanConfirmScreen from "../screens/agent/AgentPlanConfirmScreen";
 import AgentPaymentScreen from "../screens/agent/AgentPaymentScreen";
 import AgentPaymentSuccessScreen from "../screens/agent/AgentPaymentSuccessScreen";
 import AgentLeadDetailScreen from "../screens/agent/AgentLeadDetailScreen";
+import LoginScreen from "../screens/auth/LoginScreen";
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -149,7 +150,8 @@ const navTheme = {
 export default function AppNavigator() {
   return (
     <NavigationContainer theme={navTheme}>
-      <Stack.Navigator screenOptions={{ headerShown: false }}>
+      <Stack.Navigator initialRouteName="Login" screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="Login" component={LoginScreen} />
         <Stack.Screen name="MainTabs" component={MainTabs} />
         <Stack.Screen name="Profile" component={ProfileScreen} />
         <Stack.Screen name="Activity" component={SavedScreen} />

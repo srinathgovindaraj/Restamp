@@ -8,11 +8,11 @@ import {
   TouchableOpacity,
   Image,
   StatusBar,
-  SafeAreaView,
   Dimensions,
   Modal,
   Platform,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import {
   Home as HomeIcon,
   Building2,

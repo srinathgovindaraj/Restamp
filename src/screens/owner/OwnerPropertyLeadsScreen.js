@@ -4,31 +4,27 @@ import {
   Text,
   StyleSheet,
   ScrollView,
-  SafeAreaView,
   StatusBar,
   TouchableOpacity,
   Image,
   Alert,
-  Platform,
   TextInput,
+  Dimensions,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import {
   ArrowLeft,
   Search,
-  Filter,
   Phone,
   MessageSquare,
   Calendar,
-  Clock,
-  Eye,
   Building2,
-  MapPin,
   ChevronRight,
-  UserCheck,
-  CheckCircle2,
   SlidersHorizontal,
   X,
   MoreVertical,
+  Clock,
+  ExternalLink,
 } from "lucide-react-native";
 
 import COLORS from "../../constants/colors";
@@ -38,6 +34,8 @@ import EmptyState from "../../components/owner/EmptyState";
 import OwnerSiteVisitModal from "./OwnerSiteVisitModal";
 import OwnerCloseLeadModal from "./OwnerCloseLeadModal";
 import OwnerPropertyDetailModal from "./OwnerPropertyDetailModal";
+
+const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
 const LEAD_TABS = [
   "All",
@@ -110,14 +108,38 @@ export default function OwnerPropertyLeadsScreen({ route, navigation }) {
         status: "new",
         timestamp: "Today • 10:35 AM",
         preferredVisitDate: "Tomorrow, 11:00 AM",
-        message: `Hi, I am interested in your ${property.title}. Move-in planned this month. Can we schedule an in-person visit?`,
+        message: `Hi, I am looking for a 2 BHK apartment for my family. Move-in needed within 10 days. Is covered 4-wheeler parking included in the rent?`,
         visitData: null,
       },
       {
         id: `gen-lead-${property.id}-2`,
-        customerName: "Priya Sundaram",
+        customerName: "Deepak Verma",
         phone: "+91 97910 88231",
-        email: "priya.s@techcorp.in",
+        email: "deepak.v@techcorp.in",
+        avatar:
+          "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=200&q=80",
+        propertyId: property.id,
+        propertyTitle: property.title,
+        propertyLocality: `${property.locality || "Anna Nagar"}, Chennai`,
+        propertyPrice: formattedPrice,
+        propertyImage: property.coverPhoto || property.images?.[0],
+        requirement: property.purpose || "Rent",
+        budget: formattedPrice,
+        status: "negotiating",
+        timestamp: "Yesterday • 4:15 PM",
+        preferredVisitDate: "Saturday, 4:00 PM",
+        message: `Had a great site visit. We agree to ₹24,500/month. Ready to sign agreement with 10 months security deposit.`,
+        visitData: {
+          date: "Saturday, 28 Sep",
+          time: "4:00 PM",
+          note: "Family visit confirmed. Wants to check parking and kitchen layout.",
+        },
+      },
+      {
+        id: `gen-lead-${property.id}-3`,
+        customerName: "Priya Sundaram",
+        phone: "+91 94441 55678",
+        email: "priya.s@enterprise.in",
         avatar:
           "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=200&q=80",
         propertyId: property.id,
@@ -128,34 +150,14 @@ export default function OwnerPropertyLeadsScreen({ route, navigation }) {
         requirement: property.purpose || "Rent",
         budget: formattedPrice,
         status: "visit_scheduled",
-        timestamp: "Yesterday • 4:15 PM",
-        preferredVisitDate: "Saturday, 4:00 PM",
-        message: `Photos look fantastic! Looking forward to viewing the ${property.title} this weekend with my family.`,
-        visitData: {
-          date: "Saturday, 28 Sep",
-          time: "4:00 PM",
-          note: "Family visit confirmed. Wants to check parking and kitchen layout.",
-        },
-      },
-      {
-        id: `gen-lead-${property.id}-3`,
-        customerName: "Vikramaditya S",
-        phone: "+91 94441 55678",
-        email: "vikram@enterprise.in",
-        avatar:
-          "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=200&q=80",
-        propertyId: property.id,
-        propertyTitle: property.title,
-        propertyLocality: `${property.locality || "Anna Nagar"}, Chennai`,
-        propertyPrice: formattedPrice,
-        propertyImage: property.coverPhoto || property.images?.[0],
-        requirement: property.purpose || "Rent",
-        budget: formattedPrice,
-        status: "contacted",
         timestamp: "2 days ago",
         preferredVisitDate: "Sunday, 11:30 AM",
-        message: "Spoke over phone. Sent floorplan brochure on WhatsApp. Following up for visit.",
-        visitData: null,
+        message: "Photos look fantastic! Looking forward to viewing the property this weekend with my family.",
+        visitData: {
+          date: "Sunday, 29 Sep",
+          time: "11:30 AM",
+          note: "Wants to check natural light and ventilation.",
+        },
       },
     ];
   }, [leads, property]);
@@ -228,105 +230,113 @@ export default function OwnerPropertyLeadsScreen({ route, navigation }) {
         : "Price On Request")
     : "";
 
+  const tabCounts = useMemo(() => {
+    const counts = {};
+    LEAD_TABS.forEach((tab) => {
+      if (tab === "All") {
+        counts[tab] = projectLeads.length;
+      } else {
+        const normalizedTab = tab.toLowerCase().replace(" ", "_");
+        counts[tab] = projectLeads.filter((l) => {
+          if (tab === "Visit Scheduled") return l.status === "visit_scheduled";
+          return l.status === normalizedTab;
+        }).length;
+      }
+    });
+    return counts;
+  }, [projectLeads]);
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
 
-      {/* TOP HEADER */}
-      <View style={styles.topHeader}>
+      {/* ── Minimal header ── */}
+      <View style={styles.header}>
         <TouchableOpacity
           style={styles.backBtn}
           onPress={() => navigation.goBack()}
           activeOpacity={0.7}
         >
-          <ArrowLeft size={20} color="#0F172A" />
+          <ArrowLeft size={20} color={COLORS.textDark} />
         </TouchableOpacity>
 
-        <View style={styles.headerTitles}>
-          <Text style={styles.headerSubtitle} numberOfLines={1}>
-            {property?.title || "Project Leads"}
+        <View style={styles.headerCenter}>
+          <Text style={styles.headerTitle}>Enquiries</Text>
+          <Text style={styles.headerCount}>
+            {projectLeads.length} {projectLeads.length === 1 ? "lead" : "leads"}
           </Text>
-          <Text style={styles.headerTitle}>Enquiries & Leads</Text>
         </View>
 
-        <View style={styles.headerBadgeWrap}>
-          <Text style={styles.headerBadgeText}>
-            {projectLeads.length} {projectLeads.length === 1 ? "Lead" : "Leads"}
-          </Text>
-        </View>
+        <TouchableOpacity
+          style={[styles.searchToggle, showSearch && styles.searchToggleActive]}
+          onPress={() => {
+            setShowSearch(!showSearch);
+            if (showSearch) setSearchQuery("");
+          }}
+          activeOpacity={0.7}
+        >
+          {showSearch ? (
+            <X size={18} color={COLORS.primary} />
+          ) : (
+            <Search size={18} color={COLORS.textSecondary} />
+          )}
+        </TouchableOpacity>
       </View>
+
+      {/* ── Search bar (collapsible) ── */}
+      {showSearch && (
+        <View style={styles.searchBar}>
+          <Search size={15} color={COLORS.lightText} style={{ marginRight: 8 }} />
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Search by name, phone, message…"
+            placeholderTextColor={COLORS.lightText}
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            autoFocus
+          />
+          {searchQuery.length > 0 && (
+            <TouchableOpacity onPress={() => setSearchQuery("")} activeOpacity={0.7}>
+              <X size={15} color={COLORS.textSecondary} />
+            </TouchableOpacity>
+          )}
+        </View>
+      )}
 
       <ScrollView
         style={styles.container}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* ================= HERO PROJECT SUMMARY CARD (MATCHING REFERENCE DESIGN) ================= */}
+        {/* ── 1st Section: Property context strip ── */}
         {property && (
-          <View style={styles.projectHeroCard}>
-            <View style={styles.projectImageWrap}>
-              <Image
-                source={{
-                  uri:
-                    property.coverPhoto ||
-                    property.images?.[0] ||
-                    "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=400&q=80",
-                }}
-                style={styles.projectImage}
-                resizeMode="cover"
-              />
-              <View style={styles.projectStatusBadge}>
-                <Text style={styles.projectStatusBadgeText}>
-                  {(property.status || "ACTIVE").toUpperCase()}
-                </Text>
-              </View>
+          <TouchableOpacity
+            style={styles.propertyStrip}
+            activeOpacity={0.7}
+            onPress={() => setShowPropertyModal(true)}
+          >
+            <Image
+              source={{
+                uri:
+                  property.coverPhoto ||
+                  property.images?.[0] ||
+                  "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=400&q=80",
+              }}
+              style={styles.propertyThumb}
+            />
+            <View style={styles.propertyInfo}>
+              <Text style={styles.propertyTitle} numberOfLines={1}>
+                {property.title}
+              </Text>
+              <Text style={styles.propertyMeta} numberOfLines={1}>
+                {property.locality || "Chennai"} · {formattedPrice}
+              </Text>
             </View>
-
-            <View style={styles.projectDetails}>
-              <View>
-                <Text style={styles.projectTitle} numberOfLines={1}>
-                  {property.title}
-                </Text>
-                <Text style={styles.projectDesc} numberOfLines={3}>
-                  {property.description ||
-                    `${property.propertyType || "Residential"} in ${property.locality || "Chennai"}. ${formattedPrice}. Verified property listing with ${property.views || "1.2K"} views and ${projectLeads.length} leads.`}
-                </Text>
-              </View>
-
-              <TouchableOpacity
-                style={styles.exploreBtn}
-                activeOpacity={0.85}
-                onPress={() => setShowPropertyModal(true)}
-              >
-                <Text style={styles.exploreBtnText}>Explore More</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
+            <ChevronRight size={16} color={COLORS.lightText} />
+          </TouchableOpacity>
         )}
 
-        {/* Search Input Bar (Expandable) */}
-        {showSearch && (
-          <View style={styles.searchBarWrapper}>
-            <View style={styles.searchBarCard}>
-              <Search size={16} color="#64748B" style={{ marginRight: 8 }} />
-              <TextInput
-                style={styles.searchInput}
-                placeholder="Search leads by customer name, phone..."
-                placeholderTextColor="#94A3B8"
-                value={searchQuery}
-                onChangeText={setSearchQuery}
-                autoFocus
-              />
-              {searchQuery.length > 0 && (
-                <TouchableOpacity onPress={() => setSearchQuery("")} activeOpacity={0.7}>
-                  <X size={16} color="#64748B" />
-                </TouchableOpacity>
-              )}
-            </View>
-          </View>
-        )}
-
-        {/* ================= STATUS TABS FILTER (Buyer Search Properties Filter Bar Design) ================= */}
+        {/* ── 2nd Section: STATUS TABS FILTER (Buyer Search Properties Filter Bar Design) ── */}
         <View style={styles.tabsContainer}>
           <ScrollView
             horizontal
@@ -343,14 +353,7 @@ export default function OwnerPropertyLeadsScreen({ route, navigation }) {
             </TouchableOpacity>
 
             {LEAD_TABS.map((tab) => {
-              const count =
-                tab === "All"
-                  ? projectLeads.length
-                  : projectLeads.filter((l) => {
-                      const normalizedTab = tab.toLowerCase().replace(" ", "_");
-                      if (tab === "Visit Scheduled") return l.status === "visit_scheduled";
-                      return l.status === normalizedTab;
-                    }).length;
+              const count = tabCounts[tab] || 0;
               const isActive = activeTab === tab;
 
               return (
@@ -384,7 +387,7 @@ export default function OwnerPropertyLeadsScreen({ route, navigation }) {
           </ScrollView>
         </View>
 
-        {/* ================= LEADS LIST ================= */}
+        {/* ── 2nd Section: LEADS LIST (Old Card Design) ── */}
         {filteredLeads.length === 0 ? (
           <EmptyState
             icon={Building2}
@@ -457,7 +460,7 @@ export default function OwnerPropertyLeadsScreen({ route, navigation }) {
                     </View>
                   )}
 
-                  {/* Bottom Action: View Details Button (Share, Call, Chat Removed) */}
+                  {/* Bottom Action: View Details Button */}
                   <View style={styles.leadFooterRow}>
                     <TouchableOpacity
                       style={styles.viewDetailFullBtn}
@@ -524,170 +527,115 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#FFFFFF",
   },
+
+  /* ── Header ── */
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 20,
+    paddingTop: 6,
+    paddingBottom: 10,
+  },
+  backBtn: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: COLORS.pageBackground,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  headerCenter: {
+    flex: 1,
+    marginLeft: 14,
+  },
+  headerTitle: {
+    fontSize: 22,
+    fontWeight: "700",
+    color: COLORS.textDark,
+    letterSpacing: -0.4,
+  },
+  headerCount: {
+    fontSize: 13,
+    fontWeight: "400",
+    color: COLORS.textSecondary,
+    marginTop: 1,
+  },
+  searchToggle: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: COLORS.pageBackground,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  searchToggleActive: {
+    backgroundColor: COLORS.primaryLight,
+  },
+
+  /* ── Search bar ── */
+  searchBar: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginHorizontal: 20,
+    marginBottom: 10,
+    backgroundColor: COLORS.pageBackground,
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    height: 42,
+  },
+  searchInput: {
+    flex: 1,
+    height: 42,
+    fontSize: 14,
+    color: COLORS.textDark,
+    fontWeight: "400",
+  },
+
   container: {
     flex: 1,
     backgroundColor: "#FFFFFF",
   },
   scrollContent: {
     paddingHorizontal: 20,
-    paddingTop: 12,
-    paddingBottom: 24,
+    paddingTop: 8,
+    paddingBottom: 30,
     backgroundColor: "#FFFFFF",
   },
 
-  /* TOP HEADER */
-  topHeader: {
+  /* ── Property context strip ── */
+  propertyStrip: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 20,
-    paddingTop: 10,
-    paddingBottom: 12,
-    backgroundColor: "#FFFFFF",
-    borderBottomWidth: 1,
-    borderBottomColor: "#EEF2F6",
-  },
-  backBtn: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
-    backgroundColor: "#F8FAFC",
-    borderWidth: 1,
-    borderColor: "#E2E8F0",
-    justifyContent: "center",
-    alignItems: "center",
-    marginRight: 12,
-  },
-  headerTitles: {
-    flex: 1,
-  },
-  headerSubtitle: {
-    fontSize: 12,
-    fontWeight: "600",
-    color: COLORS.primary,
-    letterSpacing: -0.1,
-  },
-  headerTitle: {
-    fontSize: 17,
-    fontWeight: "700",
-    color: "#0F172A",
-    letterSpacing: -0.3,
-    marginTop: 1,
-  },
-  headerBadgeWrap: {
-    backgroundColor: "#EFF6FF",
-    borderWidth: 1,
-    borderColor: "#BFDBFE",
+    marginBottom: 14,
+    backgroundColor: COLORS.pageBackground,
     borderRadius: 14,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
+    padding: 10,
   },
-  headerBadgeText: {
-    fontSize: 12,
-    fontWeight: "700",
-    color: "#2563EB",
+  propertyThumb: {
+    width: 44,
+    height: 44,
+    borderRadius: 10,
+    backgroundColor: COLORS.border,
   },
-
-  /* HERO PROJECT SUMMARY CARD (MATCHING REFERENCE HORIZONTAL CARD) */
-  projectHeroCard: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#FFFFFF",
-    borderRadius: 24,
-    padding: 12,
-    marginBottom: 16,
-    borderWidth: 1,
-    borderColor: "#EEF2F6",
-    shadowColor: "#0F172A",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.05,
-    shadowRadius: 10,
-    elevation: 2,
-  },
-  projectImageWrap: {
-    width: 122,
-    height: 122,
-    borderRadius: 18,
-    overflow: "hidden",
-    position: "relative",
-    backgroundColor: "#E2E8F0",
-  },
-  projectImage: {
-    width: "100%",
-    height: "100%",
-  },
-  projectStatusBadge: {
-    position: "absolute",
-    top: 6,
-    left: 6,
-    backgroundColor: "rgba(15, 23, 42, 0.75)",
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 6,
-  },
-  projectStatusBadgeText: {
-    color: "#FFFFFF",
-    fontSize: 8.5,
-    fontWeight: "800",
-    letterSpacing: 0.5,
-  },
-  projectDetails: {
+  propertyInfo: {
     flex: 1,
-    height: 122,
-    paddingLeft: 13,
-    paddingRight: 4,
-    justifyContent: "space-between",
+    marginLeft: 12,
+    marginRight: 8,
   },
-  projectTitle: {
-    fontSize: 15.5,
-    fontWeight: "700",
-    color: "#0F172A",
-    letterSpacing: -0.2,
-  },
-  projectDesc: {
-    fontSize: 11.5,
-    color: "#64748B",
-    lineHeight: 16,
-    marginTop: 4,
-  },
-  exploreBtn: {
-    backgroundColor: "#0F172A",
-    paddingHorizontal: 15,
-    paddingVertical: 7,
-    borderRadius: 20,
-    alignSelf: "flex-start",
-    marginTop: 6,
-  },
-  exploreBtnText: {
-    color: "#FFFFFF",
-    fontSize: 11.5,
+  propertyTitle: {
+    fontSize: 14,
     fontWeight: "600",
+    color: COLORS.textDark,
     letterSpacing: -0.1,
   },
-
-  /* SEARCH BAR */
-  searchBarWrapper: {
-    marginBottom: 12,
-    backgroundColor: "#FFFFFF",
-  },
-  searchBarCard: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#F8FAFC",
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: "#EEF2F6",
-    paddingHorizontal: 14,
-    height: 44,
-  },
-  searchInput: {
-    flex: 1,
-    height: 44,
-    fontSize: 13,
-    color: "#0F172A",
+  propertyMeta: {
+    fontSize: 12,
+    fontWeight: "400",
+    color: COLORS.textSecondary,
+    marginTop: 2,
   },
 
-  /* STATUS TABS (BUYER SEARCH FILTER DESIGN) */
+  /* ── STATUS TABS (BUYER SEARCH FILTER DESIGN) ── */
   tabsContainer: {
     marginHorizontal: -20,
     marginBottom: 16,
@@ -763,7 +711,7 @@ const styles = StyleSheet.create({
     fontWeight: "800",
   },
 
-  /* LEADS LIST */
+  /* ── LEADS LIST (OLD CARD DESIGN) ── */
   leadsList: {
     gap: 12,
   },

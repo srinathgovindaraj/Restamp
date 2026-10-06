@@ -4,7 +4,6 @@ import {
   Text,
   StyleSheet,
   ScrollView,
-  SafeAreaView,
   StatusBar,
   TouchableOpacity,
   Image,
@@ -14,6 +13,7 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import {
   User,
   ShieldCheck,
@@ -36,18 +36,21 @@ import COLORS from "../../constants/colors";
 import { useNavigation } from "@react-navigation/native";
 import { useWishlist } from "../../context/WishlistContext";
 import { useOwner } from "../../context/OwnerContext";
+import { useAuth } from "../../context/AuthContext";
 import ConfirmationModal from "../../components/owner/ConfirmationModal";
 
 export default function ProfileScreen({ navigation }) {
   const nav = useNavigation() || navigation;
   const { wishlist } = useWishlist();
   const { subscription, leads } = useOwner();
+  const { user: authUser, logout } = useAuth();
 
   const [userProfile, setUserProfile] = useState({
-    name: "Jessica Taylor",
-    phone: "+91 98765 43210",
-    email: "jessica.taylor@example.com",
+    name: authUser?.name || "Alex Smith",
+    phone: authUser?.phone || "+91 98765 43210",
+    email: authUser?.email || "alex.smith@restamp.in",
     avatar:
+      authUser?.avatar ||
       "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=80",
     verified: true,
   });
@@ -66,7 +69,8 @@ export default function ProfileScreen({ navigation }) {
 
   const handleLogout = () => {
     setShowLogoutModal(false);
-    Alert.alert("Signed Out", "You have been logged out successfully.");
+    logout();
+    nav.navigate("Login");
   };
 
   return (
@@ -251,7 +255,21 @@ export default function ProfileScreen({ navigation }) {
 
         {/* 3. SETTINGS */}
         <View style={styles.menuGroup}>
-          <Text style={styles.groupHeading}>SETTINGS</Text>
+          <Text style={styles.groupHeading}>SETTINGS & ACCOUNT</Text>
+
+          <TouchableOpacity
+            style={styles.menuRow}
+            onPress={() => nav.navigate("Login")}
+            activeOpacity={0.7}
+          >
+            <View style={styles.menuLeft}>
+              <User size={18} color="#2563EB" style={styles.menuIcon} />
+              <Text style={[styles.menuLabel, { color: "#2563EB", fontWeight: "600" }]}>
+                Phone Login / Switch Account
+              </Text>
+            </View>
+            <ChevronRight size={16} color="#2563EB" />
+          </TouchableOpacity>
 
           <TouchableOpacity
             style={styles.menuRow}

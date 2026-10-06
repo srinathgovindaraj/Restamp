@@ -18,13 +18,11 @@ import {
   X,
   ChevronLeft,
   ChevronRight,
-  FileText,
   Check,
 } from "lucide-react-native";
 import COLORS from "../../constants/colors";
-import PrimaryButton from "../../components/owner/PrimaryButton";
 
-const DAYS_OF_WEEK = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
+const DAYS_OF_WEEK = ["S", "M", "T", "W", "T", "F", "S"];
 
 const MONTHS_FULL = [
   "January",
@@ -42,31 +40,21 @@ const MONTHS_FULL = [
 ];
 
 const MONTHS_SHORT = [
-  "Jan",
-  "Feb",
-  "Mar",
-  "Apr",
-  "May",
-  "Jun",
-  "Jul",
-  "Aug",
-  "Sep",
-  "Oct",
-  "Nov",
-  "Dec",
+  "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+  "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
 ];
 
 const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
 const TIME_SLOTS = [
-  "09:30 AM",
-  "10:30 AM",
-  "11:30 AM",
-  "02:00 PM",
-  "03:30 PM",
-  "04:30 PM",
-  "05:30 PM",
-  "06:30 PM",
+  { label: "9:30", period: "AM" },
+  { label: "10:30", period: "AM" },
+  { label: "11:30", period: "AM" },
+  { label: "2:00", period: "PM" },
+  { label: "3:30", period: "PM" },
+  { label: "4:30", period: "PM" },
+  { label: "5:30", period: "PM" },
+  { label: "6:30", period: "PM" },
 ];
 
 const QUICK_NOTES = [
@@ -83,6 +71,13 @@ function formatDateDisplay(date) {
   const month = MONTHS_SHORT[date.getMonth()];
   const year = date.getFullYear();
   return `${weekday}, ${day} ${month} ${year}`;
+}
+
+function formatDateShort(date) {
+  if (!date) return "";
+  const day = date.getDate();
+  const month = MONTHS_SHORT[date.getMonth()];
+  return `${day} ${month}`;
 }
 
 function isSameDay(d1, d2) {
@@ -214,7 +209,7 @@ export default function OwnerSiteVisitModal({
     setNote((prev) => {
       if (!prev.trim()) return tag;
       if (prev.includes(tag)) return prev;
-      return `${prev.trim()} • ${tag}`;
+      return `${prev.trim()} · ${tag}`;
     });
   };
 
@@ -234,6 +229,11 @@ export default function OwnerSiteVisitModal({
     onClose();
   };
 
+  // Preset checks
+  const isTodayPreset = isSameDay(selectedDate, today);
+  const tomorrowDate = new Date(today.getTime() + 86400000);
+  const isTomorrowPreset = isSameDay(selectedDate, tomorrowDate);
+
   return (
     <Modal
       visible={visible}
@@ -245,51 +245,76 @@ export default function OwnerSiteVisitModal({
         behavior={Platform.OS === "ios" ? "padding" : undefined}
         style={styles.backdrop}
       >
+        <Pressable style={styles.backdropPress} onPress={onClose} />
+
         <Pressable style={styles.sheet} onPress={(e) => e.stopPropagation()}>
-          <View style={styles.sheetHandle} />
+          <View style={styles.handle} />
 
           {isSuccess ? (
-            <View style={styles.successBox}>
-              <View style={styles.successIconCircle}>
-                <CheckCircle2 size={40} color={COLORS.success} />
+            /* ── Success state ── */
+            <View style={styles.successView}>
+              <View style={styles.successIcon}>
+                <CheckCircle2 size={36} color={COLORS.success} />
               </View>
-              <Text style={styles.successTitle}>Visit Scheduled!</Text>
+              <Text style={styles.successTitle}>Visit Scheduled</Text>
               <Text style={styles.successSub}>
-                Invitation and calendar invite dispatched to {lead.customerName}.
+                Calendar invite sent to {lead.customerName}
               </Text>
 
-              <View style={styles.summaryCard}>
-                <Text style={styles.summaryProperty}>
-                  {lead.propertyTitle || "Property Site Visit"}
-                </Text>
-                <Text style={styles.summaryCust}>Visitor: {lead.customerName}</Text>
-                <Text style={styles.summaryTime}>
-                  📅 {formatDateDisplay(selectedDate)} at ⏰ {selectedTime}
-                </Text>
+              <View style={styles.successCard}>
+                <View style={styles.successRow}>
+                  <Text style={styles.successLabel}>Property</Text>
+                  <Text style={styles.successValue} numberOfLines={1}>
+                    {lead.propertyTitle || "Property Site Visit"}
+                  </Text>
+                </View>
+                <View style={styles.successDivider} />
+                <View style={styles.successRow}>
+                  <Text style={styles.successLabel}>Visitor</Text>
+                  <Text style={styles.successValue}>{lead.customerName}</Text>
+                </View>
+                <View style={styles.successDivider} />
+                <View style={styles.successRow}>
+                  <Text style={styles.successLabel}>When</Text>
+                  <Text style={styles.successValue}>
+                    {formatDateShort(selectedDate)} · {selectedTime}
+                  </Text>
+                </View>
                 {note.trim() ? (
-                  <Text style={styles.summaryNote}>📝 Note: {note.trim()}</Text>
+                  <>
+                    <View style={styles.successDivider} />
+                    <View style={styles.successRow}>
+                      <Text style={styles.successLabel}>Note</Text>
+                      <Text style={styles.successValue} numberOfLines={2}>
+                        {note.trim()}
+                      </Text>
+                    </View>
+                  </>
                 ) : null}
               </View>
 
-              <PrimaryButton
-                title="Done"
+              <TouchableOpacity
+                style={styles.doneBtn}
                 onPress={handleDone}
-                style={{ width: "100%", marginTop: 18 }}
-              />
+                activeOpacity={0.8}
+              >
+                <Text style={styles.doneBtnText}>Done</Text>
+              </TouchableOpacity>
             </View>
           ) : (
+            /* ── Scheduling form ── */
             <ScrollView
               showsVerticalScrollIndicator={false}
               keyboardShouldPersistTaps="handled"
-              contentContainerStyle={{ paddingBottom: 20 }}
+              contentContainerStyle={styles.scrollContent}
             >
               {/* Header */}
               <View style={styles.headerRow}>
-                <View style={{ flex: 1, paddingRight: 8 }}>
-                  <Text style={styles.title}>Schedule Site Visit</Text>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.title}>Schedule Visit</Text>
                   <Text style={styles.subtitle} numberOfLines={1}>
-                    With {lead.customerName}
-                    {lead.propertyTitle ? ` • ${lead.propertyTitle}` : ""}
+                    {lead.customerName}
+                    {lead.propertyTitle ? ` · ${lead.propertyTitle}` : ""}
                   </Text>
                 </View>
                 <TouchableOpacity
@@ -297,150 +322,103 @@ export default function OwnerSiteVisitModal({
                   onPress={onClose}
                   activeOpacity={0.7}
                 >
-                  <X size={18} color="#64748B" />
+                  <X size={18} color={COLORS.textSecondary} />
                 </TouchableOpacity>
               </View>
 
-              {/* Quick Preset Pills */}
+              {/* Quick date presets */}
               <View style={styles.presetRow}>
-                <TouchableOpacity
-                  style={[
-                    styles.presetChip,
-                    isSameDay(selectedDate, today) && styles.presetChipActive,
-                  ]}
-                  onPress={() => handleQuickPreset(0)}
-                  activeOpacity={0.75}
-                >
-                  <Text
-                    style={[
-                      styles.presetChipText,
-                      isSameDay(selectedDate, today) && styles.presetChipTextActive,
-                    ]}
+                {[
+                  { label: "Today", active: isTodayPreset, onPress: () => handleQuickPreset(0) },
+                  { label: "Tomorrow", active: isTomorrowPreset, onPress: () => handleQuickPreset(1) },
+                  { label: "Weekend", active: false, onPress: handleWeekendPreset },
+                  { label: "Next Week", active: false, onPress: () => handleQuickPreset(7) },
+                ].map((preset) => (
+                  <TouchableOpacity
+                    key={preset.label}
+                    style={[styles.presetChip, preset.active && styles.presetChipActive]}
+                    onPress={preset.onPress}
+                    activeOpacity={0.7}
                   >
-                    Today
-                  </Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  style={[
-                    styles.presetChip,
-                    isSameDay(
-                      selectedDate,
-                      new Date(today.getTime() + 86400000)
-                    ) && styles.presetChipActive,
-                  ]}
-                  onPress={() => handleQuickPreset(1)}
-                  activeOpacity={0.75}
-                >
-                  <Text
-                    style={[
-                      styles.presetChipText,
-                      isSameDay(
-                        selectedDate,
-                        new Date(today.getTime() + 86400000)
-                      ) && styles.presetChipTextActive,
-                    ]}
-                  >
-                    Tomorrow
-                  </Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  style={styles.presetChip}
-                  onPress={handleWeekendPreset}
-                  activeOpacity={0.75}
-                >
-                  <Text style={styles.presetChipText}>Weekend</Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  style={styles.presetChip}
-                  onPress={() => handleQuickPreset(7)}
-                  activeOpacity={0.75}
-                >
-                  <Text style={styles.presetChipText}>Next Week</Text>
-                </TouchableOpacity>
+                    <Text
+                      style={[
+                        styles.presetText,
+                        preset.active && styles.presetTextActive,
+                      ]}
+                    >
+                      {preset.label}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
               </View>
 
-              {/* ================= MINI CALENDAR CARD ================= */}
-              <View style={styles.calendarCard}>
-                {/* Month & Year Navigation Bar */}
-                <View style={styles.monthNavRow}>
+              {/* ── Calendar ── */}
+              <View style={styles.calendar}>
+                {/* Month nav */}
+                <View style={styles.monthNav}>
                   <TouchableOpacity
-                    style={[
-                      styles.monthNavBtn,
-                      isPrevMonthDisabled && styles.monthNavBtnDisabled,
-                    ]}
                     onPress={handlePrevMonth}
                     disabled={isPrevMonthDisabled}
                     activeOpacity={0.7}
+                    style={styles.monthArrow}
                   >
                     <ChevronLeft
-                      size={18}
-                      color={isPrevMonthDisabled ? "#CBD5E1" : "#1E293B"}
+                      size={20}
+                      color={isPrevMonthDisabled ? COLORS.border : COLORS.textDark}
                     />
                   </TouchableOpacity>
 
-                  <View style={styles.monthLabelWrapper}>
-                    <Calendar size={15} color={COLORS.primary} style={{ marginRight: 6 }} />
-                    <Text style={styles.monthLabelText}>
-                      {MONTHS_FULL[viewMonth.getMonth()]} {viewMonth.getFullYear()}
-                    </Text>
-                  </View>
+                  <Text style={styles.monthLabel}>
+                    {MONTHS_FULL[viewMonth.getMonth()]} {viewMonth.getFullYear()}
+                  </Text>
 
                   <TouchableOpacity
-                    style={styles.monthNavBtn}
                     onPress={handleNextMonth}
                     activeOpacity={0.7}
+                    style={styles.monthArrow}
                   >
-                    <ChevronRight size={18} color="#1E293B" />
+                    <ChevronRight size={20} color={COLORS.textDark} />
                   </TouchableOpacity>
                 </View>
 
-                {/* Day of Week Header */}
-                <View style={styles.weekHeaderRow}>
-                  {DAYS_OF_WEEK.map((d, index) => (
-                    <Text
-                      key={index}
-                      style={[
-                        styles.weekDayText,
-                        (index === 0 || index === 6) && styles.weekEndText,
-                      ]}
-                    >
+                {/* Weekday header */}
+                <View style={styles.weekRow}>
+                  {DAYS_OF_WEEK.map((d, idx) => (
+                    <Text key={idx} style={styles.weekDay}>
                       {d}
                     </Text>
                   ))}
                 </View>
 
-                {/* Days Grid */}
+                {/* Days grid */}
                 <View style={styles.daysGrid}>
                   {calendarDays.map((item, index) => {
                     const isSelected = isSameDay(item.date, selectedDate);
-                    const isCurrentDay = isSameDay(item.date, today);
+                    const isToday = isSameDay(item.date, today);
                     const isDisabled = isBeforeToday(item.date);
 
                     return (
                       <TouchableOpacity
                         key={index}
-                        style={styles.dayCellWrapper}
+                        style={styles.dayCellWrap}
                         disabled={isDisabled}
                         onPress={() => handleDaySelect(item)}
-                        activeOpacity={0.7}
+                        activeOpacity={0.6}
                       >
                         <View
                           style={[
                             styles.dayCell,
                             isSelected && styles.dayCellSelected,
-                            isCurrentDay && !isSelected && styles.dayCellToday,
+                            isToday && !isSelected && styles.dayCellToday,
                           ]}
                         >
                           <Text
                             style={[
                               styles.dayText,
-                              !item.isCurrentMonth && styles.dayTextOtherMonth,
+                              !item.isCurrentMonth && styles.dayTextMuted,
                               isDisabled && styles.dayTextDisabled,
                               isSelected && styles.dayTextSelected,
-                              isCurrentDay && !isSelected && styles.dayTextToday,
+                              isToday && !isSelected && styles.dayTextToday,
                             ]}
                           >
                             {item.dayNumber}
@@ -450,108 +428,103 @@ export default function OwnerSiteVisitModal({
                     );
                   })}
                 </View>
-
-                {/* Selected Date Confirmation Strip */}
-                <View style={styles.selectedDateBadge}>
-                  <Text style={styles.selectedDateBadgeLabel}>Selected Date:</Text>
-                  <Text style={styles.selectedDateBadgeValue}>
-                    {formatDateDisplay(selectedDate)}
-                  </Text>
-                </View>
               </View>
 
-              {/* ================= TIME SLOT SELECTION ================= */}
-              <View style={styles.sectionHeaderRow}>
-                <Clock size={16} color={COLORS.primary} style={{ marginRight: 6 }} />
-                <Text style={styles.sectionLabel}>Select Time Slot</Text>
-              </View>
-
-              <View style={styles.timeSlotsGrid}>
+              {/* ── Time slots ── */}
+              <Text style={styles.sectionLabel}>Time</Text>
+              <View style={styles.timeGrid}>
                 {TIME_SLOTS.map((slot) => {
-                  const isSlotActive = selectedTime === slot;
+                  const fullSlot = `${slot.label} ${slot.period}`;
+                  const isActive = selectedTime === fullSlot;
                   return (
                     <TouchableOpacity
-                      key={slot}
-                      style={[
-                        styles.timeSlotChip,
-                        isSlotActive && styles.timeSlotChipActive,
-                      ]}
-                      onPress={() => setSelectedTime(slot)}
-                      activeOpacity={0.75}
+                      key={fullSlot}
+                      style={[styles.timeChip, isActive && styles.timeChipActive]}
+                      onPress={() => setSelectedTime(fullSlot)}
+                      activeOpacity={0.7}
                     >
-                      {isSlotActive && (
-                        <Check
-                          size={12}
-                          color={COLORS.primary}
-                          strokeWidth={2.5}
-                          style={{ marginRight: 4 }}
-                        />
-                      )}
+                      <Text
+                        style={[styles.timeText, isActive && styles.timeTextActive]}
+                      >
+                        {slot.label}
+                      </Text>
                       <Text
                         style={[
-                          styles.timeSlotText,
-                          isSlotActive && styles.timeSlotTextActive,
+                          styles.timePeriod,
+                          isActive && styles.timePeriodActive,
                         ]}
                       >
-                        {slot}
+                        {slot.period}
                       </Text>
                     </TouchableOpacity>
                   );
                 })}
               </View>
 
-              {/* ================= NOTES SECTION ================= */}
-              <View style={styles.sectionHeaderRow}>
-                <FileText size={16} color={COLORS.primary} style={{ marginRight: 6 }} />
-                <Text style={styles.sectionLabel}>Visit Notes & Instructions</Text>
-              </View>
-
-              {/* Quick Note Suggestions */}
+              {/* ── Notes ── */}
+              <Text style={styles.sectionLabel}>Note</Text>
               <View style={styles.quickNotesRow}>
                 {QUICK_NOTES.map((qn) => (
                   <TouchableOpacity
                     key={qn}
-                    style={styles.quickNoteTag}
+                    style={[
+                      styles.quickNote,
+                      note.includes(qn) && styles.quickNoteActive,
+                    ]}
                     onPress={() => handleAddQuickNote(qn)}
-                    activeOpacity={0.75}
+                    activeOpacity={0.7}
                   >
-                    <Text style={styles.quickNoteTagText}>+ {qn}</Text>
+                    <Text
+                      style={[
+                        styles.quickNoteText,
+                        note.includes(qn) && styles.quickNoteTextActive,
+                      ]}
+                    >
+                      {qn}
+                    </Text>
                   </TouchableOpacity>
                 ))}
               </View>
 
               <TextInput
                 style={styles.noteInput}
-                placeholder="e.g. Call security at main gate, meet at parking lobby, or require key from supervisor..."
-                placeholderTextColor="#94A3B8"
+                placeholder="Add instructions for the visitor…"
+                placeholderTextColor={COLORS.lightText}
                 value={note}
                 onChangeText={setNote}
                 multiline
-                numberOfLines={3}
+                numberOfLines={2}
               />
 
-              {/* ================= SUMMARY BAR ================= */}
-              <View style={styles.scheduleSummaryCard}>
-                <View style={styles.summaryItem}>
-                  <Text style={styles.summaryItemLabel}>DATE</Text>
-                  <Text style={styles.summaryItemValue}>
-                    {formatDateDisplay(selectedDate)}
-                  </Text>
+              {/* ── Bottom summary + confirm ── */}
+              <View style={styles.bottomSection}>
+                <View style={styles.summaryStrip}>
+                  <View style={styles.summaryCol}>
+                    <Text style={styles.summaryLabel}>DATE</Text>
+                    <Text style={styles.summaryValue}>
+                      {formatDateShort(selectedDate)}
+                    </Text>
+                  </View>
+                  <View style={styles.summaryDot} />
+                  <View style={styles.summaryCol}>
+                    <Text style={styles.summaryLabel}>TIME</Text>
+                    <Text style={styles.summaryValue}>{selectedTime}</Text>
+                  </View>
                 </View>
-                <View style={styles.summaryItemDivider} />
-                <View style={styles.summaryItem}>
-                  <Text style={styles.summaryItemLabel}>TIME</Text>
-                  <Text style={styles.summaryItemValue}>{selectedTime}</Text>
-                </View>
+
+                <TouchableOpacity
+                  style={styles.confirmBtn}
+                  onPress={handleConfirm}
+                  activeOpacity={0.8}
+                >
+                  <Calendar
+                    size={16}
+                    color="#FFFFFF"
+                    style={{ marginRight: 8 }}
+                  />
+                  <Text style={styles.confirmBtnText}>Confirm Visit</Text>
+                </TouchableOpacity>
               </View>
-
-              {/* Confirm Visit Button */}
-              <PrimaryButton
-                title="Confirm Site Visit"
-                onPress={handleConfirm}
-                icon={Calendar}
-                style={{ width: "100%", marginTop: 14 }}
-              />
             </ScrollView>
           )}
         </Pressable>
@@ -563,384 +536,364 @@ export default function OwnerSiteVisitModal({
 const styles = StyleSheet.create({
   backdrop: {
     flex: 1,
-    backgroundColor: "rgba(15, 23, 42, 0.55)",
+    backgroundColor: "rgba(15, 23, 42, 0.4)",
     justifyContent: "flex-end",
+  },
+  backdropPress: {
+    flex: 1,
   },
   sheet: {
     backgroundColor: "#FFFFFF",
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
     paddingHorizontal: 20,
-    paddingTop: 12,
-    maxHeight: "92%",
+    paddingTop: 10,
+    maxHeight: "90%",
   },
-  sheetHandle: {
-    width: 44,
+  handle: {
+    width: 36,
     height: 4,
     borderRadius: 2,
-    backgroundColor: "#CBD5E1",
+    backgroundColor: COLORS.border,
     alignSelf: "center",
-    marginBottom: 12,
+    marginBottom: 10,
   },
+  scrollContent: {
+    paddingBottom: 30,
+  },
+
+  /* ── Header ── */
   headerRow: {
     flexDirection: "row",
     justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 14,
+    alignItems: "flex-start",
+    marginBottom: 18,
   },
   title: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: "700",
-    color: "#0F172A",
-    letterSpacing: -0.2,
+    color: COLORS.textDark,
+    letterSpacing: -0.3,
   },
   subtitle: {
-    fontSize: 12.5,
-    color: "#64748B",
-    marginTop: 2,
-    fontWeight: "500",
+    fontSize: 13,
+    color: COLORS.textSecondary,
+    marginTop: 3,
+    fontWeight: "400",
   },
   closeBtn: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: "#F1F5F9",
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    backgroundColor: COLORS.pageBackground,
     justifyContent: "center",
     alignItems: "center",
   },
 
-  /* Quick Presets */
+  /* ── Presets ── */
   presetRow: {
     flexDirection: "row",
     gap: 8,
-    marginBottom: 14,
+    marginBottom: 20,
   },
   presetChip: {
     flex: 1,
-    paddingVertical: 7,
-    borderRadius: 9,
-    backgroundColor: "#F8FAFC",
-    borderWidth: 1,
-    borderColor: "#E2E8F0",
+    paddingVertical: 8,
+    borderRadius: 10,
+    backgroundColor: COLORS.pageBackground,
     alignItems: "center",
-    justifyContent: "center",
   },
   presetChipActive: {
-    backgroundColor: "#EFF6FF",
-    borderColor: COLORS.primary,
+    backgroundColor: COLORS.primary,
   },
-  presetChipText: {
-    fontSize: 11.5,
+  presetText: {
+    fontSize: 12,
     fontWeight: "600",
-    color: "#475569",
+    color: COLORS.textSecondary,
   },
-  presetChipTextActive: {
-    color: COLORS.primary,
-    fontWeight: "700",
+  presetTextActive: {
+    color: "#FFFFFF",
   },
 
-  /* Mini Calendar Card */
-  calendarCard: {
-    backgroundColor: "#FFFFFF",
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: "#E2E8F0",
-    padding: 12,
-    marginBottom: 16,
-    shadowColor: "#0F172A",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.04,
-    shadowRadius: 3,
-    elevation: 1,
+  /* ── Calendar ── */
+  calendar: {
+    marginBottom: 24,
   },
-  monthNavRow: {
+  monthNav: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    marginBottom: 10,
+    marginBottom: 16,
   },
-  monthNavBtn: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: "#F8FAFC",
-    borderWidth: 1,
-    borderColor: "#E2E8F0",
-    justifyContent: "center",
-    alignItems: "center",
+  monthArrow: {
+    padding: 4,
   },
-  monthNavBtnDisabled: {
-    backgroundColor: "#F1F5F9",
-    borderColor: "#F1F5F9",
+  monthLabel: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: COLORS.textDark,
+    letterSpacing: -0.2,
   },
-  monthLabelWrapper: {
+  weekRow: {
     flexDirection: "row",
-    alignItems: "center",
+    marginBottom: 8,
   },
-  monthLabelText: {
-    fontSize: 15,
-    fontWeight: "700",
-    color: "#0F172A",
-  },
-  weekHeaderRow: {
-    flexDirection: "row",
-    marginBottom: 6,
-    paddingBottom: 4,
-    borderBottomWidth: 1,
-    borderBottomColor: "#F1F5F9",
-  },
-  weekDayText: {
+  weekDay: {
     width: "14.285%",
     textAlign: "center",
-    fontSize: 11.5,
-    fontWeight: "700",
-    color: "#94A3B8",
+    fontSize: 12,
+    fontWeight: "500",
+    color: COLORS.lightText,
     textTransform: "uppercase",
-  },
-  weekEndText: {
-    color: "#64748B",
   },
   daysGrid: {
     flexDirection: "row",
     flexWrap: "wrap",
   },
-  dayCellWrapper: {
+  dayCellWrap: {
     width: "14.285%",
     aspectRatio: 1,
     alignItems: "center",
     justifyContent: "center",
-    paddingVertical: 2,
   },
   dayCell: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     alignItems: "center",
     justifyContent: "center",
   },
   dayCellSelected: {
     backgroundColor: COLORS.primary,
-    shadowColor: COLORS.primary,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-    elevation: 3,
   },
   dayCellToday: {
     borderWidth: 1.5,
     borderColor: COLORS.primary,
   },
   dayText: {
-    fontSize: 13,
-    fontWeight: "600",
-    color: "#0F172A",
+    fontSize: 14,
+    fontWeight: "500",
+    color: COLORS.textDark,
   },
-  dayTextOtherMonth: {
-    color: "#CBD5E1",
-    fontWeight: "400",
+  dayTextMuted: {
+    color: COLORS.border,
   },
   dayTextDisabled: {
-    color: "#E2E8F0",
-    fontWeight: "400",
+    color: COLORS.borderLight,
   },
   dayTextSelected: {
     color: "#FFFFFF",
-    fontWeight: "700",
+    fontWeight: "600",
   },
   dayTextToday: {
     color: COLORS.primary,
     fontWeight: "700",
   },
-  selectedDateBadge: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    backgroundColor: "#F8FAFC",
-    borderRadius: 10,
-    paddingHorizontal: 12,
-    paddingVertical: 7,
-    marginTop: 10,
-    borderWidth: 1,
-    borderColor: "#F1F5F9",
-  },
-  selectedDateBadgeLabel: {
-    fontSize: 11.5,
-    fontWeight: "600",
-    color: "#64748B",
-  },
-  selectedDateBadgeValue: {
-    fontSize: 12.5,
-    fontWeight: "700",
-    color: COLORS.primary,
-  },
 
-  /* Section Header */
-  sectionHeaderRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 8,
-  },
+  /* ── Section label ── */
   sectionLabel: {
-    fontSize: 13.5,
-    fontWeight: "700",
-    color: "#0F172A",
+    fontSize: 14,
+    fontWeight: "600",
+    color: COLORS.textDark,
+    marginBottom: 10,
+    letterSpacing: -0.1,
   },
 
-  /* Time Slots */
-  timeSlotsGrid: {
+  /* ── Time grid ── */
+  timeGrid: {
     flexDirection: "row",
     flexWrap: "wrap",
     gap: 8,
-    marginBottom: 16,
+    marginBottom: 24,
   },
-  timeSlotChip: {
+  timeChip: {
     flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 12,
-    paddingVertical: 8,
+    alignItems: "baseline",
+    paddingHorizontal: 14,
+    paddingVertical: 10,
     borderRadius: 10,
-    backgroundColor: "#F8FAFC",
-    borderWidth: 1,
-    borderColor: "#E2E8F0",
+    backgroundColor: COLORS.pageBackground,
   },
-  timeSlotChipActive: {
-    backgroundColor: "#EFF6FF",
-    borderColor: COLORS.primary,
-    borderWidth: 1.5,
+  timeChipActive: {
+    backgroundColor: COLORS.primary,
   },
-  timeSlotText: {
-    fontSize: 12,
+  timeText: {
+    fontSize: 14,
     fontWeight: "600",
-    color: "#334155",
+    color: COLORS.textDark,
   },
-  timeSlotTextActive: {
-    color: COLORS.primary,
-    fontWeight: "700",
+  timeTextActive: {
+    color: "#FFFFFF",
+  },
+  timePeriod: {
+    fontSize: 10,
+    fontWeight: "500",
+    color: COLORS.textSecondary,
+    marginLeft: 2,
+  },
+  timePeriodActive: {
+    color: "rgba(255,255,255,0.7)",
   },
 
-  /* Quick Notes */
+  /* ── Quick notes ── */
   quickNotesRow: {
     flexDirection: "row",
     flexWrap: "wrap",
     gap: 6,
-    marginBottom: 8,
+    marginBottom: 10,
   },
-  quickNoteTag: {
-    paddingHorizontal: 9,
-    paddingVertical: 4,
+  quickNote: {
+    paddingHorizontal: 10,
+    paddingVertical: 5,
     borderRadius: 8,
-    backgroundColor: "#F1F5F9",
-    borderWidth: 1,
-    borderColor: "#E2E8F0",
+    backgroundColor: COLORS.pageBackground,
   },
-  quickNoteTagText: {
-    fontSize: 11,
+  quickNoteActive: {
+    backgroundColor: COLORS.primaryLight,
+  },
+  quickNoteText: {
+    fontSize: 12,
+    fontWeight: "500",
+    color: COLORS.textSecondary,
+  },
+  quickNoteTextActive: {
+    color: COLORS.primary,
     fontWeight: "600",
-    color: "#475569",
   },
   noteInput: {
-    minHeight: 74,
-    borderWidth: 1.5,
-    borderColor: "#E2E8F0",
+    minHeight: 60,
+    borderWidth: 1,
+    borderColor: COLORS.border,
     borderRadius: 12,
     padding: 12,
-    fontSize: 13,
-    color: "#0F172A",
-    backgroundColor: "#F8FAFC",
+    fontSize: 14,
+    color: COLORS.textDark,
     textAlignVertical: "top",
-    marginBottom: 14,
+    marginBottom: 20,
+    fontWeight: "400",
   },
 
-  /* Summary Card */
-  scheduleSummaryCard: {
+  /* ── Bottom ── */
+  bottomSection: {
+    gap: 12,
+  },
+  summaryStrip: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#F8FAFC",
+    backgroundColor: COLORS.pageBackground,
     borderRadius: 12,
-    borderWidth: 1,
-    borderColor: "#E2E8F0",
-    paddingVertical: 10,
-    paddingHorizontal: 14,
-    marginBottom: 4,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
   },
-  summaryItem: {
+  summaryCol: {
     flex: 1,
   },
-  summaryItemDivider: {
-    width: 1,
-    height: 26,
-    backgroundColor: "#CBD5E1",
+  summaryDot: {
+    width: 4,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: COLORS.lightText,
     marginHorizontal: 12,
   },
-  summaryItemLabel: {
+  summaryLabel: {
     fontSize: 10,
-    fontWeight: "700",
-    color: "#64748B",
+    fontWeight: "600",
+    color: COLORS.lightText,
     letterSpacing: 0.5,
     marginBottom: 2,
   },
-  summaryItemValue: {
-    fontSize: 13,
-    fontWeight: "700",
-    color: "#0F172A",
+  summaryValue: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: COLORS.textDark,
+  },
+  confirmBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: COLORS.primary,
+    paddingVertical: 15,
+    borderRadius: 14,
+  },
+  confirmBtnText: {
+    fontSize: 15,
+    fontWeight: "600",
+    color: "#FFFFFF",
+    letterSpacing: 0.1,
   },
 
-  /* Success View */
-  successBox: {
+  /* ── Success view ── */
+  successView: {
     alignItems: "center",
-    paddingVertical: 18,
+    paddingVertical: 24,
+    paddingBottom: 30,
   },
-  successIconCircle: {
-    width: 68,
-    height: 68,
-    borderRadius: 34,
-    backgroundColor: "#ECFDF5",
+  successIcon: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: COLORS.successBg,
     justifyContent: "center",
     alignItems: "center",
-    marginBottom: 14,
+    marginBottom: 16,
   },
   successTitle: {
     fontSize: 20,
     fontWeight: "700",
-    color: "#0F172A",
-    marginBottom: 6,
+    color: COLORS.textDark,
+    letterSpacing: -0.3,
+    marginBottom: 4,
   },
   successSub: {
     fontSize: 13,
-    color: "#64748B",
+    color: COLORS.textSecondary,
     textAlign: "center",
-    marginBottom: 18,
-    fontWeight: "500",
+    marginBottom: 20,
+    fontWeight: "400",
+    paddingHorizontal: 20,
   },
-  summaryCard: {
+  successCard: {
     width: "100%",
-    backgroundColor: "#F8FAFC",
+    backgroundColor: COLORS.pageBackground,
     borderRadius: 14,
-    borderWidth: 1,
-    borderColor: "#E2E8F0",
-    padding: 14,
-    gap: 5,
+    padding: 16,
+    marginBottom: 4,
   },
-  summaryProperty: {
-    fontSize: 14,
-    fontWeight: "700",
-    color: "#0F172A",
+  successRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingVertical: 4,
   },
-  summaryCust: {
-    fontSize: 12.5,
-    color: "#64748B",
-    fontWeight: "500",
+  successDivider: {
+    height: StyleSheet.hairlineWidth,
+    backgroundColor: COLORS.border,
+    marginVertical: 8,
   },
-  summaryTime: {
+  successLabel: {
     fontSize: 13,
-    fontWeight: "700",
-    color: COLORS.primary,
-    marginTop: 2,
+    fontWeight: "400",
+    color: COLORS.textSecondary,
   },
-  summaryNote: {
-    fontSize: 12,
-    color: "#475569",
-    fontStyle: "italic",
-    marginTop: 2,
+  successValue: {
+    fontSize: 13,
+    fontWeight: "600",
+    color: COLORS.textDark,
+    textAlign: "right",
+    flex: 1,
+    marginLeft: 16,
+  },
+  doneBtn: {
+    width: "100%",
+    backgroundColor: COLORS.primary,
+    paddingVertical: 15,
+    borderRadius: 14,
+    alignItems: "center",
+    marginTop: 16,
+  },
+  doneBtnText: {
+    fontSize: 15,
+    fontWeight: "600",
+    color: "#FFFFFF",
   },
 });

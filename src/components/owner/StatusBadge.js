@@ -86,6 +86,12 @@ export default function StatusBadge({ status, style, textStyle }) {
       textColor = "#16A34A";
       label = "LEASED";
       break;
+    case "lost":
+    case "lost / not interested":
+      bg = "#FEF2F2";
+      textColor = "#DC2626";
+      label = "LOST";
+      break;
     default:
       label = status.toUpperCase();
   }

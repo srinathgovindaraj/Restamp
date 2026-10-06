@@ -459,6 +459,53 @@ const INITIAL_LEADS = [
     },
     closedOutcome: null,
   },
+  {
+    id: "lead-7",
+    customerName: "Rajesh Khanna",
+    phone: "+91 98402 77123",
+    email: "rajesh.khanna@auto.com",
+    avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=200&q=80",
+    propertyId: "own-prop-1",
+    propertyTitle: "2 BHK Luxury Apartment",
+    propertyLocality: "Anna Nagar, Chennai",
+    propertyPrice: "₹25,000 / month",
+    propertyImage: "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=300&q=80",
+    requirement: "Rent",
+    budget: "₹25,000",
+    status: "contacted",
+    timestamp: "Yesterday • 2:30 PM",
+    preferredVisitDate: "Flexible",
+    message: "Enquired about immediate availability and whether water charges are included.",
+    visitData: null,
+    closedOutcome: null,
+    internalNotes: [
+      { id: "note-1", text: "Spoke on phone. Looking for 11 months agreement. Works in Ambattur IT park.", timestamp: "Yesterday • 3:00 PM" },
+    ],
+  },
+  {
+    id: "lead-8",
+    customerName: "Sneha Mohan",
+    phone: "+91 97890 33412",
+    email: "sneha.m@designstudio.in",
+    avatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=200&q=80",
+    propertyId: "own-prop-1",
+    propertyTitle: "2 BHK Luxury Apartment",
+    propertyLocality: "Anna Nagar, Chennai",
+    propertyPrice: "₹25,000 / month",
+    propertyImage: "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=300&q=80",
+    requirement: "Rent",
+    budget: "₹25K – ₹28K",
+    status: "visit_scheduled",
+    timestamp: "2 days ago",
+    preferredVisitDate: "Tomorrow, 11:00 AM",
+    message: "Interested in visiting tomorrow. Need to check kitchen modular fittings and balcony view.",
+    visitData: {
+      date: "Tomorrow",
+      time: "11:00 AM",
+      note: "Customer visiting with spouse to verify parking slot and balcony view.",
+    },
+    closedOutcome: null,
+  },
 ];
 
 export function OwnerProvider({ children }) {
@@ -601,6 +648,29 @@ export function OwnerProvider({ children }) {
     }
   };
 
+  const addLeadNote = (leadId, noteText) => {
+    if (!noteText || !noteText.trim()) return;
+    setLeads((prev) =>
+      prev.map((lead) => {
+        if (lead.id === leadId) {
+          const notes = lead.internalNotes || [];
+          return {
+            ...lead,
+            internalNotes: [
+              ...notes,
+              {
+                id: `note-${Date.now()}`,
+                text: noteText.trim(),
+                timestamp: "Just now",
+              },
+            ],
+          };
+        }
+        return lead;
+      })
+    );
+  };
+
   return (
     <OwnerContext.Provider
       value={{
@@ -619,6 +689,7 @@ export function OwnerProvider({ children }) {
         updateLeadStatus,
         scheduleVisit,
         closeLead,
+        addLeadNote,
         selectedPlanForCheckout,
         setSelectedPlanForCheckout,
         rentDraft,

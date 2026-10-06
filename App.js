@@ -4,6 +4,7 @@ import AppNavigator from "./src/navigation/AppNavigator";
 import { WishlistProvider } from "./src/context/WishlistContext";
 import { OwnerProvider } from "./src/context/OwnerContext";
 import { AgentProvider } from "./src/context/AgentContext";
+import { AuthProvider } from "./src/context/AuthContext";
 import AnimatedSplashScreen from "./src/components/AnimatedSplashScreen";
 
 export default function App() {
@@ -11,18 +12,20 @@ export default function App() {
 
   return (
     <SafeAreaProvider style={{ flex: 1, backgroundColor: "#FFFFFF" }}>
-      <WishlistProvider>
-        <OwnerProvider>
-          <AgentProvider>
-            <AppNavigator />
-            {isSplashVisible && (
-              <AnimatedSplashScreen
-                onAnimationComplete={() => setIsSplashVisible(false)}
-              />
-            )}
-          </AgentProvider>
-        </OwnerProvider>
-      </WishlistProvider>
+      <AuthProvider>
+        <WishlistProvider>
+          <OwnerProvider>
+            <AgentProvider>
+              <AppNavigator />
+              {isSplashVisible && (
+                <AnimatedSplashScreen
+                  onAnimationComplete={() => setIsSplashVisible(false)}
+                />
+              )}
+            </AgentProvider>
+          </OwnerProvider>
+        </WishlistProvider>
+      </AuthProvider>
     </SafeAreaProvider>
   );
 }

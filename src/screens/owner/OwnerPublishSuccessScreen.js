@@ -3,12 +3,12 @@ import {
   View,
   Text,
   StyleSheet,
-  SafeAreaView,
   StatusBar,
   Image,
   TouchableOpacity,
   ScrollView,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { CheckCircle2, Building2, Plus, Clock, ArrowLeft } from "lucide-react-native";
 import COLORS from "../../constants/colors";
 import StatusBadge from "../../components/owner/StatusBadge";
