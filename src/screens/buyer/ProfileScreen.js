@@ -61,7 +61,7 @@ export default function ProfileScreen({ navigation }) {
   const enquiriesCount = leads?.length ?? 6;
 
   const handleSwitchToOwner = () => {
-    nav.navigate(subscription?.active ? "OwnerNavigator" : "OwnerPlans");
+    nav.navigate("OwnerNavigator", { screen: "Dashboard" });
   };
 
   const handleLogout = () => {

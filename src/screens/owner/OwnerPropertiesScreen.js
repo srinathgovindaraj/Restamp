@@ -98,7 +98,7 @@ export default function OwnerPropertiesScreen({ route, navigation }) {
 
   // Handlers for property card actions
   const handleViewLeads = (property) => {
-    navigation.navigate("Leads", { propertyId: property.id });
+    navigation.navigate("OwnerPropertyLeads", { property });
   };
 
   const handleViewProperty = (property) => {
@@ -236,13 +236,22 @@ export default function OwnerPropertiesScreen({ route, navigation }) {
           </View>
         )}
 
-        {/* Horizontally Scrollable Status Tabs */}
+        {/* Horizontally Scrollable Status Tabs (Matching Buyer Search Properties Filter Bar) */}
         <View style={styles.tabsContainer}>
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.tabsScroll}
           >
+            {/* Main Filter Icon Button */}
+            <TouchableOpacity
+              style={[styles.filterIconPill, showSearch && styles.filterIconPillActive]}
+              activeOpacity={0.8}
+              onPress={() => setShowSearch(!showSearch)}
+            >
+              <SlidersHorizontal size={15} color={showSearch ? COLORS.primary : "#334155"} />
+            </TouchableOpacity>
+
             {STATUS_TABS.map((tab) => {
               const count =
                 tab === "All"
@@ -253,11 +262,11 @@ export default function OwnerPropertiesScreen({ route, navigation }) {
               return (
                 <TouchableOpacity
                   key={tab}
-                  style={[styles.tabChip, isActive && styles.tabChipActive]}
+                  style={[styles.filterDropdownPill, isActive && styles.filterDropdownPillActive]}
                   onPress={() => setActiveTab(tab)}
-                  activeOpacity={0.75}
+                  activeOpacity={0.8}
                 >
-                  <Text style={[styles.tabText, isActive && styles.tabTextActive]}>
+                  <Text style={[styles.filterDropdownText, isActive && styles.filterDropdownTextActive]}>
                     {tab}
                   </Text>
                   <View style={[styles.tabCountBadge, isActive && styles.tabCountBadgeActive]}>
@@ -398,12 +407,12 @@ const styles = StyleSheet.create({
   searchBarWrapper: {
     paddingHorizontal: 20,
     paddingBottom: 10,
-    backgroundColor: "#F1F5F9",
+    backgroundColor: "#FFFFFF",
   },
   searchBarCard: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#F8FAFC",
     borderRadius: 16,
     borderWidth: 1,
     borderColor: "#EEF2F6",
@@ -417,68 +426,94 @@ const styles = StyleSheet.create({
     color: COLORS.textDark,
   },
   tabsContainer: {
-    backgroundColor: "#F1F5F9",
-    paddingBottom: 10,
+    marginHorizontal: -20,
+    marginBottom: 16,
+    backgroundColor: "#FFFFFF",
   },
   tabsScroll: {
     paddingHorizontal: 20,
-    gap: 8,
-  },
-  tabChip: {
+    paddingVertical: 4,
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: 14,
-    paddingVertical: 7,
-    borderRadius: 20,
-    backgroundColor: "#FFFFFF",
+    gap: 8,
+  },
+  filterIconPill: {
+    width: 36,
+    height: 34,
+    borderRadius: 8,
     borderWidth: 1,
-    borderColor: "#EEF2F6",
+    borderColor: "#CBD5E1",
+    backgroundColor: "#FFFFFF",
+    justifyContent: "center",
+    alignItems: "center",
   },
-  tabChipActive: {
-    backgroundColor: COLORS.primary,
+  filterIconPillActive: {
     borderColor: COLORS.primary,
+    backgroundColor: "#EFF6FF",
   },
-  tabText: {
-    fontSize: 12,
-    fontWeight: "400",
-    color: COLORS.textSecondary,
-    marginRight: 6,
+  filterDropdownPill: {
+    height: 34,
+    paddingHorizontal: 12,
+    borderRadius: 17,
+    borderWidth: 1,
+    borderColor: "#CBD5E1",
+    backgroundColor: "#FFFFFF",
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
   },
-  tabTextActive: {
-    color: "#FFFFFF",
+  filterDropdownPillActive: {
+    borderColor: COLORS.primary,
+    backgroundColor: "#EFF6FF",
+  },
+  filterDropdownText: {
+    fontSize: 13,
+    color: "#334155",
     fontWeight: "500",
+  },
+  filterDropdownTextActive: {
+    color: COLORS.primary,
+    fontWeight: "700",
   },
   tabCountBadge: {
-    paddingHorizontal: 6,
-    paddingVertical: 1,
-    borderRadius: 10,
+    minWidth: 18,
+    height: 18,
+    paddingHorizontal: 4,
+    borderRadius: 9,
     backgroundColor: "#F1F5F9",
+    justifyContent: "center",
+    alignItems: "center",
+    marginLeft: 2,
   },
   tabCountBadgeActive: {
-    backgroundColor: "rgba(255, 255, 255, 0.25)",
+    backgroundColor: "#DBEAFE",
   },
   tabCountText: {
-    fontSize: 10,
-    fontWeight: "500",
-    color: COLORS.textDark,
+    fontSize: 10.5,
+    fontWeight: "700",
+    color: "#64748B",
+    textAlign: "center",
+    includeFontPadding: false,
   },
   tabCountTextActive: {
-    color: "#FFFFFF",
+    color: COLORS.primary,
+    fontWeight: "700",
   },
   container: {
     flex: 1,
-    backgroundColor: "#F1F5F9",
+    backgroundColor: "#FFFFFF",
   },
   scrollContent: {
     paddingHorizontal: 20,
     paddingTop: 4,
-    paddingBottom: 90,
+    paddingBottom: 24,
+    backgroundColor: "#FFFFFF",
   },
   switchBanner: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#F8FAFC",
     borderRadius: 20,
     paddingHorizontal: 16,
     paddingVertical: 12,

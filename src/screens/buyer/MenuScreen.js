@@ -14,6 +14,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
   X,
   Building,
+  Building2,
   Home,
   Briefcase,
   TrendingUp,
@@ -471,17 +472,8 @@ export default function MenuScreen({ navigation, route }) {
 
   const handleSelectPlan = (plan, planRole) => {
     if (planRole === "Owner") {
-      navigation.navigate("OwnerPlanConfirm", {
-        plan: {
-          id: plan.id,
-          name: plan.name,
-          price: plan.price,
-          priceNumeric: parseInt(plan.price?.replace(/[^0-9]/g, "")) || 2999,
-          validity: plan.priceSub1?.includes("90") ? "3 Months (90 Days)" : "1 Month",
-          listingLimit: plan.id?.includes("vip") || plan.id?.includes("titanium") ? 10 : 5,
-          category: propertyCategory,
-        },
-      });
+      // Testing shortcut: Skip all payment steps and directly open Owner Dashboard
+      navigation.navigate("OwnerNavigator", { screen: "Dashboard" });
       return;
     }
 
@@ -550,20 +542,31 @@ export default function MenuScreen({ navigation, route }) {
           </View>
         </View>
 
-        <TouchableOpacity
-          style={styles.closeBtn}
-          activeOpacity={0.8}
-          onPress={() => {
-            if (navigation.canGoBack()) {
-              navigation.goBack();
-            } else {
-              navigation.navigate("Home");
-            }
-          }}
-          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-        >
-          <X size={18} color="#0F172A" />
-        </TouchableOpacity>
+        <View style={styles.headerRightActions}>
+          <TouchableOpacity
+            style={styles.switchOwnerPill}
+            activeOpacity={0.8}
+            onPress={() => navigation.navigate("OwnerNavigator", { screen: "Dashboard" })}
+          >
+            <Building2 size={13} color="#2563EB" style={{ marginRight: 4 }} />
+            <Text style={styles.switchOwnerText}>Owner</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.closeBtn}
+            activeOpacity={0.8}
+            onPress={() => {
+              if (navigation.canGoBack()) {
+                navigation.goBack();
+              } else {
+                navigation.navigate("Home");
+              }
+            }}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          >
+            <X size={18} color="#0F172A" />
+          </TouchableOpacity>
+        </View>
       </View>
 
       {/* ================= MAIN TWO-COLUMN VERTICAL TAB LAYOUT ================= */}
@@ -662,6 +665,28 @@ export default function MenuScreen({ navigation, route }) {
                     : "Micromarket boost • Verified corporate & HNI leads"}
                 </Text>
               </View>
+
+              {/* Quick Direct Owner Access Banner (Testing - Skip Payment) */}
+              {activeVerticalTab === "owner" && (
+                <View style={styles.ownerTestBanner}>
+                  <View style={styles.ownerTestLeft}>
+                    <Building2 size={17} color="#2563EB" style={{ marginRight: 8 }} />
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.ownerTestTitle}>Owner Mode (Testing)</Text>
+                      <Text style={styles.ownerTestSub}>
+                        Skip payment & open Owner Dashboard
+                      </Text>
+                    </View>
+                  </View>
+                  <TouchableOpacity
+                    style={styles.ownerTestBtn}
+                    onPress={() => navigation.navigate("OwnerNavigator", { screen: "Dashboard" })}
+                    activeOpacity={0.85}
+                  >
+                    <Text style={styles.ownerTestBtnText}>Open</Text>
+                  </TouchableOpacity>
+                </View>
+              )}
 
               {/* Active Plan Quick Access Banner for Agents */}
               {activeVerticalTab === "agent" && hasActivePlan && (
@@ -1109,6 +1134,26 @@ const styles = StyleSheet.create({
     fontWeight: "800",
     color: COLORS.primary,
     letterSpacing: 0.6,
+  },
+  headerRightActions: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  switchOwnerPill: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#EFF6FF",
+    borderWidth: 1,
+    borderColor: "#BFDBFE",
+    borderRadius: 20,
+    paddingHorizontal: 11,
+    paddingVertical: 6,
+  },
+  switchOwnerText: {
+    fontSize: 12.5,
+    fontWeight: "700",
+    color: "#2563EB",
   },
   closeBtn: {
     width: 36,
@@ -1702,6 +1747,44 @@ const styles = StyleSheet.create({
   },
   activePlanBtnText: {
     fontSize: 11,
+    fontWeight: "700",
+    color: "#FFFFFF",
+  },
+  ownerTestBanner: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    backgroundColor: "#EFF6FF",
+    borderRadius: 14,
+    padding: 12,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: "#BFDBFE",
+  },
+  ownerTestLeft: {
+    flexDirection: "row",
+    alignItems: "center",
+    flex: 1,
+    marginRight: 8,
+  },
+  ownerTestTitle: {
+    fontSize: 13,
+    fontWeight: "800",
+    color: "#1E40AF",
+  },
+  ownerTestSub: {
+    fontSize: 11,
+    color: "#3B82F6",
+    marginTop: 1,
+  },
+  ownerTestBtn: {
+    backgroundColor: "#2563EB",
+    paddingHorizontal: 13,
+    paddingVertical: 6.5,
+    borderRadius: 100,
+  },
+  ownerTestBtnText: {
+    fontSize: 11.5,
     fontWeight: "700",
     color: "#FFFFFF",
   },

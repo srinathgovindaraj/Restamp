@@ -481,8 +481,8 @@ export function OwnerProvider({ children }) {
 
   // Owner Profile
   const [ownerProfile, setOwnerProfile] = useState({
-    name: "Rajesh Kumar",
-    firstName: "Raj",
+    name: "Arunavo Mukherjee",
+    firstName: "Arunavo",
     phone: "+91 98401 23456",
     email: "rajesh.kumar@example.com",
     avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=300&q=80",
@@ -499,6 +499,21 @@ export function OwnerProvider({ children }) {
 
   // Pending selected plan during checkout
   const [selectedPlanForCheckout, setSelectedPlanForCheckout] = useState(null);
+
+  // Saved Draft for Rent Property Multi-Step Flow
+  const [rentDraft, setRentDraft] = useState(null);
+
+  const saveRentDraft = (draftData) => {
+    setRentDraft({
+      ...draftData,
+      savedAt: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+      savedDate: new Date().toLocaleDateString("en-GB", { day: "2-digit", month: "short" }),
+    });
+  };
+
+  const clearRentDraft = () => {
+    setRentDraft(null);
+  };
 
   // Methods
   const activateSubscription = (plan) => {
@@ -606,6 +621,9 @@ export function OwnerProvider({ children }) {
         closeLead,
         selectedPlanForCheckout,
         setSelectedPlanForCheckout,
+        rentDraft,
+        saveRentDraft,
+        clearRentDraft,
       }}
     >
       {children}

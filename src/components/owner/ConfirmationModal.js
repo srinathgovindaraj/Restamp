@@ -1,8 +1,6 @@
 import React from "react";
-import { Modal, View, Text, StyleSheet, Pressable } from "react-native";
+import { Modal, View, Text, StyleSheet, Pressable, TouchableOpacity } from "react-native";
 import COLORS from "../../constants/colors";
-import PrimaryButton from "./PrimaryButton";
-import SecondaryButton from "./SecondaryButton";
 
 export default function ConfirmationModal({
   visible,
@@ -34,6 +32,7 @@ export default function ConfirmationModal({
               <Icon
                 size={26}
                 color={variant === "danger" ? COLORS.danger : COLORS.primary}
+                strokeWidth={2}
               />
             </View>
           )}
@@ -42,18 +41,28 @@ export default function ConfirmationModal({
           <Text style={styles.message}>{message}</Text>
 
           <View style={styles.buttonRow}>
-            <SecondaryButton
-              title={cancelText}
+            <TouchableOpacity
+              style={styles.cancelBtn}
               onPress={onCancel}
-              style={{ flex: 1 }}
-              variant="subtle"
-            />
-            <PrimaryButton
-              title={confirmText}
+              activeOpacity={0.75}
+            >
+              <Text style={styles.cancelBtnText} numberOfLines={1}>
+                {cancelText}
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[
+                styles.confirmBtn,
+                variant === "danger" && styles.confirmBtnDanger,
+              ]}
               onPress={onConfirm}
-              style={{ flex: 1 }}
-              variant={variant === "danger" ? "danger" : "primary"}
-            />
+              activeOpacity={0.8}
+            >
+              <Text style={styles.confirmBtnText} numberOfLines={1}>
+                {confirmText}
+              </Text>
+            </TouchableOpacity>
           </View>
         </Pressable>
       </Pressable>
@@ -64,54 +73,99 @@ export default function ConfirmationModal({
 const styles = StyleSheet.create({
   backdrop: {
     flex: 1,
-    backgroundColor: "rgba(15, 23, 42, 0.55)",
+    backgroundColor: "rgba(15, 23, 42, 0.45)",
     justifyContent: "center",
     alignItems: "center",
     paddingHorizontal: 24,
   },
   card: {
     width: "100%",
-    maxWidth: 360,
+    maxWidth: 340,
     backgroundColor: "#FFFFFF",
-    borderRadius: 20,
-    padding: 24,
+    borderRadius: 24,
+    paddingHorizontal: 22,
+    paddingTop: 24,
+    paddingBottom: 22,
     alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#F1F5F9",
     shadowColor: "#000000",
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.15,
-    shadowRadius: 20,
-    elevation: 10,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.12,
+    shadowRadius: 18,
+    elevation: 8,
   },
   iconWrap: {
-    width: 54,
-    height: 54,
-    borderRadius: 27,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
     backgroundColor: COLORS.primaryLight,
     justifyContent: "center",
     alignItems: "center",
-    marginBottom: 16,
+    marginBottom: 14,
   },
   iconWrapDanger: {
     backgroundColor: "#FEE2E2",
   },
   title: {
     fontSize: 18,
-    fontWeight: "500",
-    color: COLORS.textDark,
+    fontWeight: "700",
+    color: "#0F172A",
     textAlign: "center",
     marginBottom: 8,
+    letterSpacing: -0.3,
   },
   message: {
-    fontSize: 14,
-    color: COLORS.textSecondary,
+    fontSize: 13.5,
+    color: "#64748B",
     textAlign: "center",
     lineHeight: 20,
-    marginBottom: 20,
-    fontWeight: "400",
+    marginBottom: 22,
+    paddingHorizontal: 6,
   },
   buttonRow: {
     flexDirection: "row",
-    gap: 12,
+    gap: 10,
     width: "100%",
+    alignItems: "center",
+  },
+  cancelBtn: {
+    flex: 1,
+    height: 46,
+    borderRadius: 12,
+    backgroundColor: "#F1F5F9",
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 8,
+  },
+  cancelBtnText: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#475569",
+  },
+  confirmBtn: {
+    flex: 1,
+    height: 46,
+    borderRadius: 12,
+    backgroundColor: COLORS.primary,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 8,
+    shadowColor: COLORS.primary,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.22,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  confirmBtnDanger: {
+    backgroundColor: COLORS.danger,
+    shadowColor: COLORS.danger,
+  },
+  confirmBtnText: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#FFFFFF",
   },
 });

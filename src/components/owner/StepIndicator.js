@@ -1,79 +1,79 @@
-import React from "react";
-import { View, Text, StyleSheet, ScrollView } from "react-native";
-import { Check } from "lucide-react-native";
+import React, { useRef, useEffect } from "react";
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from "react-native";
 import COLORS from "../../constants/colors";
 
-const STEPS = [
-  { step: 1, label: "Property" },
-  { step: 2, label: "Location" },
-  { step: 3, label: "Details" },
-  { step: 4, label: "Pricing" },
-  { step: 5, label: "Media" },
-  { step: 6, label: "Review" },
+const DEFAULT_RENT_STEPS = [
+  { step: 1, label: "Basic", fullLabel: "Add Property" },
+  { step: 2, label: "Location", fullLabel: "Property Location" },
+  { step: 3, label: "Details", fullLabel: "Property Details" },
+  { step: 4, label: "Pricing", fullLabel: "Price & Terms" },
+  { step: 5, label: "Photos", fullLabel: "Photos & Details" },
+  { step: 6, label: "Amenities", fullLabel: "Amenities" },
+  { step: 7, label: "Review", fullLabel: "Review Property" },
 ];
 
-export default function StepIndicator({ currentStep = 1 }) {
-  const progressPercent = Math.round((currentStep / 6) * 100);
+export default function StepIndicator({
+  currentStep = 1,
+  steps = DEFAULT_RENT_STEPS,
+  onStepPress,
+}) {
+  const scrollRef = useRef(null);
+  const totalSteps = steps.length;
+  const currentStepObj = steps[currentStep - 1] || steps[0];
+
+  useEffect(() => {
+    if (scrollRef.current && currentStep > 0) {
+      scrollRef.current.scrollTo({
+        x: Math.max(0, (currentStep - 2) * 78),
+        animated: true,
+      });
+    }
+  }, [currentStep]);
 
   return (
     <View style={styles.container}>
-      {/* Header Info */}
-      <View style={styles.headerRow}>
-        <Text style={styles.stepCounterText}>
-          Step {currentStep} of 6
-        </Text>
-        <Text style={styles.stepTitleText}>
-          {STEPS[currentStep - 1]?.label || ""}
+      {/* Top Header: Step 1 to 7 Indicator */}
+      <View style={styles.topMetaRow}>
+        <View style={styles.stepBadge}>
+          <Text style={styles.stepBadgeText}>
+            Step {currentStep} of {totalSteps}
+          </Text>
+        </View>
+        <Text style={styles.stepTitleText} numberOfLines={1}>
+          {currentStepObj?.fullLabel || currentStepObj?.label}
         </Text>
       </View>
 
-      {/* Thin continuous progress bar */}
-      <View style={styles.progressBarTrack}>
-        <View style={[styles.progressBarFill, { width: `${progressPercent}%` }]} />
-      </View>
-
-      {/* Discrete Step Nodes */}
-      <View style={styles.nodesRow}>
-        {STEPS.map((s) => {
-          const isCompleted = s.step < currentStep;
+      {/* Horizontal Tabs with Active Underline Indicator */}
+      <ScrollView
+        ref={scrollRef}
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContent}
+      >
+        {steps.map((s) => {
           const isCurrent = s.step === currentStep;
 
           return (
-            <View key={s.step} style={styles.nodeItem}>
-              <View
-                style={[
-                  styles.circle,
-                  isCompleted && styles.circleCompleted,
-                  isCurrent && styles.circleCurrent,
-                ]}
-              >
-                {isCompleted ? (
-                  <Check size={11} color="#FFFFFF" strokeWidth={3} />
-                ) : (
-                  <Text
-                    style={[
-                      styles.circleText,
-                      isCurrent && styles.circleTextCurrent,
-                    ]}
-                  >
-                    {s.step}
-                  </Text>
-                )}
-              </View>
+            <TouchableOpacity
+              key={s.step}
+              style={styles.tabItem}
+              onPress={() => onStepPress?.(s.step)}
+              activeOpacity={0.7}
+            >
               <Text
                 style={[
-                  styles.nodeLabel,
-                  isCurrent && styles.nodeLabelCurrent,
-                  isCompleted && styles.nodeLabelCompleted,
+                  styles.tabText,
+                  isCurrent ? styles.tabTextActive : styles.tabTextInactive,
                 ]}
-                numberOfLines={1}
               >
                 {s.label}
               </Text>
-            </View>
+              {isCurrent && <View style={styles.activeIndicator} />}
+            </TouchableOpacity>
           );
         })}
-      </View>
+      </ScrollView>
     </View>
   );
 }
@@ -81,86 +81,67 @@ export default function StepIndicator({ currentStep = 1 }) {
 const styles = StyleSheet.create({
   container: {
     backgroundColor: "#FFFFFF",
-    paddingHorizontal: 20,
-    paddingTop: 12,
-    paddingBottom: 14,
     borderBottomWidth: 1,
-    borderBottomColor: "#F1F5F9",
+    borderBottomColor: "#EEF2F6",
+    paddingTop: 10,
+    paddingBottom: 2,
   },
-  headerRow: {
+  topMetaRow: {
     flexDirection: "row",
+    alignItems: "center",
     justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 8,
-  },
-  stepCounterText: {
-    fontSize: 12,
-    fontWeight: "500",
-    color: COLORS.primary,
-    textTransform: "uppercase",
-    letterSpacing: 0.5,
-  },
-  stepTitleText: {
-    fontSize: 14,
-    fontWeight: "500",
-    color: COLORS.textDark,
-  },
-  progressBarTrack: {
-    height: 4,
-    backgroundColor: "#F1F5F9",
-    borderRadius: 2,
-    marginBottom: 12,
-    overflow: "hidden",
-  },
-  progressBarFill: {
-    height: "100%",
-    backgroundColor: COLORS.primary,
-    borderRadius: 2,
-  },
-  nodesRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "flex-start",
-  },
-  nodeItem: {
-    alignItems: "center",
-    width: 48,
-  },
-  circle: {
-    width: 22,
-    height: 22,
-    borderRadius: 11,
-    backgroundColor: "#F1F5F9",
-    justifyContent: "center",
-    alignItems: "center",
+    paddingHorizontal: 20,
     marginBottom: 4,
   },
-  circleCompleted: {
-    backgroundColor: COLORS.primary,
+  stepBadge: {
+    backgroundColor: COLORS.primaryLight,
+    paddingHorizontal: 9,
+    paddingVertical: 3.5,
+    borderRadius: 6,
   },
-  circleCurrent: {
-    backgroundColor: COLORS.primary,
-  },
-  circleText: {
+  stepBadgeText: {
     fontSize: 11,
-    fontWeight: "500",
-    color: COLORS.textSecondary,
-  },
-  circleTextCurrent: {
-    color: "#FFFFFF",
-  },
-  nodeLabel: {
-    fontSize: 10,
-    color: COLORS.muted,
-    fontWeight: "400",
-    textAlign: "center",
-  },
-  nodeLabelCurrent: {
+    fontWeight: "700",
     color: COLORS.primary,
+    letterSpacing: 0.3,
+  },
+  stepTitleText: {
+    fontSize: 13,
+    fontWeight: "600",
+    color: "#0F172A",
+  },
+  scrollContent: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 8,
+  },
+  tabItem: {
+    paddingHorizontal: 14,
+    paddingTop: 10,
+    paddingBottom: 15,
+    alignItems: "center",
+    justifyContent: "center",
+    position: "relative",
+  },
+  tabText: {
+    fontSize: 14,
+    letterSpacing: -0.2,
+  },
+  tabTextActive: {
+    color: "#0F172A",
+    fontWeight: "700",
+  },
+  tabTextInactive: {
+    color: "#64748B",
     fontWeight: "500",
   },
-  nodeLabelCompleted: {
-    color: COLORS.textDark,
-    fontWeight: "500",
+  activeIndicator: {
+    position: "absolute",
+    bottom: 4,
+    left: 14,
+    right: 14,
+    height: 3,
+    backgroundColor: COLORS.primary,
+    borderRadius: 2,
   },
 });

@@ -1,6 +1,5 @@
 import React from "react";
 import { TouchableOpacity, Text, StyleSheet, View } from "react-native";
-import { Check } from "lucide-react-native";
 import COLORS from "../../constants/colors";
 
 export default function SelectionChip({
@@ -15,58 +14,50 @@ export default function SelectionChip({
   const isCard = variant === "card";
   const isSegmented = variant === "segmented";
 
+  let containerStyle = styles.chipBase;
+  if (isSegmented) {
+    containerStyle = selected ? styles.segmentedSelected : styles.segmentedBase;
+  } else if (isCard) {
+    containerStyle = selected ? [styles.cardBase, styles.cardSelected] : styles.cardBase;
+  } else {
+    containerStyle = selected ? [styles.chipBase, styles.chipSelected] : styles.chipBase;
+  }
+
+  const iconColor = selected
+    ? (isSegmented ? COLORS.primary : "#FFFFFF")
+    : "#64748B";
+
   return (
     <TouchableOpacity
-      style={[
-        styles.base,
-        isCard && styles.card,
-        isSegmented && styles.segmented,
-        selected && styles.selectedBase,
-        selected && isCard && styles.selectedCard,
-        selected && isSegmented && styles.selectedSegmented,
-        style,
-      ]}
+      style={[containerStyle, style]}
       onPress={onPress}
-      activeOpacity={0.75}
+      activeOpacity={0.7}
     >
       <View style={styles.innerRow}>
         {Icon && (
           <Icon
-            size={isCard ? 20 : 15}
-            color={selected ? COLORS.primary : COLORS.textSecondary}
+            size={isCard ? 18 : 14}
+            color={iconColor}
             style={styles.icon}
           />
         )}
         <Text
           style={[
             styles.text,
-            isCard && styles.cardText,
-            selected && styles.selectedText,
+            isSegmented && (selected ? styles.segmentedTextSelected : styles.segmentedText),
+            isCard && (selected ? styles.cardTextSelected : styles.cardText),
+            !isSegmented && !isCard && (selected ? styles.chipTextSelected : styles.chipText),
             textStyle,
           ]}
         >
           {label}
         </Text>
-        {selected && !isSegmented && !isCard && (
-          <Check size={13} color={COLORS.primary} strokeWidth={3} style={{ marginLeft: 6 }} />
-        )}
       </View>
     </TouchableOpacity>
   );
 }
 
 const styles = StyleSheet.create({
-  base: {
-    paddingHorizontal: 14,
-    paddingVertical: 9,
-    borderRadius: 10,
-    backgroundColor: "#FFFFFF",
-    borderWidth: 1.5,
-    borderColor: "#E2E8F0",
-    marginRight: 8,
-    marginBottom: 8,
-    alignSelf: "flex-start",
-  },
   innerRow: {
     flexDirection: "row",
     alignItems: "center",
@@ -77,55 +68,105 @@ const styles = StyleSheet.create({
   },
   text: {
     fontSize: 13,
-    fontWeight: "400",
-    color: COLORS.textDark,
   },
-  selectedBase: {
+
+  // 1. Standard Minimal Pill Chip (using brand COLORS.primary)
+  chipBase: {
+    paddingHorizontal: 15,
+    paddingVertical: 9,
+    borderRadius: 20,
+    backgroundColor: "#F8FAFC",
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
+    marginRight: 8,
+    marginBottom: 8,
+    alignSelf: "flex-start",
+  },
+  chipSelected: {
+    backgroundColor: COLORS.primary,
     borderColor: COLORS.primary,
-    backgroundColor: "#EFF6FF",
+    shadowColor: COLORS.primary,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.22,
+    shadowRadius: 5,
+    elevation: 2,
   },
-  selectedText: {
-    color: COLORS.primary,
+  chipText: {
+    fontSize: 13,
     fontWeight: "500",
+    color: "#475569",
   },
-  card: {
+  chipTextSelected: {
+    fontSize: 13,
+    fontWeight: "600",
+    color: "#FFFFFF",
+  },
+
+  // 2. Segmented Pill Control (Apple iOS 18 style with COLORS.primary)
+  segmentedBase: {
+    flex: 1,
+    borderRadius: 10,
+    paddingVertical: 9,
+    backgroundColor: "transparent",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  segmentedSelected: {
+    flex: 1,
+    borderRadius: 10,
+    paddingVertical: 9,
+    backgroundColor: "#FFFFFF",
+    alignItems: "center",
+    justifyContent: "center",
+    shadowColor: "#000000",
+    shadowOffset: { width: 0, height: 1.5 },
+    shadowOpacity: 0.08,
+    shadowRadius: 3,
+    elevation: 2,
+  },
+  segmentedText: {
+    fontSize: 13.5,
+    fontWeight: "500",
+    color: "#64748B",
+  },
+  segmentedTextSelected: {
+    fontSize: 13.5,
+    fontWeight: "700",
+    color: COLORS.primary,
+  },
+
+  // 3. Card Selection
+  cardBase: {
     borderRadius: 14,
     paddingHorizontal: 16,
     paddingVertical: 14,
     minWidth: 100,
     alignItems: "center",
     justifyContent: "center",
+    backgroundColor: "#F8FAFC",
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
+    marginRight: 8,
+    marginBottom: 8,
   },
-  cardText: {
-    fontSize: 14,
-    fontWeight: "500",
-  },
-  selectedCard: {
+  cardSelected: {
+    backgroundColor: "#FFFFFF",
     borderColor: COLORS.primary,
-    backgroundColor: "#F0F7FF",
+    borderWidth: 1.5,
     shadowColor: COLORS.primary,
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 6,
+    shadowOpacity: 0.12,
+    shadowRadius: 5,
     elevation: 2,
   },
-  segmented: {
-    flex: 1,
-    borderRadius: 12,
-    paddingVertical: 11,
-    marginRight: 0,
-    marginBottom: 0,
-    alignSelf: "stretch",
-    alignItems: "center",
-    justifyContent: "center",
+  cardText: {
+    fontSize: 13.5,
+    fontWeight: "500",
+    color: "#475569",
   },
-  selectedSegmented: {
-    borderColor: COLORS.primary,
-    backgroundColor: "#FFFFFF",
-    shadowColor: "#000000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 4,
-    elevation: 2,
+  cardTextSelected: {
+    fontSize: 13.5,
+    fontWeight: "700",
+    color: COLORS.primary,
   },
 });

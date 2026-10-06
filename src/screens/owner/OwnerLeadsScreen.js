@@ -407,18 +407,19 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
-    backgroundColor: "#F1F5F9",
+    backgroundColor: "#FFFFFF",
   },
   scrollContent: {
     paddingHorizontal: 20,
     paddingTop: 4,
-    paddingBottom: 90,
+    paddingBottom: 24,
+    backgroundColor: "#FFFFFF",
   },
   switchBanner: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#F8FAFC",
     borderRadius: 20,
     paddingHorizontal: 16,
     paddingVertical: 12,
@@ -436,7 +437,7 @@ const styles = StyleSheet.create({
     color: "#111111",
   },
   switchBannerBadge: {
-    backgroundColor: "#F1F5F9",
+    backgroundColor: "#EEF2F6",
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 12,

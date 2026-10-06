@@ -7,9 +7,6 @@ import StatusBadge from "./StatusBadge";
 export default function LeadCard({
   lead,
   onViewDetails,
-  onCall,
-  onChat,
-  onScheduleVisit,
   compact = false,
 }) {
   const isNew = lead.status === "new";
@@ -19,9 +16,9 @@ export default function LeadCard({
     <TouchableOpacity
       style={styles.card}
       onPress={() => onViewDetails?.(lead)}
-      activeOpacity={0.88}
+      activeOpacity={0.92}
     >
-      {/* Top Header: Avatar, Name, Role & Action icons */}
+      {/* Top Header: Avatar, Name, Role & StatusBadge */}
       <View style={styles.topRow}>
         <Image
           source={{
@@ -37,67 +34,41 @@ export default function LeadCard({
             {lead.customerName}
           </Text>
           <Text style={styles.customerRole} numberOfLines={1}>
-            {isNew ? "New Enquiry" : "Verified Buyer"} • {lead.budget || "Budget: ₹1.2 Cr"}
-          </Text>
-        </View>
-
-        {/* Action icons stack */}
-        <View style={styles.actionIconsRow}>
-          <TouchableOpacity
-            style={styles.circleActionBtn}
-            onPress={() => onChat?.(lead)}
-            activeOpacity={0.75}
-          >
-            <MessageSquare size={15} color="#475569" />
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.circleActionBtn}
-            onPress={() => onCall?.(lead)}
-            activeOpacity={0.75}
-          >
-            <Phone size={15} color="#475569" />
-          </TouchableOpacity>
-
-          {onScheduleVisit && (
-            <TouchableOpacity
-              style={styles.circleActionBtn}
-              onPress={() => onScheduleVisit?.(lead)}
-              activeOpacity={0.75}
-            >
-              <Calendar size={15} color="#475569" />
-            </TouchableOpacity>
-          )}
-
-          <TouchableOpacity
-            style={styles.circleActionBtnDark}
-            onPress={() => onViewDetails?.(lead)}
-            activeOpacity={0.75}
-          >
-            <ChevronRight size={15} color="#FFFFFF" strokeWidth={2.4} />
-          </TouchableOpacity>
-        </View>
-      </View>
-
-      {/* Property & Enquiry Snippet Quote */}
-      <View style={styles.snippetContainer}>
-        <Text style={styles.snippetText} numberOfLines={2}>
-          Interested in {lead.propertyTitle}
-          {lead.propertyLocality ? ` • ${lead.propertyLocality}` : ""}
-          {lead.requirement ? `. ${lead.requirement}` : ". Scheduled site visit enquiry."}
-        </Text>
-      </View>
-
-      {/* Meta Footer: Timestamp and Status */}
-      <View style={styles.footerRow}>
-        <View style={styles.metaItem}>
-          <Calendar size={13} color="#94A3B8" style={{ marginRight: 5 }} />
-          <Text style={styles.metaText}>
-            {lead.timestamp || "Today, 11:20 AM"}
+            {isNew ? "New Enquiry" : "Verified Customer"} • {lead.budget ? `${lead.budget} • ` : ""}{lead.timestamp || "Today"}
           </Text>
         </View>
 
         <StatusBadge status={lead.status} />
+      </View>
+
+      {/* Body: Enquiry Snippet / Message */}
+      <Text style={styles.messageText} numberOfLines={3}>
+        {lead.message ||
+          `Interested in ${lead.propertyTitle || "Property"}${
+            lead.propertyLocality ? ` • ${lead.propertyLocality}` : ""
+          }${lead.requirement ? `. ${lead.requirement}` : ". Enquiry submitted."}`}
+      </Text>
+
+      {/* Visit Scheduled Alert Chip (if applicable) */}
+      {isVisitScheduled && lead.visitData && (
+        <View style={styles.visitChipRow}>
+          <Calendar size={13} color="#D97706" style={{ marginRight: 5 }} />
+          <Text style={styles.visitChipText}>
+            Visit: {lead.visitData.date}, {lead.visitData.time}
+          </Text>
+        </View>
+      )}
+
+      {/* Footer: View Details Button Only (No share, call, chat) */}
+      <View style={styles.footerRow}>
+        <TouchableOpacity
+          style={styles.viewDetailsBtn}
+          onPress={() => onViewDetails?.(lead)}
+          activeOpacity={0.8}
+        >
+          <Text style={styles.viewDetailsBtnText}>View Details</Text>
+          <ChevronRight size={15} color={COLORS.primary} />
+        </TouchableOpacity>
       </View>
     </TouchableOpacity>
   );
@@ -105,87 +76,90 @@ export default function LeadCard({
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: "#F8FAFC",
-    borderRadius: 20,
-    padding: 16,
+    backgroundColor: "#FFFFFF",
+    borderRadius: 22,
+    padding: 18,
     borderWidth: 1,
     borderColor: "#EEF2F6",
+    shadowColor: "#0F172A",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.04,
+    shadowRadius: 10,
+    elevation: 2,
     marginBottom: 12,
   },
   topRow: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 10,
   },
   avatar: {
-    width: 42,
-    height: 42,
-    borderRadius: 21,
+    width: 46,
+    height: 46,
+    borderRadius: 23,
     marginRight: 12,
     backgroundColor: "#E2E8F0",
   },
   customerInfo: {
     flex: 1,
+    justifyContent: "center",
   },
   customerName: {
-    fontSize: 14,
-    fontWeight: "500",
-    color: "#111111",
+    fontSize: 15.5,
+    fontWeight: "700",
+    color: "#0F172A",
     letterSpacing: -0.2,
+    marginBottom: 2,
   },
   customerRole: {
-    fontSize: 11,
+    fontSize: 12.5,
     color: "#64748B",
-    marginTop: 2,
     fontWeight: "400",
   },
-  actionIconsRow: {
+  messageText: {
+    fontSize: 14,
+    color: "#334155",
+    lineHeight: 21,
+    marginTop: 13,
+    fontWeight: "400",
+  },
+  visitChipRow: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 6,
-  },
-  circleActionBtn: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: "#FFFFFF",
-    justifyContent: "center",
-    alignItems: "center",
+    backgroundColor: "#FFFBEB",
     borderWidth: 1,
-    borderColor: "#EEF2F6",
+    borderColor: "#FDE68A",
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    marginTop: 12,
+    alignSelf: "flex-start",
   },
-  circleActionBtnDark: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: COLORS.primary,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  snippetContainer: {
-    marginBottom: 12,
-  },
-  snippetText: {
+  visitChipText: {
     fontSize: 12,
-    color: "#334155",
-    lineHeight: 18,
-    fontWeight: "400",
+    fontWeight: "600",
+    color: "#B45309",
   },
   footerRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
+    marginTop: 14,
+    paddingTop: 12,
     borderTopWidth: 1,
-    borderTopColor: "#EEF2F6",
-    paddingTop: 10,
+    borderTopColor: "#F1F5F9",
   },
-  metaItem: {
+  viewDetailsBtn: {
     flexDirection: "row",
     alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#EFF6FF",
+    borderRadius: 14,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderWidth: 1,
+    borderColor: "#DBEAFE",
+    gap: 6,
   },
-  metaText: {
-    fontSize: 11,
-    color: "#94A3B8",
-    fontWeight: "400",
+  viewDetailsBtnText: {
+    fontSize: 13.5,
+    fontWeight: "700",
+    color: COLORS.primary,
   },
 });

@@ -1,30 +1,32 @@
-import React, { useState } from "react";
+import React from "react";
 import {
   View,
   Text,
   StyleSheet,
   ScrollView,
-  SafeAreaView,
   StatusBar,
   TouchableOpacity,
   Image,
   Alert,
+  Platform,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
+  Calendar,
+  Clock,
+  ArrowRight,
   Search,
-  Menu,
-  MoreHorizontal,
-  ArrowUpRight,
-  Plus,
   MessageSquare,
   Phone,
-  Calendar,
   Eye,
   Building2,
-  ArrowLeft,
   ShieldCheck,
-  CheckCircle2,
-  Sparkles,
+  Plus,
+  ArrowLeft,
+  Bell,
+  MoreHorizontal,
+  ArrowUpRight,
+  User,
 } from "lucide-react-native";
 
 import COLORS from "../../constants/colors";
@@ -32,6 +34,12 @@ import { useOwner } from "../../context/OwnerContext";
 import RestampLogo from "../../components/RestampLogo";
 
 export default function OwnerDashboardScreen({ navigation }) {
+  const insets = useSafeAreaInsets();
+  const topInset = Math.max(
+    insets.top,
+    Platform.OS === "android" ? (StatusBar.currentHeight || 28) : 0
+  );
+
   const { properties, leads, subscription, ownerProfile } = useOwner();
 
   // Calculate summary counts
@@ -44,11 +52,30 @@ export default function OwnerDashboardScreen({ navigation }) {
   const totalEnquiries = properties.reduce((acc, p) => acc + (p.enquiries || 0), 0);
   const totalVisits = properties.reduce((acc, p) => acc + (p.visits || 0), 0);
 
-  // Latest leads
-  const recentLeads = leads.slice(0, 3);
+  // Latest leads & primary property
+  const recentLeads = leads.slice(0, 4);
+  const primaryProperty = properties.find((p) => p.status === "active") || properties[0];
+
+  // Dynamic date matching reference design ("Wednesday, 11 May")
+  const todayFormatted = new Date().toLocaleDateString("en-US", {
+    weekday: "long",
+    day: "numeric",
+    month: "short",
+  });
+
+  // Dynamic greeting based on current local hour
+  const currentHour = new Date().getHours();
+  const greetingText =
+    currentHour < 12
+      ? "Good morning"
+      : currentHour < 17
+      ? "Good afternoon"
+      : "Good evening";
+
+  const ownerName = ownerProfile?.firstName || "Arunavo";
 
   const handleAddProperty = () => {
-    navigation.navigate("Add");
+    navigation.navigate("Add", { resetForm: Date.now(), initialStep: 1 });
   };
 
   const handleMyProperties = (tab = "Active") => {
@@ -71,51 +98,45 @@ export default function OwnerDashboardScreen({ navigation }) {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <View style={styles.screenWrapper}>
       <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
 
-      {/* TOP HEADER: 4-Dot Brand Icon | Subtitle & Greeting | Search & Menu Icons */}
-      <View style={styles.topHeader}>
-        <View style={styles.headerLeft}>
-          {/* Restamp Brand Logo matching Buyer Screen */}
-          <View style={styles.brandIconWrapper}>
-            <RestampLogo size={32} />
-          </View>
-
-          <View style={styles.headerTitles}>
-            <Text style={styles.headerSubtitle}>RESTAMP Owner Studio</Text>
-            <Text style={styles.headerGreeting}>
-              Hey, {ownerProfile?.firstName || "Raj"} {ownerProfile?.lastName || "Kumar"}
+      {/* ================= FIXED BRAND HEADER (Like Buyer Page) ================= */}
+      <View style={[styles.headerWrapper, { paddingTop: topInset }]}>
+        <View style={styles.header}>
+          {/* Left Side Restamp Logotype */}
+          <View style={styles.logoContainer}>
+            <View style={styles.logoIconBg}>
+              <RestampLogo size={30} />
+            </View>
+            <Text style={styles.logoText}>
+              Res<Text style={styles.logoTextAccent}>tamp</Text>
             </Text>
+            <View style={styles.ownerBadge}>
+              <Text style={styles.ownerBadgeText}>OWNER</Text>
+            </View>
           </View>
-        </View>
 
-        <View style={styles.headerRight}>
-          <TouchableOpacity
-            style={styles.headerCircleBtn}
-            onPress={() => navigation.navigate("Properties")}
-            activeOpacity={0.7}
-          >
-            <Search size={20} color="#111111" strokeWidth={2.2} />
-          </TouchableOpacity>
+          {/* Right Side Actions: Switch to Buyer & Notification Bell */}
+          <View style={styles.headerRightActions}>
+            <TouchableOpacity
+              style={styles.switchModePill}
+              onPress={handleSwitchToBuyer}
+              activeOpacity={0.75}
+            >
+              <ArrowLeft size={13} color="#0F172A" style={{ marginRight: 4 }} />
+              <Text style={styles.switchModeText}>Buyer</Text>
+            </TouchableOpacity>
 
-          <TouchableOpacity
-            style={styles.headerCircleBtn}
-            onPress={() =>
-              Alert.alert(
-                "Owner Options",
-                "Choose an action:",
-                [
-                  { text: "Switch to Buyer Mode", onPress: handleSwitchToBuyer },
-                  { text: "Manage Subscription", onPress: handleManagePlan },
-                  { text: "Cancel", style: "cancel" },
-                ]
-              )
-            }
-            activeOpacity={0.7}
-          >
-            <Menu size={22} color="#111111" strokeWidth={2.2} />
-          </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.notificationBtn}
+              activeOpacity={0.8}
+              onPress={() => Alert.alert("Notifications", "You have no unread notifications.")}
+            >
+              <Bell size={20} color="#0F172A" />
+              <View style={styles.notificationDot} />
+            </TouchableOpacity>
+          </View>
         </View>
       </View>
 
@@ -124,620 +145,799 @@ export default function OwnerDashboardScreen({ navigation }) {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Quick Switch Mode Pill Banner */}
+        {/* 1. GREETING SECTION (Matches reference photo: Date / Good morning / Arunavo,) */}
+        <View style={styles.greetingSection}>
+          <Text style={styles.dateText}>{todayFormatted}</Text>
+          <Text style={styles.greetingMainText}>{greetingText}</Text>
+          <Text style={styles.greetingSubName}>{ownerName},</Text>
+        </View>
+
+        {/* 2. TOP FEATURE / STATUS CARD: Primary Active Listing */}
         <TouchableOpacity
-          style={styles.switchBanner}
-          onPress={handleSwitchToBuyer}
-          activeOpacity={0.8}
+          style={styles.featureCard}
+          onPress={() => {
+            if (primaryProperty) {
+              handleMyProperties("Active");
+            } else {
+              handleAddProperty();
+            }
+          }}
+          activeOpacity={0.88}
         >
-          <View style={styles.switchBannerLeft}>
-            <ArrowLeft size={15} color="#111111" strokeWidth={2.4} style={{ marginRight: 8 }} />
-            <Text style={styles.switchBannerTitle}>Back to Buyer App</Text>
+          <View style={styles.featureLeftCol}>
+            <Text style={styles.featureCardSub}>
+              {primaryProperty ? "Primary Listing" : "Quick Action"}
+            </Text>
+            <Text style={styles.featureCardTitle} numberOfLines={1}>
+              {primaryProperty?.title || "Add Your First Property"}
+            </Text>
           </View>
-          <View style={styles.switchBannerBadge}>
-            <Text style={styles.switchBannerBadgeText}>Switch Mode</Text>
+
+          <View style={styles.featureRightCol}>
+            <View style={[styles.nowBadge, primaryProperty ? styles.liveBadge : styles.startBadge]}>
+              <Text style={styles.nowBadgeText}>
+                {primaryProperty ? "Live" : "Start"}
+              </Text>
+            </View>
+            <ArrowRight size={18} color="#475569" style={{ marginLeft: 10 }} />
           </View>
         </TouchableOpacity>
 
-        {/* CONTAINER 1: PROPERTY & LISTING ACTIVITY (Matches screenshot's big white card with 6 stat tiles) */}
-        <View style={styles.bigCard}>
-          <View style={styles.bigCardHeader}>
-            <Text style={styles.bigCardTitle}>Property & Listing Activity</Text>
+        {/* 3. 2-COLUMN METRICS GRID: Real Estate Stats */}
+        {/* Row 1: Active Listings & Pending Verification */}
+        <View style={styles.metricsGrid}>
+          {/* Card 1: Active Listings */}
+          <TouchableOpacity
+            style={styles.metricCard}
+            onPress={() => handleMyProperties("Active")}
+            activeOpacity={0.85}
+          >
+            <View style={styles.metricCardTop}>
+              <View style={styles.metricIconWrap}>
+                <Building2 size={17} color="#1E293B" strokeWidth={1.8} />
+              </View>
+              <ArrowRight size={14} color="#94A3B8" />
+            </View>
+            <Text style={styles.metricNumber}>
+              {String(activeCount).padStart(2, "0")}
+            </Text>
+            <Text style={styles.metricLabel}>Active listings</Text>
+          </TouchableOpacity>
+
+          {/* Card 2: Pending Verification */}
+          <TouchableOpacity
+            style={styles.metricCard}
+            onPress={() => handleMyProperties("Pending")}
+            activeOpacity={0.85}
+          >
+            <View style={styles.metricCardTop}>
+              <View style={styles.metricIconWrap}>
+                <Clock size={17} color="#1E293B" strokeWidth={1.8} />
+              </View>
+              <ArrowRight size={14} color="#94A3B8" />
+            </View>
+            <Text style={styles.metricNumber}>
+              {String(pendingCount).padStart(2, "0")}
+            </Text>
+            <Text style={styles.metricLabel}>Pending verification</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Row 2: Total Inquiries & Property Views */}
+        <View style={[styles.metricsGrid, { marginTop: 10 }]}>
+          {/* Card 3: Total Inquiries */}
+          <TouchableOpacity
+            style={styles.metricCard}
+            onPress={handleViewLeads}
+            activeOpacity={0.85}
+          >
+            <View style={styles.metricCardTop}>
+              <View style={styles.metricIconWrap}>
+                <MessageSquare size={17} color="#1E293B" strokeWidth={1.8} />
+              </View>
+              <ArrowRight size={14} color="#94A3B8" />
+            </View>
+            <Text style={styles.metricNumber}>{totalEnquiries || 14}</Text>
+            <Text style={styles.metricLabel}>Total inquiries</Text>
+          </TouchableOpacity>
+
+          {/* Card 4: Property Views */}
+          <TouchableOpacity
+            style={styles.metricCard}
+            onPress={() => handleMyProperties("Active")}
+            activeOpacity={0.85}
+          >
+            <View style={styles.metricCardTop}>
+              <View style={styles.metricIconWrap}>
+                <Eye size={17} color="#1E293B" strokeWidth={1.8} />
+              </View>
+              <ArrowRight size={14} color="#94A3B8" />
+            </View>
+            <Text style={styles.metricNumber}>
+              {totalViews > 0 ? totalViews.toLocaleString("en-IN") : "1,248"}
+            </Text>
+            <Text style={styles.metricLabel}>Property views</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Row 3: Site Visits & Closed Listings */}
+        <View style={[styles.metricsGrid, { marginTop: 10 }]}>
+          {/* Card 5: Site Visits Booked */}
+          <TouchableOpacity
+            style={styles.metricCard}
+            onPress={handleViewLeads}
+            activeOpacity={0.85}
+          >
+            <View style={styles.metricCardTop}>
+              <View style={styles.metricIconWrap}>
+                <Calendar size={17} color="#1E293B" strokeWidth={1.8} />
+              </View>
+              <ArrowRight size={14} color="#94A3B8" />
+            </View>
+            <Text style={styles.metricNumber}>
+              {String(totalVisits || 6).padStart(2, "0")}
+            </Text>
+            <Text style={styles.metricLabel}>Site visits booked</Text>
+          </TouchableOpacity>
+
+          {/* Card 6: Closed Listings */}
+          <TouchableOpacity
+            style={styles.metricCard}
+            onPress={() => handleMyProperties("Closed")}
+            activeOpacity={0.85}
+          >
+            <View style={styles.metricCardTop}>
+              <View style={styles.metricIconWrap}>
+                <ShieldCheck size={17} color="#1E293B" strokeWidth={1.8} />
+              </View>
+              <ArrowRight size={14} color="#94A3B8" />
+            </View>
+            <Text style={styles.metricNumber}>
+              {String(closedCount).padStart(2, "0")}
+            </Text>
+            <Text style={styles.metricLabel}>Closed listings</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* 4. QUICK ACTION BANNER: + List New Property */}
+        <TouchableOpacity
+          style={styles.addPropertyBanner}
+          onPress={handleAddProperty}
+          activeOpacity={0.88}
+        >
+          <View style={styles.addBannerLeft}>
+            <View style={styles.addBannerIconWrap}>
+              <Plus size={18} color={COLORS.primary} strokeWidth={2.8} />
+            </View>
+            <View style={styles.addBannerTextWrap}>
+              <Text style={styles.addBannerTitle}>List a New Property</Text>
+              <Text style={styles.addBannerSub}>
+                Add rental, lease, or resale property in minutes
+              </Text>
+            </View>
+          </View>
+          <View style={styles.addBannerArrowWrap}>
+            <ArrowRight size={16} color="#FFFFFF" strokeWidth={2.2} />
+          </View>
+        </TouchableOpacity>
+
+        {/* 5. RECENT ENQUIRIES (Matching Workout-Card Reference Design) */}
+        <View style={styles.minimalSection}>
+          <View style={styles.sectionHeaderWithSub}>
+            <View>
+              <Text style={styles.sectionTitle}>Recent Enquiries</Text>
+              <Text style={styles.sectionSubtitle}>
+                {leads.length} enquiries • <Text style={styles.sectionSubtitleAccent}>Active today</Text>
+              </Text>
+            </View>
             <TouchableOpacity
-              style={styles.moreIconBtn}
-              onPress={() => handleMyProperties("Active")}
+              onPress={handleViewLeads}
               activeOpacity={0.7}
+              style={styles.viewAllRow}
             >
-              <MoreHorizontal size={18} color="#64748B" />
+              <Text style={styles.viewAllText}>View all</Text>
+              <ArrowRight size={14} color={COLORS.primary} style={{ marginLeft: 3 }} />
             </TouchableOpacity>
           </View>
 
-          {/* 2-Column Grid of 6 Stat Cards */}
-          <View style={styles.statsGrid}>
-            <View style={styles.statsRow}>
-              {/* Tile 1: Active Listings */}
-              <TouchableOpacity
-                style={styles.statTile}
-                onPress={() => handleMyProperties("Active")}
-                activeOpacity={0.8}
-              >
-                <View style={styles.statTileTop}>
-                  <Text style={styles.statTileNumber}>
-                    {String(activeCount).padStart(2, "0")}
-                  </Text>
-                  <View style={styles.arrowCircle}>
-                    <ArrowUpRight size={13} color="#111111" strokeWidth={2.4} />
+          <View style={styles.enquiriesList}>
+            {recentLeads.map((lead, idx) => {
+              return (
+                <TouchableOpacity
+                  key={lead.id || idx}
+                  style={styles.enquiryCard}
+                  onPress={() => navigation.navigate("OwnerLeadDetail", { lead })}
+                  activeOpacity={0.75}
+                >
+                  {/* Round Profile Avatar Image */}
+                  <View style={styles.enquiryAvatarWrap}>
+                    <Image
+                      source={{
+                        uri:
+                          lead.avatar ||
+                          "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&q=80",
+                      }}
+                      style={styles.enquiryAvatar}
+                      resizeMode="cover"
+                    />
                   </View>
-                </View>
-                <Text style={styles.statTileLabel}>Active Listings</Text>
-              </TouchableOpacity>
 
-              {/* Tile 2: Pending Generations / Review */}
-              <TouchableOpacity
-                style={styles.statTile}
-                onPress={() => handleMyProperties("Pending")}
-                activeOpacity={0.8}
-              >
-                <View style={styles.statTileTop}>
-                  <Text style={styles.statTileNumber}>
-                    {String(pendingCount).padStart(2, "0")}
-                  </Text>
-                  <View style={styles.arrowCircle}>
-                    <ArrowUpRight size={13} color="#111111" strokeWidth={2.4} />
+                  {/* Middle Info */}
+                  <View style={styles.enquiryInfo}>
+                    <Text style={styles.enquiryName} numberOfLines={1}>
+                      {lead.customerName}
+                    </Text>
+                    <View style={styles.enquirySubRow}>
+                      <View style={styles.enquiryChip}>
+                        <Text style={styles.enquiryChipText} numberOfLines={1}>
+                          {lead.propertyTitle || "2 BHK Luxury"}
+                        </Text>
+                      </View>
+                      <Text style={styles.enquiryDot}>•</Text>
+                      <Text style={styles.enquiryStatusText} numberOfLines={1}>
+                        {lead.budget || lead.timestamp || "Verified"}
+                      </Text>
+                    </View>
                   </View>
-                </View>
-                <Text style={styles.statTileLabel}>Pending Verification</Text>
-              </TouchableOpacity>
-            </View>
 
-            <View style={styles.statsRow}>
-              {/* Tile 3: Total Enquiries */}
-              <TouchableOpacity
-                style={styles.statTile}
-                onPress={handleViewLeads}
-                activeOpacity={0.8}
-              >
-                <View style={styles.statTileTop}>
-                  <Text style={styles.statTileNumber}>
-                    {String(totalEnquiries || 14)}
-                  </Text>
-                  <View style={styles.arrowCircle}>
-                    <ArrowUpRight size={13} color="#111111" strokeWidth={2.4} />
-                  </View>
-                </View>
-                <Text style={styles.statTileLabel}>Total Inquiries</Text>
-              </TouchableOpacity>
-
-              {/* Tile 4: Total Views */}
-              <TouchableOpacity
-                style={styles.statTile}
-                onPress={() => handleMyProperties("Active")}
-                activeOpacity={0.8}
-              >
-                <View style={styles.statTileTop}>
-                  <Text style={styles.statTileNumber}>
-                    {totalViews > 0 ? totalViews.toLocaleString("en-IN") : "1,240"}
-                  </Text>
-                  <View style={styles.arrowCircle}>
-                    <ArrowUpRight size={13} color="#111111" strokeWidth={2.4} />
-                  </View>
-                </View>
-                <Text style={styles.statTileLabel}>Property Views</Text>
-              </TouchableOpacity>
-            </View>
-
-            <View style={styles.statsRow}>
-              {/* Tile 5: Site Visits */}
-              <TouchableOpacity
-                style={styles.statTile}
-                onPress={handleViewLeads}
-                activeOpacity={0.8}
-              >
-                <View style={styles.statTileTop}>
-                  <Text style={styles.statTileNumber}>
-                    {String(totalVisits || 6)}
-                  </Text>
-                  <View style={styles.arrowCircle}>
-                    <ArrowUpRight size={13} color="#111111" strokeWidth={2.4} />
-                  </View>
-                </View>
-                <Text style={styles.statTileLabel}>Site Visits Booked</Text>
-              </TouchableOpacity>
-
-              {/* Tile 6: Closed Deals */}
-              <TouchableOpacity
-                style={styles.statTile}
-                onPress={() => handleMyProperties("Closed")}
-                activeOpacity={0.8}
-              >
-                <View style={styles.statTileTop}>
-                  <Text style={styles.statTileNumber}>
-                    {String(closedCount).padStart(2, "0")}
-                  </Text>
-                  <View style={styles.arrowCircle}>
-                    <ArrowUpRight size={13} color="#111111" strokeWidth={2.4} />
-                  </View>
-                </View>
-                <Text style={styles.statTileLabel}>Closed Listings</Text>
-              </TouchableOpacity>
-            </View>
+                  {/* Right Action: Call button */}
+                  <TouchableOpacity
+                    style={styles.enquiryCallBtn}
+                    onPress={() =>
+                      Alert.alert("Call Lead", `Dialing ${lead.phone || "+91 98765 43210"}?`, [
+                        { text: "Cancel", style: "cancel" },
+                        { text: "Call", onPress: () => {} },
+                      ])
+                    }
+                    activeOpacity={0.7}
+                  >
+                    <Phone size={14} color={COLORS.primary} fill={COLORS.primary} />
+                  </TouchableOpacity>
+                </TouchableOpacity>
+              );
+            })}
           </View>
         </View>
 
-        {/* CONTAINER 2: RECENT BUYER LEADS (Matches screenshot's "Top Creators" card) */}
-        <View style={styles.bigCard}>
-          <View style={styles.bigCardHeader}>
-            <Text style={styles.bigCardTitle}>Recent Buyer Leads</Text>
-            <View style={styles.cardHeaderActions}>
-              <TouchableOpacity
-                style={styles.moreIconBtn}
-                onPress={handleViewLeads}
-                activeOpacity={0.7}
-              >
-                <MoreHorizontal size={18} color="#64748B" />
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={styles.blackAddBtn}
-                onPress={handleAddProperty}
-                activeOpacity={0.85}
-              >
-                <Plus size={16} color="#FFFFFF" strokeWidth={2.8} />
-              </TouchableOpacity>
-            </View>
-          </View>
-
-          {/* Leads List formatted in the modern card system */}
-          <View style={styles.leadsListContainer}>
-            {recentLeads.map((lead, idx) => (
-              <TouchableOpacity
-                key={lead.id || idx}
-                style={styles.creatorLeadCard}
-                onPress={() => navigation.navigate("OwnerLeadDetail", { lead })}
-                activeOpacity={0.85}
-              >
-                {/* Lead Header: Avatar, Name, Role & Action icons */}
-                <View style={styles.creatorTopRow}>
-                  <Image
-                    source={{
-                      uri:
-                        lead.avatar ||
-                        "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&q=80",
-                    }}
-                    style={styles.creatorAvatar}
-                  />
-
-                  <View style={styles.creatorInfo}>
-                    <Text style={styles.creatorName}>{lead.customerName}</Text>
-                    <Text style={styles.creatorRole}>
-                      {lead.status === "new" ? "New Enquiry" : "Verified Buyer"} • {lead.budget || "Budget: ₹1.2 Cr"}
-                    </Text>
-                  </View>
-
-                  <View style={styles.creatorActions}>
-                    <TouchableOpacity
-                      style={styles.miniActionBtn}
-                      onPress={() => Alert.alert("Chat", `Opening message with ${lead.customerName}`)}
-                    >
-                      <MessageSquare size={15} color="#64748B" />
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      style={styles.miniActionBtn}
-                      onPress={() => Alert.alert("Call", `Dialing ${lead.phone || "+91 98765 43210"}`)}
-                    >
-                      <Phone size={15} color="#64748B" />
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      style={styles.miniActionBtn}
-                      onPress={() => navigation.navigate("OwnerLeadDetail", { lead })}
-                    >
-                      <MoreHorizontal size={15} color="#64748B" />
-                    </TouchableOpacity>
-                  </View>
-                </View>
-
-                {/* Lead Snippet / Content Quote */}
-                <Text style={styles.creatorSnippet} numberOfLines={2}>
-                  Interested in {lead.propertyTitle} in {lead.propertyLocality || "Prime Location"}. Scheduled site visit enquiry.
-                </Text>
-
-                {/* Meta Footer: Date & Stat */}
-                <View style={styles.creatorFooter}>
-                  <View style={styles.creatorMetaItem}>
-                    <Calendar size={13} color="#94A3B8" style={{ marginRight: 5 }} />
-                    <Text style={styles.creatorMetaText}>
-                      Received {lead.timestamp || "Today, 11:20 AM"}
-                    </Text>
-                  </View>
-
-                  <View style={styles.creatorMetaItem}>
-                    <Eye size={13} color="#94A3B8" style={{ marginRight: 5 }} />
-                    <Text style={styles.creatorMetaText}>
-                      {lead.status === "visit_scheduled" ? "Visit Scheduled" : "Direct Enquiry"}
-                    </Text>
-                  </View>
-                </View>
-              </TouchableOpacity>
-            ))}
-          </View>
-        </View>
-
-        {/* CONTAINER 3: ACTIVE SUBSCRIPTION & QUICK ACTIONS */}
-        <View style={styles.bigCard}>
-          <View style={styles.bigCardHeader}>
+        {/* 6. OWNER PLAN & QUOTA (Minimal Card) */}
+        <View style={styles.minimalSection}>
+          <View style={styles.sectionHeader}>
             <View style={{ flexDirection: "row", alignItems: "center" }}>
-              <ShieldCheck size={18} color="#16A34A" style={{ marginRight: 8 }} />
-              <Text style={styles.bigCardTitle}>Owner Subscription</Text>
+              <ShieldCheck size={18} color="#16A34A" style={{ marginRight: 6 }} />
+              <Text style={styles.sectionTitle}>Owner Plan</Text>
             </View>
-            <View style={styles.activePill}>
-              <Text style={styles.activePillText}>Active</Text>
-            </View>
-          </View>
-
-          <View style={styles.subscriptionBox}>
-            <View style={styles.subscriptionRow}>
-              <Text style={styles.subKey}>Current Plan</Text>
-              <Text style={styles.subVal}>{subscription?.planName || "Owner Pro Plan"}</Text>
-            </View>
-            <View style={styles.subscriptionRow}>
-              <Text style={styles.subKey}>Validity</Text>
-              <Text style={styles.subVal}>{subscription?.validity || "3 Months (90 Days)"}</Text>
-            </View>
-            <View style={styles.subscriptionRow}>
-              <Text style={styles.subKey}>Active Listing Limit</Text>
-              <Text style={styles.subVal}>Up to {subscription?.listingLimit || 5} Properties</Text>
+            <View style={styles.planStatusPill}>
+              <Text style={styles.planStatusText}>Active</Text>
             </View>
           </View>
 
-          {/* Quick CTA Actions */}
-          <View style={styles.actionsStack}>
-            <TouchableOpacity
-              style={styles.primaryPillBtn}
-              onPress={handleAddProperty}
-              activeOpacity={0.88}
-            >
-              <Plus size={18} color="#FFFFFF" strokeWidth={2.5} style={{ marginRight: 8 }} />
-              <Text style={styles.primaryPillBtnText}>+ Add New Property</Text>
-            </TouchableOpacity>
+          <View style={styles.minimalListCard}>
+            <View style={styles.planRowItem}>
+              <Text style={styles.planKey}>Current Plan</Text>
+              <Text style={styles.planVal}>{subscription?.planName || "Owner Pro Plan"}</Text>
+            </View>
+            <View style={styles.planRowDivider} />
+            <View style={styles.planRowItem}>
+              <Text style={styles.planKey}>Validity</Text>
+              <Text style={styles.planVal}>{subscription?.validity || "Until Leased / Sold"}</Text>
+            </View>
+            <View style={styles.planRowDivider} />
+            <View style={styles.planRowItem}>
+              <Text style={styles.planKey}>Listing Quota</Text>
+              <Text style={styles.planVal}>
+                {activeCount} of {subscription?.listingLimit || 5} used
+              </Text>
+            </View>
 
             <TouchableOpacity
-              style={styles.secondaryPillBtn}
+              style={styles.managePlanBtn}
               onPress={handleManagePlan}
-              activeOpacity={0.85}
+              activeOpacity={0.8}
             >
-              <Text style={styles.secondaryPillBtnText}>Manage Subscription</Text>
+              <Text style={styles.managePlanBtnText}>Manage Subscription</Text>
             </TouchableOpacity>
           </View>
         </View>
 
-        <View style={{ height: 100 }} />
+        <View style={{ height: 32 }} />
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
+  screenWrapper: {
     flex: 1,
     backgroundColor: "#FFFFFF",
   },
-  topHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
+  container: {
+    flex: 1,
+    backgroundColor: "#FFFFFF",
+  },
+  scrollContent: {
     paddingHorizontal: 20,
-    paddingTop: 14,
-    paddingBottom: 16,
+    paddingTop: 8,
+    paddingBottom: 36,
     backgroundColor: "#FFFFFF",
   },
-  headerLeft: {
-    flexDirection: "row",
-    alignItems: "center",
-    flex: 1,
-  },
-  brandIconWrapper: {
-    width: 36,
-    height: 36,
-    justifyContent: "center",
-    alignItems: "center",
-    marginRight: 10,
-  },
-  headerTitles: {
-    flex: 1,
-  },
-  headerSubtitle: {
-    fontSize: 12,
-    color: COLORS.primary,
-    fontWeight: "500",
-    letterSpacing: 0.3,
-  },
-  headerGreeting: {
-    fontSize: 18,
-    fontWeight: "500",
-    color: "#111111",
-    letterSpacing: -0.3,
-    marginTop: 2,
-  },
-  headerRight: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 10,
-  },
-  headerCircleBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+  headerWrapper: {
     backgroundColor: "#FFFFFF",
-    justifyContent: "center",
-    alignItems: "center",
-    borderWidth: 1,
-    borderColor: "#E2E8F0",
+    borderBottomWidth: 1,
+    borderColor: "#EEF2F6",
     shadowColor: "#000000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.04,
     shadowRadius: 6,
-    elevation: 1,
+    elevation: 3,
+    zIndex: 100,
   },
-  container: {
-    flex: 1,
-    backgroundColor: "#F1F5F9",
-  },
-  scrollContent: {
+  header: {
+    height: 56,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     paddingHorizontal: 20,
-    paddingTop: 4,
-    paddingBottom: 30,
-  },
-  switchBanner: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
     backgroundColor: "#FFFFFF",
-    borderRadius: 20,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    marginBottom: 16,
-    borderWidth: 1,
-    borderColor: "#EEF2F6",
   },
-  switchBannerLeft: {
+  logoContainer: {
     flexDirection: "row",
     alignItems: "center",
   },
-  switchBannerTitle: {
-    fontSize: 13,
-    fontWeight: "500",
-    color: "#111111",
-  },
-  switchBannerBadge: {
-    backgroundColor: "#F1F5F9",
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 12,
-  },
-  switchBannerBadgeText: {
-    fontSize: 11,
-    fontWeight: "500",
-    color: "#64748B",
-  },
-  bigCard: {
-    backgroundColor: "#FFFFFF",
-    borderRadius: 28,
-    padding: 20,
-    marginBottom: 16,
-    borderWidth: 1,
-    borderColor: "#EEF2F6",
-  },
-  bigCardHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 16,
-  },
-  bigCardTitle: {
-    fontSize: 18,
-    fontWeight: "600",
-    color: "#111111",
-    letterSpacing: -0.3,
-  },
-  cardHeaderActions: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-  },
-  moreIconBtn: {
+  logoIconBg: {
     width: 32,
     height: 32,
-    borderRadius: 16,
-    backgroundColor: "#F1F5F9",
-    justifyContent: "center",
     alignItems: "center",
-  },
-  blackAddBtn: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: "#2563EB",
     justifyContent: "center",
-    alignItems: "center",
+    marginRight: 6,
   },
-  statsGrid: {
-    gap: 12,
-  },
-  statsRow: {
-    flexDirection: "row",
-    gap: 12,
-  },
-  statTile: {
-    flex: 1,
-    backgroundColor: "#F8FAFC",
-    borderRadius: 20,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: "#F1F5F9",
-  },
-  statTileTop: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "flex-start",
-    marginBottom: 8,
-  },
-  statTileNumber: {
-    fontSize: 24,
-    fontWeight: "700",
-    color: "#111111",
+  logoText: {
+    fontSize: 22,
+    fontWeight: "800",
+    color: "#0F172A",
     letterSpacing: -0.5,
   },
-  arrowCircle: {
-    width: 26,
-    height: 26,
-    borderRadius: 13,
-    backgroundColor: "#FFFFFF",
-    justifyContent: "center",
-    alignItems: "center",
+  logoTextAccent: {
+    color: COLORS.primary,
+    fontWeight: "800",
+  },
+  ownerBadge: {
+    backgroundColor: "#EFF6FF",
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
+    marginLeft: 8,
     borderWidth: 1,
-    borderColor: "#EEF2F6",
+    borderColor: "#BFDBFE",
   },
-  statTileLabel: {
-    fontSize: 14,
-    color: "#64748B",
-    fontWeight: "400",
-    marginTop: 4,
+  ownerBadgeText: {
+    fontSize: 10,
+    fontWeight: "800",
+    color: COLORS.primary,
+    letterSpacing: 0.6,
   },
-  leadsListContainer: {
-    gap: 12,
-  },
-  creatorLeadCard: {
-    backgroundColor: "#F8FAFC",
-    borderRadius: 20,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: "#F1F5F9",
-  },
-  creatorTopRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 10,
-  },
-  creatorAvatar: {
-    width: 42,
-    height: 42,
-    borderRadius: 21,
-    marginRight: 12,
-  },
-  creatorInfo: {
-    flex: 1,
-  },
-  creatorName: {
-    fontSize: 14,
-    fontWeight: "500",
-    color: "#111111",
-  },
-  creatorRole: {
-    fontSize: 11,
-    color: "#64748B",
-    marginTop: 2,
-    fontWeight: "400",
-  },
-  creatorActions: {
+  headerRightActions: {
     flexDirection: "row",
     alignItems: "center",
     gap: 8,
   },
-  miniActionBtn: {
-    padding: 4,
-  },
-  creatorSnippet: {
-    fontSize: 12,
-    color: "#334155",
-    lineHeight: 18,
-    fontWeight: "400",
-    marginBottom: 12,
-  },
-  creatorFooter: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    borderTopWidth: 1,
-    borderTopColor: "#EEF2F6",
-    paddingTop: 10,
-  },
-  creatorMetaItem: {
+  switchModePill: {
     flexDirection: "row",
     alignItems: "center",
-  },
-  creatorMetaText: {
-    fontSize: 11,
-    color: "#94A3B8",
-    fontWeight: "400",
-  },
-  activePill: {
-    backgroundColor: "#F0FDF4",
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 12,
-  },
-  activePillText: {
-    fontSize: 11,
-    color: "#16A34A",
-    fontWeight: "500",
-  },
-  subscriptionBox: {
     backgroundColor: "#F8FAFC",
-    borderRadius: 18,
-    padding: 16,
-    marginBottom: 16,
     borderWidth: 1,
-    borderColor: "#F1F5F9",
+    borderColor: "#E2E8F0",
+    borderRadius: 20,
+    paddingHorizontal: 12,
+    paddingVertical: 7,
   },
-  subscriptionRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 8,
+  switchModeText: {
+    fontSize: 12.5,
+    fontWeight: "700",
+    color: "#0F172A",
   },
-  subKey: {
-    fontSize: 13,
-    color: "#64748B",
-    fontWeight: "400",
-  },
-  subVal: {
-    fontSize: 13,
-    fontWeight: "500",
-    color: "#111111",
-  },
-  actionsStack: {
-    gap: 10,
-  },
-  primaryPillBtn: {
-    height: 50,
-    borderRadius: 25,
-    backgroundColor: "#2563EB",
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
-    shadowColor: "#2563EB",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.25,
-    shadowRadius: 10,
-    elevation: 3,
-  },
-  primaryPillBtnText: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#FFFFFF",
-  },
-  secondaryPillBtn: {
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: "#F1F5F9",
+  notificationBtn: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: "#FFFFFF",
     justifyContent: "center",
     alignItems: "center",
     borderWidth: 1,
     borderColor: "#E2E8F0",
+    position: "relative",
   },
-  secondaryPillBtnText: {
+  notificationDot: {
+    position: "absolute",
+    top: 8,
+    right: 9,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: "#EF4444",
+    borderWidth: 1.5,
+    borderColor: "#FFFFFF",
+  },
+
+  // 2. Greeting Section
+  greetingSection: {
+    marginBottom: 16,
+    marginTop: 10,
+  },
+  dateText: {
     fontSize: 13,
     fontWeight: "500",
-    color: "#111111",
+    color: "#64748B",
+    letterSpacing: -0.2,
+    marginBottom: 4,
+  },
+  greetingMainText: {
+    fontSize: 26,
+    fontWeight: "800",
+    color: "#0F172A",
+    letterSpacing: -0.6,
+    lineHeight: 32,
+  },
+  greetingSubName: {
+    fontSize: 24,
+    fontWeight: "600",
+    color: "#64748B",
+    letterSpacing: -0.5,
+    lineHeight: 30,
+    marginTop: 2,
+  },
+
+  // 3. Feature Status Card: Primary Active Listing
+  featureCard: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 10,
+    borderWidth: 1,
+    borderColor: "#EEF2F6",
+    shadowColor: "#000000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.03,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  featureLeftCol: {
+    flex: 1,
+    marginRight: 12,
+  },
+  featureCardSub: {
+    fontSize: 11.5,
+    fontWeight: "600",
+    color: "#64748B",
+    letterSpacing: 0.3,
+    textTransform: "uppercase",
+    marginBottom: 2,
+  },
+  featureCardTitle: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: "#0F172A",
+    letterSpacing: -0.3,
+  },
+  featureRightCol: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  nowBadge: {
+    borderRadius: 10,
+    paddingHorizontal: 10,
+    paddingVertical: 3.5,
+  },
+  liveBadge: {
+    backgroundColor: "#ECFDF5",
+    borderWidth: 1,
+    borderColor: "#A7F3D0",
+  },
+  startBadge: {
+    backgroundColor: "#EFF6FF",
+    borderWidth: 1,
+    borderColor: "#BFDBFE",
+  },
+  nowBadgeText: {
+    color: "#059669",
+    fontSize: 11.5,
+    fontWeight: "700",
+    letterSpacing: 0.2,
+  },
+
+  // 4. 2-Column Metrics Grid
+  metricsGrid: {
+    flexDirection: "row",
+    gap: 10,
+  },
+  metricCard: {
+    flex: 1,
+    backgroundColor: "#FFFFFF",
+    borderRadius: 16,
+    padding: 13,
+    borderWidth: 1,
+    borderColor: "#EEF2F6",
+    shadowColor: "#000000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.03,
+    shadowRadius: 6,
+    elevation: 2,
+  },
+  metricCardTop: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 10,
+  },
+  metricIconWrap: {
+    width: 32,
+    height: 32,
+    borderRadius: 8,
+    backgroundColor: "#F8FAFC",
+    borderWidth: 1,
+    borderColor: "#F1F5F9",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  metricNumber: {
+    fontSize: 22,
+    fontWeight: "800",
+    color: "#0F172A",
+    letterSpacing: -0.5,
+  },
+  metricLabel: {
+    fontSize: 12,
+    fontWeight: "500",
+    color: "#64748B",
+    marginTop: 2,
+    letterSpacing: -0.1,
+  },
+
+  // 4. Quick Action Banner
+  addPropertyBanner: {
+    backgroundColor: COLORS.primary,
+    borderRadius: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginTop: 14,
+    marginBottom: 16,
+    shadowColor: COLORS.primary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.22,
+    shadowRadius: 10,
+    elevation: 4,
+  },
+  addBannerLeft: {
+    flexDirection: "row",
+    alignItems: "center",
+    flex: 1,
+    marginRight: 10,
+  },
+  addBannerIconWrap: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: "#FFFFFF",
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 12,
+  },
+  addBannerTextWrap: {
+    flex: 1,
+    justifyContent: "center",
+  },
+  addBannerTitle: {
+    color: "#FFFFFF",
+    fontSize: 15,
+    fontWeight: "700",
+    letterSpacing: -0.2,
+  },
+  addBannerSub: {
+    color: "#DBEAFE",
+    fontSize: 11.5,
+    marginTop: 2,
+    lineHeight: 16,
+  },
+  addBannerArrowWrap: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: "rgba(255, 255, 255, 0.18)",
+    justifyContent: "center",
+    alignItems: "center",
+    marginLeft: 4,
+  },
+
+  // 5. Minimal List Sections
+  minimalSection: {
+    marginBottom: 20,
+  },
+  sectionHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 12,
+    paddingHorizontal: 2,
+  },
+  sectionHeaderWithSub: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 12,
+    paddingHorizontal: 2,
+  },
+  sectionTitle: {
+    fontSize: 17,
+    fontWeight: "700",
+    color: "#0F172A",
+    letterSpacing: -0.3,
+  },
+  sectionSubtitle: {
+    fontSize: 12.5,
+    fontWeight: "500",
+    color: "#64748B",
+    marginTop: 2,
+    letterSpacing: -0.1,
+  },
+  sectionSubtitleAccent: {
+    color: "#2563EB",
+    fontWeight: "600",
+  },
+  viewAllRow: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  viewAllText: {
+    fontSize: 13,
+    fontWeight: "600",
+    color: COLORS.primary,
+  },
+  enquiriesList: {
+    gap: 10,
+  },
+  enquiryCard: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    flexDirection: "row",
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#EEF2F6",
+    shadowColor: "#000000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.03,
+    shadowRadius: 6,
+    elevation: 2,
+  },
+  enquiryAvatarWrap: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    marginRight: 14,
+    backgroundColor: "#F1F5F9",
+    borderWidth: 1.5,
+    borderColor: "#EEF2F6",
+    overflow: "hidden",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  enquiryAvatar: {
+    width: "100%",
+    height: "100%",
+    borderRadius: 22,
+  },
+  enquiryInfo: {
+    flex: 1,
+    marginRight: 10,
+  },
+  enquiryName: {
+    fontSize: 15,
+    fontWeight: "700",
+    color: "#0F172A",
+    letterSpacing: -0.2,
+    marginBottom: 5,
+  },
+  enquirySubRow: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  enquiryChip: {
+    backgroundColor: "#F1F5F9",
+    paddingHorizontal: 8,
+    paddingVertical: 2.5,
+    borderRadius: 6,
+    maxWidth: "58%",
+  },
+  enquiryChipText: {
+    fontSize: 11.5,
+    fontWeight: "600",
+    color: "#475569",
+  },
+  enquiryDot: {
+    fontSize: 11,
+    color: "#94A3B8",
+    marginHorizontal: 6,
+  },
+  enquiryStatusText: {
+    fontSize: 12,
+    fontWeight: "500",
+    color: "#64748B",
+    flexShrink: 1,
+  },
+  enquiryCallBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: "#EFF6FF",
+    borderWidth: 1,
+    borderColor: "#DBEAFE",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  minimalListCard: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: "#EEF2F6",
+    overflow: "hidden",
+  },
+
+  // Plan Details
+  planStatusPill: {
+    backgroundColor: "#F0FDF4",
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 10,
+  },
+  planStatusText: {
+    fontSize: 11,
+    fontWeight: "600",
+    color: "#16A34A",
+  },
+  planRowItem: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+  },
+  planRowDivider: {
+    height: 1,
+    backgroundColor: "#F1F5F9",
+    marginHorizontal: 16,
+  },
+  planKey: {
+    fontSize: 13,
+    color: "#64748B",
+    fontWeight: "500",
+  },
+  planVal: {
+    fontSize: 13,
+    fontWeight: "700",
+    color: "#0F172A",
+  },
+  managePlanBtn: {
+    marginHorizontal: 16,
+    marginBottom: 16,
+    marginTop: 8,
+    height: 44,
+    borderRadius: 12,
+    backgroundColor: "#F8FAFC",
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  managePlanBtnText: {
+    fontSize: 13,
+    fontWeight: "700",
+    color: "#0F172A",
   },
 });

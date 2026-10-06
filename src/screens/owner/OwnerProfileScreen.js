@@ -367,7 +367,7 @@ export default function OwnerProfileScreen({ navigation }) {
           <Text style={styles.logoutText}>Logout</Text>
         </TouchableOpacity>
 
-        <View style={{ height: 90 }} />
+        <View style={{ height: 32 }} />
       </ScrollView>
 
       {/* Confirmation Modal before Logout as required */}

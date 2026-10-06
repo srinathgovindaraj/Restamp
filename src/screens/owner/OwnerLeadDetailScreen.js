@@ -22,6 +22,7 @@ import {
   Building,
   User,
   ExternalLink,
+  Mail,
 } from "lucide-react-native";
 import COLORS from "../../constants/colors";
 import { useOwner } from "../../context/OwnerContext";
@@ -99,9 +100,14 @@ export default function OwnerLeadDetailScreen({ route, navigation }) {
           onPress={() => navigation.goBack()}
           activeOpacity={0.7}
         >
-          <ArrowLeft size={20} color={COLORS.textDark} />
+          <ArrowLeft size={20} color="#0F172A" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Lead Details</Text>
+        <View style={styles.headerCenter}>
+          <Text style={styles.headerTitle}>Lead Details</Text>
+          <Text style={styles.headerSubtitle} numberOfLines={1}>
+            {lead.customerName}
+          </Text>
+        </View>
         <StatusBadge status={lead.status} />
       </View>
 
@@ -110,52 +116,80 @@ export default function OwnerLeadDetailScreen({ route, navigation }) {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Customer Header Card */}
-        <View style={styles.customerCard}>
-          <Image
-            source={{
-              uri:
-                lead.avatar ||
-                "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&q=80",
-            }}
-            style={styles.avatar}
-          />
-          <View style={{ flex: 1 }}>
-            <Text style={styles.customerName}>{lead.customerName}</Text>
-            <Text style={styles.customerPhone}>{lead.phone}</Text>
-            <Text style={styles.customerEmail}>{lead.email}</Text>
+        {/* ================= 1. CUSTOMER PROFILE HERO (BORDERLESS) ================= */}
+        <View style={styles.customerHeroSection}>
+          <View style={styles.customerTopRow}>
+            <View style={styles.avatarWrapper}>
+              <Image
+                source={{
+                  uri:
+                    lead.avatar ||
+                    "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&q=80",
+                }}
+                style={styles.avatar}
+              />
+              <View style={styles.verifiedDot}>
+                <Check size={10} color="#FFFFFF" strokeWidth={3} />
+              </View>
+            </View>
+
+            <View style={styles.customerInfoCol}>
+              <Text style={styles.customerName}>{lead.customerName}</Text>
+              
+              <TouchableOpacity
+                style={styles.customerMetaRow}
+                onPress={handleCall}
+                activeOpacity={0.7}
+              >
+                <Phone size={13} color={COLORS.primary} style={{ marginRight: 6 }} />
+                <Text style={styles.customerPhone}>{lead.phone}</Text>
+              </TouchableOpacity>
+
+              {lead.email ? (
+                <View style={styles.customerMetaRow}>
+                  <Mail size={13} color="#64748B" style={{ marginRight: 6 }} />
+                  <Text style={styles.customerEmail}>{lead.email}</Text>
+                </View>
+              ) : null}
+            </View>
+          </View>
+
+          {/* Quick Contact Buttons Row */}
+          <View style={styles.contactActionsRow}>
+            <TouchableOpacity
+              style={[styles.contactActionBtn, styles.callActionBtn]}
+              onPress={handleCall}
+              activeOpacity={0.8}
+            >
+              <Phone size={15} color={COLORS.primary} fill={COLORS.primary} style={{ marginRight: 8 }} />
+              <Text style={styles.callActionBtnText}>Call Now</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.contactActionBtn, styles.whatsappActionBtn]}
+              onPress={handleWhatsApp}
+              activeOpacity={0.8}
+            >
+              <MessageCircle size={16} color="#16A34A" style={{ marginRight: 8 }} />
+              <Text style={styles.whatsappActionBtnText}>WhatsApp</Text>
+            </TouchableOpacity>
           </View>
         </View>
 
-        {/* Quick Contact Actions Row */}
-        <View style={styles.contactActionsRow}>
-          <TouchableOpacity
-            style={[styles.contactActionBtn, { backgroundColor: COLORS.primary }]}
-            onPress={handleCall}
-            activeOpacity={0.8}
-          >
-            <Phone size={16} color="#FFFFFF" style={{ marginRight: 6 }} />
-            <Text style={styles.contactActionBtnText}>Call Now</Text>
-          </TouchableOpacity>
+        <View style={styles.sectionDivider} />
 
-          <TouchableOpacity
-            style={[styles.contactActionBtn, { backgroundColor: "#16A34A" }]}
-            onPress={handleWhatsApp}
-            activeOpacity={0.8}
-          >
-            <MessageCircle size={16} color="#FFFFFF" style={{ marginRight: 6 }} />
-            <Text style={styles.contactActionBtnText}>WhatsApp</Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* LEAD STATUS STEPPER (Section 10 requirement) */}
-        <View style={styles.sectionCard}>
-          <Text style={styles.cardHeading}>Update Lead Pipeline Status</Text>
-          <Text style={styles.cardSub}>
-            Tap a stage to update this lead's progress in your conversion pipeline:
+        {/* ================= 2. PIPELINE STATUS (BORDERLESS TRACK) ================= */}
+        <View style={styles.sectionBlock}>
+          <Text style={styles.sectionTitle}>Pipeline Status</Text>
+          <Text style={styles.sectionSubtitle}>
+            Tap a stage to update this lead's conversion progress:
           </Text>
 
-          <View style={styles.statusStepper}>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.statusStepperScroll}
+          >
             {STATUS_STEPS.map((s, idx) => {
               const isCurrent = lead.status === s.id;
               const isPast =
@@ -165,9 +199,9 @@ export default function OwnerLeadDetailScreen({ route, navigation }) {
                 <TouchableOpacity
                   key={s.id}
                   style={[
-                    styles.stepperItem,
-                    isCurrent && styles.stepperItemActive,
-                    isPast && styles.stepperItemPast,
+                    styles.stepperPill,
+                    isCurrent && styles.stepperPillActive,
+                    isPast && styles.stepperPillPast,
                   ]}
                   onPress={() => handleUpdateStatus(s.id)}
                   activeOpacity={0.8}
@@ -185,7 +219,7 @@ export default function OwnerLeadDetailScreen({ route, navigation }) {
                       <Text
                         style={[
                           styles.stepperDotNum,
-                          isCurrent && { color: "#FFFFFF" },
+                          isCurrent && styles.stepperDotNumActive,
                         ]}
                       >
                         {idx + 1}
@@ -196,6 +230,7 @@ export default function OwnerLeadDetailScreen({ route, navigation }) {
                     style={[
                       styles.stepperLabel,
                       isCurrent && styles.stepperLabelActive,
+                      isPast && styles.stepperLabelPast,
                     ]}
                     numberOfLines={1}
                   >
@@ -204,91 +239,140 @@ export default function OwnerLeadDetailScreen({ route, navigation }) {
                 </TouchableOpacity>
               );
             })}
-          </View>
+          </ScrollView>
         </View>
 
-        {/* Property Mini-Card */}
-        <View style={styles.sectionCard}>
-          <Text style={styles.cardHeading}>Property Interested In</Text>
-          <View style={styles.propertyMiniCard}>
+        <View style={styles.sectionDivider} />
+
+        {/* ================= 3. PROPERTY INTERESTED IN (FULL PROPERTY BANNER) ================= */}
+        <View style={styles.sectionBlock}>
+          <Text style={styles.sectionTitle}>Property Interested In</Text>
+
+          <View style={styles.propertyBanner}>
             <Image
               source={{
                 uri:
                   lead.propertyImage ||
-                  "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=300&q=80",
+                  "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=600&q=80",
               }}
-              style={styles.propertyMiniThumb}
+              style={styles.propertyBannerImage}
+              resizeMode="cover"
             />
-            <View style={{ flex: 1 }}>
-              <Text style={styles.propertyMiniTitle} numberOfLines={1}>
+            <View style={styles.propertyBannerBadge}>
+              <Text style={styles.propertyBannerBadgeText}>
+                {(lead.requirement || "FOR RENT").toUpperCase()}
+              </Text>
+            </View>
+
+            <View style={styles.propertyBannerContent}>
+              <Text style={styles.propertyBannerTitle} numberOfLines={1}>
                 {lead.propertyTitle}
               </Text>
-              <View style={styles.locRow}>
-                <MapPin size={12} color={COLORS.textSecondary} style={{ marginRight: 3 }} />
-                <Text style={styles.propertyMiniLoc}>{lead.propertyLocality}</Text>
+              
+              <View style={styles.propertyBannerLocRow}>
+                <MapPin size={13} color="#64748B" style={{ marginRight: 4 }} />
+                <Text style={styles.propertyBannerLoc} numberOfLines={1}>
+                  {lead.propertyLocality || "Chennai"}
+                </Text>
               </View>
-              <Text style={styles.propertyMiniPrice}>{lead.propertyPrice}</Text>
+
+              <Text style={styles.propertyBannerPrice}>
+                {lead.propertyPrice}
+              </Text>
             </View>
           </View>
         </View>
 
-        {/* Requirement & Budget Specifications */}
-        <View style={styles.sectionCard}>
-          <Text style={styles.cardHeading}>Inquiry Specifications</Text>
+        <View style={styles.sectionDivider} />
 
-          <View style={styles.specRow}>
-            <Text style={styles.specLabel}>Requirement</Text>
-            <View style={styles.reqPill}>
-              <Text style={styles.reqText}>{lead.requirement}</Text>
+        {/* ================= 4. INQUIRY SPECIFICATIONS (CLEAN SPEC LIST) ================= */}
+        <View style={styles.sectionBlock}>
+          <Text style={styles.sectionTitle}>Inquiry Specifications</Text>
+
+          <View style={styles.specList}>
+            <View style={styles.specRowItem}>
+              <View style={styles.specLabelCol}>
+                <Building size={15} color="#64748B" style={{ marginRight: 8 }} />
+                <Text style={styles.specLabelText}>Requirement</Text>
+              </View>
+              <View style={styles.specPillHighlight}>
+                <Text style={styles.specPillHighlightText}>
+                  {lead.requirement || "Residential"}
+                </Text>
+              </View>
             </View>
-          </View>
 
-          <View style={styles.specRow}>
-            <Text style={styles.specLabel}>Budget</Text>
-            <Text style={styles.specVal}>{lead.budget}</Text>
-          </View>
+            <View style={styles.specRowItem}>
+              <View style={styles.specLabelCol}>
+                <Clock size={15} color="#64748B" style={{ marginRight: 8 }} />
+                <Text style={styles.specLabelText}>Budget</Text>
+              </View>
+              <Text style={styles.specValueHighlight}>
+                {lead.budget}
+              </Text>
+            </View>
 
-          <View style={styles.specRow}>
-            <Text style={styles.specLabel}>Preferred Visit Date</Text>
-            <Text style={styles.specVal}>{lead.preferredVisitDate || "Flexible"}</Text>
-          </View>
+            <View style={styles.specRowItem}>
+              <View style={styles.specLabelCol}>
+                <Calendar size={15} color="#64748B" style={{ marginRight: 8 }} />
+                <Text style={styles.specLabelText}>Preferred Visit</Text>
+              </View>
+              <Text style={styles.specValueRegular}>
+                {lead.preferredVisitDate || "Flexible"}
+              </Text>
+            </View>
 
-          <View style={styles.specRow}>
-            <Text style={styles.specLabel}>Received</Text>
-            <Text style={styles.specVal}>{lead.timestamp}</Text>
+            <View style={[styles.specRowItem, { borderBottomWidth: 0 }]}>
+              <View style={styles.specLabelCol}>
+                <CheckCircle2 size={15} color="#64748B" style={{ marginRight: 8 }} />
+                <Text style={styles.specLabelText}>Received Date</Text>
+              </View>
+              <Text style={styles.specValueRegular}>
+                {lead.timestamp}
+              </Text>
+            </View>
           </View>
         </View>
 
-        {/* Customer Message */}
-        <View style={styles.sectionCard}>
-          <Text style={styles.cardHeading}>Customer Message</Text>
-          <View style={styles.messageBox}>
-            <Text style={styles.messageText}>
+        <View style={styles.sectionDivider} />
+
+        {/* ================= 5. CUSTOMER MESSAGE ================= */}
+        <View style={styles.sectionBlock}>
+          <Text style={styles.sectionTitle}>Customer Message</Text>
+          <View style={styles.messageBlockQuote}>
+            <Text style={styles.messageBlockQuoteText}>
               "{lead.message || "Customer expressed interest and requested callback."}"
             </Text>
           </View>
         </View>
 
-        {/* Site Visit Info if scheduled */}
+        {/* ================= 6. SCHEDULED SITE VISIT (IF EXISTS) ================= */}
         {lead.visitData && (
-          <View style={[styles.sectionCard, { borderColor: "#BFDBFE", backgroundColor: "#EFF6FF" }]}>
-            <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 8 }}>
-              <Calendar size={18} color="#2563EB" style={{ marginRight: 8 }} />
-              <Text style={[styles.cardHeading, { color: "#2563EB", marginBottom: 0 }]}>
-                Scheduled Site Visit
-              </Text>
+          <>
+            <View style={styles.sectionDivider} />
+            <View style={styles.sectionBlock}>
+              <View style={styles.scheduledVisitBanner}>
+                <View style={styles.scheduledVisitHeader}>
+                  <Calendar size={18} color="#2563EB" style={{ marginRight: 8 }} />
+                  <Text style={styles.scheduledVisitTitle}>
+                    Scheduled Site Visit
+                  </Text>
+                </View>
+                <Text style={styles.visitDataText}>
+                  Date: {lead.visitData.date} at {lead.visitData.time}
+                </Text>
+                {lead.visitData.note && (
+                  <Text style={styles.visitNoteText}>Note: {lead.visitData.note}</Text>
+                )}
+              </View>
             </View>
-            <Text style={styles.visitDataText}>
-              Date: {lead.visitData.date} at {lead.visitData.time}
-            </Text>
-            {lead.visitData.note && (
-              <Text style={styles.visitNoteText}>Note: {lead.visitData.note}</Text>
-            )}
-          </View>
+          </>
         )}
 
-        {/* Action Buttons: Schedule Visit / Close Deal */}
-        <View style={styles.bottomActions}>
+        <View style={styles.sectionDivider} />
+
+        {/* ================= 7. BOTTOM ACTION BUTTONS ================= */}
+        <View style={styles.actionsFooter}>
           <PrimaryButton
             title="Schedule Site Visit"
             onPress={() => setShowVisitModal(true)}
@@ -353,232 +437,376 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     borderBottomWidth: 1,
     borderBottomColor: "#F1F5F9",
+    backgroundColor: "#FFFFFF",
   },
   backBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 38,
+    height: 38,
+    borderRadius: 19,
     backgroundColor: "#F8FAFC",
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
     justifyContent: "center",
     alignItems: "center",
   },
+  headerCenter: {
+    flex: 1,
+    alignItems: "center",
+    marginHorizontal: 12,
+  },
   headerTitle: {
-    fontSize: 17,
-    fontWeight: "500",
-    color: COLORS.textDark,
+    fontSize: 16.5,
+    fontWeight: "700",
+    color: "#0F172A",
+    letterSpacing: -0.2,
+  },
+  headerSubtitle: {
+    fontSize: 11.5,
+    color: "#64748B",
+    marginTop: 1,
   },
   container: {
     flex: 1,
     backgroundColor: "#FFFFFF",
   },
   scrollContent: {
-    padding: 18,
+    paddingBottom: 24,
   },
-  customerCard: {
+
+  /* 1. CUSTOMER HERO SECTION */
+  customerHeroSection: {
+    paddingHorizontal: 20,
+    paddingTop: 16,
+    paddingBottom: 18,
+  },
+  customerTopRow: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#FFFFFF",
-    borderRadius: 18,
-    borderWidth: 1,
-    borderColor: "#EEF2F6",
-    padding: 16,
-    marginBottom: 14,
+  },
+  avatarWrapper: {
+    position: "relative",
+    marginRight: 16,
   },
   avatar: {
-    width: 54,
-    height: 54,
-    borderRadius: 27,
-    marginRight: 14,
+    width: 60,
+    height: 60,
+    borderRadius: 30,
     backgroundColor: "#F1F5F9",
+    borderWidth: 2,
+    borderColor: "#EFF6FF",
+  },
+  verifiedDot: {
+    position: "absolute",
+    bottom: -1,
+    right: -1,
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    backgroundColor: COLORS.primary,
+    justifyContent: "center",
+    alignItems: "center",
+    borderWidth: 2,
+    borderColor: "#FFFFFF",
+  },
+  customerInfoCol: {
+    flex: 1,
+    justifyContent: "center",
   },
   customerName: {
-    fontSize: 17,
-    fontWeight: "500",
-    color: COLORS.textDark,
+    fontSize: 18,
+    fontWeight: "800",
+    color: "#0F172A",
+    letterSpacing: -0.3,
+    marginBottom: 4,
+  },
+  customerMetaRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: 3,
   },
   customerPhone: {
-    fontSize: 13,
+    fontSize: 13.5,
     color: COLORS.primary,
-    fontWeight: "500",
-    marginTop: 2,
+    fontWeight: "600",
   },
   customerEmail: {
-    fontSize: 12,
-    color: COLORS.textSecondary,
-    marginTop: 1,
-    fontWeight: "400",
+    fontSize: 12.5,
+    color: "#64748B",
   },
   contactActionsRow: {
     flexDirection: "row",
     gap: 12,
-    marginBottom: 16,
+    marginTop: 16,
   },
   contactActionBtn: {
     flex: 1,
-    height: 44,
-    borderRadius: 12,
+    height: 42,
+    borderRadius: 21,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-  },
-  contactActionBtnText: {
-    color: "#FFFFFF",
-    fontSize: 14,
-    fontWeight: "500",
-  },
-  sectionCard: {
-    backgroundColor: "#FFFFFF",
-    borderRadius: 18,
     borderWidth: 1,
-    borderColor: "#EEF2F6",
-    padding: 16,
-    marginBottom: 14,
   },
-  cardHeading: {
-    fontSize: 15,
-    fontWeight: "500",
-    color: COLORS.textDark,
-    marginBottom: 6,
+  callActionBtn: {
+    backgroundColor: "#EFF6FF",
+    borderColor: "#BFDBFE",
   },
-  cardSub: {
+  callActionBtnText: {
+    color: COLORS.primary,
+    fontSize: 13.5,
+    fontWeight: "700",
+  },
+  whatsappActionBtn: {
+    backgroundColor: "#F0FDF4",
+    borderColor: "#BBF7D0",
+  },
+  whatsappActionBtnText: {
+    color: "#16A34A",
+    fontSize: 13.5,
+    fontWeight: "700",
+  },
+
+  /* SECTION DIVIDERS & BLOCKS */
+  sectionDivider: {
+    height: 1,
+    backgroundColor: "#F1F5F9",
+    marginHorizontal: 20,
+  },
+  sectionBlock: {
+    backgroundColor: "#FFFFFF",
+    paddingHorizontal: 20,
+    paddingVertical: 18,
+  },
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: "#0F172A",
+    letterSpacing: -0.2,
+    marginBottom: 4,
+  },
+  sectionSubtitle: {
     fontSize: 12,
-    color: COLORS.textSecondary,
+    color: "#64748B",
     marginBottom: 14,
-    fontWeight: "400",
+    lineHeight: 17,
   },
-  statusStepper: {
+
+  /* 2. PIPELINE STATUS TRACK */
+  statusStepperScroll: {
     flexDirection: "row",
-    justifyContent: "space-between",
-  },
-  stepperItem: {
     alignItems: "center",
-    width: 50,
+    paddingVertical: 4,
+    gap: 8,
   },
-  stepperItemActive: {},
-  stepperItemPast: {},
+  stepperPill: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 20,
+    backgroundColor: "#FFFFFF",
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
+    gap: 6,
+  },
+  stepperPillActive: {
+    backgroundColor: "#EFF6FF",
+    borderColor: COLORS.primary,
+  },
+  stepperPillPast: {
+    backgroundColor: "#F0FDF4",
+    borderColor: "#BBF7D0",
+  },
   stepperDot: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
+    width: 20,
+    height: 20,
+    borderRadius: 10,
     backgroundColor: "#F1F5F9",
     justifyContent: "center",
     alignItems: "center",
-    marginBottom: 4,
   },
   stepperDotActive: {
     backgroundColor: COLORS.primary,
   },
   stepperDotPast: {
-    backgroundColor: COLORS.success,
+    backgroundColor: "#10B981",
   },
   stepperDotNum: {
-    fontSize: 11,
-    fontWeight: "500",
-    color: COLORS.textSecondary,
+    fontSize: 10.5,
+    fontWeight: "700",
+    color: "#64748B",
+  },
+  stepperDotNumActive: {
+    color: "#FFFFFF",
   },
   stepperLabel: {
-    fontSize: 9,
-    color: COLORS.textSecondary,
-    fontWeight: "400",
-    textAlign: "center",
+    fontSize: 12,
+    color: "#475569",
+    fontWeight: "600",
   },
   stepperLabelActive: {
     color: COLORS.primary,
-    fontWeight: "500",
+    fontWeight: "700",
   },
-  propertyMiniCard: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#F8FAFC",
-    borderRadius: 12,
+  stepperLabelPast: {
+    color: "#166534",
+    fontWeight: "600",
+  },
+
+  /* 3. PROPERTY BANNER */
+  propertyBanner: {
+    borderRadius: 16,
+    overflow: "hidden",
+    backgroundColor: "#FFFFFF",
     borderWidth: 1,
     borderColor: "#EEF2F6",
-    padding: 10,
-    marginTop: 4,
+    marginTop: 8,
+    shadowColor: "#000000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.03,
+    shadowRadius: 6,
+    elevation: 1,
   },
-  propertyMiniThumb: {
-    width: 64,
-    height: 64,
-    borderRadius: 8,
-    marginRight: 12,
+  propertyBannerImage: {
+    width: "100%",
+    height: 145,
   },
-  propertyMiniTitle: {
-    fontSize: 14,
-    fontWeight: "500",
-    color: COLORS.textDark,
+  propertyBannerBadge: {
+    position: "absolute",
+    top: 12,
+    left: 12,
+    backgroundColor: "#0F172A",
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 6,
   },
-  locRow: {
+  propertyBannerBadgeText: {
+    color: "#FFFFFF",
+    fontSize: 10,
+    fontWeight: "800",
+    letterSpacing: 0.5,
+  },
+  propertyBannerContent: {
+    padding: 14,
+    backgroundColor: "#FFFFFF",
+  },
+  propertyBannerTitle: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: "#0F172A",
+    marginBottom: 3,
+  },
+  propertyBannerLocRow: {
     flexDirection: "row",
     alignItems: "center",
-    marginTop: 2,
+    marginBottom: 6,
   },
-  propertyMiniLoc: {
-    fontSize: 11,
-    color: COLORS.textSecondary,
-    fontWeight: "400",
+  propertyBannerLoc: {
+    fontSize: 12.5,
+    color: "#64748B",
   },
-  propertyMiniPrice: {
-    fontSize: 13,
-    fontWeight: "500",
+  propertyBannerPrice: {
+    fontSize: 17,
+    fontWeight: "800",
     color: COLORS.primary,
-    marginTop: 4,
   },
-  specRow: {
+
+  /* 4. INQUIRY SPEC LIST */
+  specList: {
+    marginTop: 6,
+  },
+  specRowItem: {
     flexDirection: "row",
-    justifyContent: "space-between",
     alignItems: "center",
-    paddingVertical: 8,
+    justifyContent: "space-between",
+    paddingVertical: 12,
     borderBottomWidth: 1,
     borderBottomColor: "#F1F5F9",
   },
-  specLabel: {
-    fontSize: 13,
-    color: COLORS.textSecondary,
-    fontWeight: "400",
+  specLabelCol: {
+    flexDirection: "row",
+    alignItems: "center",
   },
-  specVal: {
-    fontSize: 13,
+  specLabelText: {
+    fontSize: 13.5,
+    color: "#475569",
     fontWeight: "500",
-    color: COLORS.textDark,
   },
-  reqPill: {
-    backgroundColor: COLORS.primaryLight,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 6,
+  specPillHighlight: {
+    backgroundColor: "#EFF6FF",
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 8,
   },
-  reqText: {
-    fontSize: 11,
-    fontWeight: "500",
+  specPillHighlightText: {
+    fontSize: 12.5,
+    fontWeight: "700",
     color: COLORS.primary,
   },
-  messageBox: {
-    backgroundColor: "#F8FAFC",
-    padding: 12,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: "#E2E8F0",
+  specValueHighlight: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: "#0F172A",
   },
-  messageText: {
-    fontSize: 13,
-    color: COLORS.textDark,
-    lineHeight: 18,
+  specValueRegular: {
+    fontSize: 13.5,
+    fontWeight: "600",
+    color: "#334155",
+  },
+
+  /* 5. CUSTOMER MESSAGE */
+  messageBlockQuote: {
+    backgroundColor: "#FFFFFF",
+    borderLeftWidth: 3,
+    borderLeftColor: COLORS.primary,
+    borderWidth: 1,
+    borderColor: "#EEF2F6",
+    padding: 14,
+    borderRadius: 10,
+    marginTop: 8,
+  },
+  messageBlockQuoteText: {
+    fontSize: 14,
+    lineHeight: 22,
+    color: "#334155",
     fontStyle: "italic",
-    fontWeight: "400",
+  },
+
+  /* 6. SCHEDULED SITE VISIT */
+  scheduledVisitBanner: {
+    backgroundColor: "#EFF6FF",
+    borderWidth: 1,
+    borderColor: "#BFDBFE",
+    borderRadius: 14,
+    padding: 16,
+  },
+  scheduledVisitHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 6,
+  },
+  scheduledVisitTitle: {
+    fontSize: 15,
+    fontWeight: "700",
+    color: "#1E40AF",
   },
   visitDataText: {
-    fontSize: 13,
-    fontWeight: "500",
-    color: "#1E40AF",
+    fontSize: 13.5,
+    fontWeight: "600",
+    color: "#1E3A8A",
     marginBottom: 2,
   },
   visitNoteText: {
-    fontSize: 12,
+    fontSize: 12.5,
     color: "#2563EB",
-    fontWeight: "400",
+    lineHeight: 18,
   },
-  bottomActions: {
-    marginTop: 10,
+
+  /* 7. ACTIONS FOOTER */
+  actionsFooter: {
+    paddingHorizontal: 20,
+    paddingTop: 18,
+    backgroundColor: "#FFFFFF",
   },
   errorContainer: {
     flex: 1,
