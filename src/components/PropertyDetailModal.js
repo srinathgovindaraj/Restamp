@@ -12,6 +12,7 @@ import {
   Dimensions,
   Platform,
   Share,
+  ActivityIndicator,
 } from "react-native";
 import {
   ArrowLeft,
@@ -80,6 +81,7 @@ export default function PropertyDetailModal({
   onSelectProperty,
   isWishlisted,
   onToggleWishlist,
+  detailLoading,
 }) {
   const [activeImageIndex, setActiveImageIndex] = useState(0);
   const [activeTab, setActiveTab] = useState("overview");
@@ -275,6 +277,13 @@ export default function PropertyDetailModal({
                     fill={saved ? "#FF0000" : "rgba(0,0,0,0.3)"}
                   />
                 </TouchableOpacity>
+
+                {/* Live-detail loading overlay (Phase 3: real record fetch in flight) */}
+                {detailLoading && (
+                  <View style={styles.heroLoadingOverlay}>
+                    <ActivityIndicator size="small" color="#FFFFFF" />
+                  </View>
+                )}
 
                 {/* Photos Badge in Bottom Right (Matching Image 2) */}
                 <View style={styles.heroPhotoCountBadge}>
@@ -1026,6 +1035,18 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: "transparent",
+    zIndex: 10,
+  },
+  heroLoadingOverlay: {
+    position: "absolute",
+    top: 14,
+    left: 14,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "rgba(0,0,0,0.45)",
     zIndex: 10,
   },
   heroPhotoCountBadge: {

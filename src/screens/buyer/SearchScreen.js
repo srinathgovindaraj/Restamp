@@ -14,6 +14,7 @@ import {
   Linking,
   Alert,
   Platform,
+  ActivityIndicator,
   Dimensions,
   DeviceEventEmitter,
 } from "react-native";
@@ -35,7 +36,8 @@ import {
   Copy,
 } from "lucide-react-native";
 import COLORS from "../../constants/colors";
-import ALL_PROPERTIES from "../../data/properties";
+import { useListings } from "../../api/useListings";
+import { fetchListingDetail } from "../../api/listings";
 import { useWishlist } from "../../context/WishlistContext";
 import PropertyDetailModal from "../../components/PropertyDetailModal";
 import SearchPropertyModal from "../../components/SearchPropertyModal";
@@ -121,6 +123,32 @@ export default function SearchScreen({ navigation, route }) {
   // Modals for filters
   const [activeDropdown, setActiveDropdown] = useState(null); // 'sort' | 'budget' | 'bhk' | 'type' | 'status' | 'allFilters' | null
   const [selectedProperty, setSelectedProperty] = useState(null);
+  const [detailLoading, setDetailLoading] = useState(false);
+
+  // Open the existing detail modal instantly, then enrich with the live record
+  // (Phase 3: GET /buyer/listings/{id}) when the card carries a backend id.
+  // Mock-sourced cards (no numeric backendId) keep existing mock behavior.
+  const openProperty = (property) => {
+    setSelectedProperty(property);
+    const backendId = property && property.backendId;
+    if (typeof backendId !== "number") return;
+    setDetailLoading(true);
+    fetchListingDetail(backendId).then(
+      (detail) => {
+        setDetailLoading(false);
+        setSelectedProperty((current) =>
+          current && current.backendId === backendId ? { ...current, ...detail } : current
+        );
+      },
+      () => {
+        setDetailLoading(false);
+        Alert.alert(
+          "Couldn't load details",
+          "Showing saved card info. Check connection and reopen to retry."
+        );
+      }
+    );
+  };
   const [viewedNumberProperty, setViewedNumberProperty] = useState(null);
   const [isSearchFocused, setIsSearchFocused] = useState(false);
 
@@ -174,19 +202,38 @@ export default function SearchScreen({ navigation, route }) {
     }
   }, [route?.params]);
 
-  // Filter & Sort Logic
+  // Discovery data: server-side filter/sort/pagination via GET /buyer/listings.
+  // Deal, type, BHK, budgets, query and supported sorts run on the backend.
+  // Category pseudo-filters (Pool/Townhouse) and construction status have no backend
+  // equivalent and are applied client-side below; verified-only is guaranteed server-side.
+  const budgetPreset = BUDGET_OPTIONS.find((b) => b.label === selectedBudget);
+  const {
+    items: apiProperties,
+    total,
+    loading: listingsLoading,
+    loadingMore: listingsLoadingMore,
+    error: listingsError,
+    loadMore: loadMoreListings,
+    refresh: refreshListings,
+  } = useListings(
+    {
+      dealTab,
+      selectedType,
+      searchQuery,
+      locality: "",
+      bhk: selectedBhk,
+      presetMinRupees: budgetPreset ? budgetPreset.min : 0,
+      presetMaxRupees: budgetPreset ? budgetPreset.max : Infinity,
+      minRupees: minBudget,
+      maxRupees: maxBudget,
+      sort: selectedSort,
+    },
+    { pageSize: 20 }
+  );
+
   const filteredProperties = useMemo(() => {
-    let list = ALL_PROPERTIES.filter((item) => {
-      // Deal Tab filter
-      if (dealTab === "Buy" && item.badgeType !== "sale" && item.badgeType !== "resale") return false;
-      if (dealTab === "Resale" && item.badgeType !== "resale" && !item.isResale && item.constructionStatus !== "Ready to move") return false;
-      if (dealTab === "Rent" && item.badgeType !== "rent") return false;
-      if (dealTab === "Lease" && item.badgeType !== "lease") return false;
-
-      // Verified filter
-      if (onlyVerified && !item.isVerified) return false;
-
-      // Category Pill filter (House, Townhouse, Pool, Apartment, Villa, Plot)
+    return apiProperties.filter((item) => {
+      // Category pseudo-filter (no backend equivalent for Pool/Townhouse).
       if (selectedCategory !== "All") {
         const catLower = selectedCategory.toLowerCase();
         if (catLower === "pool") {
@@ -196,92 +243,18 @@ export default function SearchScreen({ navigation, route }) {
         } else if (catLower === "townhouse") {
           const type = (item.type || "").toLowerCase();
           if (type !== "house" && type !== "villa") return false;
-        } else {
-          if ((item.type || "").toLowerCase() !== catLower) return false;
-        }
-      }
-
-      // Text / Locality search query
-      if (searchQuery.trim() !== "") {
-        const q = searchQuery.toLowerCase().trim();
-        const matchesLoc = item.location.toLowerCase().includes(q);
-        const matchesTitle = item.title.toLowerCase().includes(q);
-        const matchesAddr = item.address ? item.address.toLowerCase().includes(q) : false;
-        const matchesType = item.type.toLowerCase().includes(q);
-        if (!matchesLoc && !matchesTitle && !matchesAddr && !matchesType) {
+        } else if ((item.type || "").toLowerCase() !== catLower) {
           return false;
         }
       }
-
-      // Property Type filter from dropdown
-      if (selectedType !== "All Types") {
-        const selLower = selectedType.toLowerCase();
-        const itemTypeLower = item.type.toLowerCase();
-        if (selLower === "home" || selLower === "house") {
-          if (itemTypeLower !== "house" && itemTypeLower !== "home") {
-            return false;
-          }
-        } else if (selLower === "bungalow") {
-          const desc = (item.description || "").toLowerCase();
-          const title = (item.title || "").toLowerCase();
-          if (itemTypeLower !== "house" && itemTypeLower !== "villa" && !desc.includes("bungalow") && !title.includes("bungalow")) {
-            return false;
-          }
-        } else if (itemTypeLower !== selLower) {
-          return false;
-        }
-      }
-
-      // BHK filter
-      if (selectedBhk !== "All BHK") {
-        const num = parseInt(selectedBhk);
-        if (selectedBhk === "4+ BHK") {
-          if (item.beds < 4) return false;
-        } else if (item.beds !== num) {
-          return false;
-        }
-      }
-
-      // Budget filter
-      if (selectedBudget !== "All Budgets") {
-        const budgetObj = BUDGET_OPTIONS.find((b) => b.label === selectedBudget);
-        if (budgetObj && item.rawPrice) {
-          if (item.rawPrice < budgetObj.min || item.rawPrice > budgetObj.max) return false;
-        }
-      }
-
-      // Numeric Budget range filter
-      if (item.rawPrice) {
-        if (minBudget > 0 && item.rawPrice < minBudget) return false;
-        if (maxBudget < Infinity && item.rawPrice > maxBudget) return false;
-      }
-
-      // Construction Status filter
+      // Construction status has no backend filter param; applied client-side.
       if (selectedStatus !== "All Status") {
-        const itemStatus = item.constructionStatus || (item.badge === "Just Added" ? "New Launch" : "Ready to move");
+        const itemStatus = item.constructionStatus || "Ready to move";
         if (itemStatus.toLowerCase() !== selectedStatus.toLowerCase()) return false;
       }
-
       return true;
     });
-
-    // Apply Sorting
-    if (selectedSort === "price_asc") {
-      list = [...list].sort((a, b) => (a.rawPrice || 0) - (b.rawPrice || 0));
-    } else if (selectedSort === "price_desc") {
-      list = [...list].sort((a, b) => (b.rawPrice || 0) - (a.rawPrice || 0));
-    } else if (selectedSort === "rating") {
-      list = [...list].sort((a, b) => (b.rating || 0) - (a.rating || 0));
-    } else if (selectedSort === "area_desc") {
-      list = [...list].sort((a, b) => {
-        const sqA = parseInt(String(a.sqft).replace(/,/g, "")) || 0;
-        const sqB = parseInt(String(b.sqft).replace(/,/g, "")) || 0;
-        return sqB - sqA;
-      });
-    }
-
-    return list;
-  }, [dealTab, searchQuery, selectedCategory, selectedType, selectedBhk, selectedBudget, selectedStatus, onlyVerified, selectedSort]);
+  }, [apiProperties, selectedCategory, selectedStatus]);
 
   // Share handler
   const handleShare = async (property) => {
@@ -582,7 +555,23 @@ export default function SearchScreen({ navigation, route }) {
         contentContainerStyle={styles.resultsListContent}
         showsVerticalScrollIndicator={false}
       >
-        {filteredProperties.length === 0 ? (
+        {listingsLoading ? (
+          <View style={styles.emptyResultsBox}>
+            <ActivityIndicator size="large" color={COLORS.primary} />
+            <Text style={styles.emptyTitle}>Loading properties…</Text>
+          </View>
+        ) : listingsError ? (
+          <View style={styles.emptyResultsBox}>
+            <MapPin size={42} color="#CBD5E1" />
+            <Text style={styles.emptyTitle}>Couldn&apos;t load properties</Text>
+            <Text style={styles.emptySubtitle}>
+              Check that the backend is reachable and try again.
+            </Text>
+            <TouchableOpacity style={styles.clearFiltersBtn} onPress={refreshListings}>
+              <Text style={styles.clearFiltersBtnText}>Retry</Text>
+            </TouchableOpacity>
+          </View>
+        ) : filteredProperties.length === 0 ? (
           <View style={styles.emptyResultsBox}>
             <MapPin size={42} color="#CBD5E1" />
             <Text style={styles.emptyTitle}>No matching properties found</Text>
@@ -603,7 +592,7 @@ export default function SearchScreen({ navigation, route }) {
                 <TouchableOpacity
                   style={styles.propertyCard}
                   activeOpacity={0.93}
-                  onPress={() => setSelectedProperty(property)}
+                  onPress={() => openProperty(property)}
                 >
                 {/* Media Container with Image, Bookmark icon and 10 photos badge */}
                 <View style={styles.cardMediaContainer}>
@@ -769,6 +758,19 @@ export default function SearchScreen({ navigation, route }) {
               </View>
             );
           })
+        )}
+        {!listingsLoading && !listingsError && total > 0 && filteredProperties.length < total && (
+          <TouchableOpacity
+            style={[styles.clearFiltersBtn, { alignSelf: "center", marginVertical: 16 }]}
+            onPress={loadMoreListings}
+            disabled={listingsLoadingMore}
+          >
+            {listingsLoadingMore ? (
+              <ActivityIndicator size="small" color={COLORS.primary} />
+            ) : (
+              <Text style={styles.clearFiltersBtnText}>Load more properties</Text>
+            )}
+          </TouchableOpacity>
         )}
       </ScrollView>
 
@@ -1231,10 +1233,14 @@ export default function SearchScreen({ navigation, route }) {
       <PropertyDetailModal
         visible={!!selectedProperty}
         property={selectedProperty}
-        onClose={() => setSelectedProperty(null)}
-        onSelectProperty={(p) => setSelectedProperty(p)}
+        onClose={() => {
+          setDetailLoading(false);
+          setSelectedProperty(null);
+        }}
+        onSelectProperty={(p) => openProperty(p)}
         isWishlisted={isWishlisted}
         onToggleWishlist={toggleWishlist}
+        detailLoading={detailLoading}
       />
     </SafeAreaView>
   );
