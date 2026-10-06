@@ -297,6 +297,7 @@ export default function SearchPropertyModal({
                 placeholder="Search locality, project, landmark..."
                 placeholderTextColor="#94A3B8"
                 value={localityInput}
+                underlineColorAndroid="transparent"
                 onChangeText={(text) => {
                   setLocalityInput(text);
                   setSelectedLocality(text);
@@ -615,6 +616,9 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: "#0F172A",
     borderWidth: 0,
+    outlineStyle: "none",
+    outlineWidth: 0,
+    outlineColor: "transparent",
   },
   modalSubLabel: {
     ...TYPOGRAPHY.smallHelperText,

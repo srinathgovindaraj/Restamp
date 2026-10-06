@@ -670,6 +670,7 @@ export default function SavedScreen({ navigation }) {
                 onChangeText={setEditName}
                 placeholder="Enter your name"
                 placeholderTextColor="#94A3B8"
+                underlineColorAndroid="transparent"
               />
             </View>
 
@@ -683,6 +684,7 @@ export default function SavedScreen({ navigation }) {
                 placeholder="Enter mobile number"
                 placeholderTextColor="#94A3B8"
                 keyboardType="phone-pad"
+                underlineColorAndroid="transparent"
               />
             </View>
 
@@ -1363,6 +1365,8 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "400",
     color: "#0F172A",
+    outlineStyle: "none",
+    outlineWidth: 0,
   },
   editModalButtonsRow: {
     flexDirection: "row",

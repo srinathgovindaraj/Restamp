@@ -360,6 +360,7 @@ export default function OwnerLeadDetailScreen({ route, navigation }) {
               placeholderTextColor="#94A3B8"
               value={newNoteText}
               onChangeText={setNewNoteText}
+              underlineColorAndroid="transparent"
               multiline
             />
             <TouchableOpacity
@@ -828,6 +829,9 @@ const styles = StyleSheet.create({
     textAlignVertical: "top",
     paddingTop: 0,
     marginBottom: 8,
+    outlineStyle: "none",
+    outlineWidth: 0,
+    outlineColor: "transparent",
   },
   saveNoteBtn: {
     flexDirection: "row",

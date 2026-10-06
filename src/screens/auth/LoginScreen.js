@@ -5,10 +5,10 @@ import {
   StyleSheet,
   StatusBar,
   TouchableOpacity,
+  Pressable,
   TextInput,
   KeyboardAvoidingView,
   Platform,
-  TouchableWithoutFeedback,
   Keyboard,
   Modal,
   FlatList,
@@ -62,8 +62,11 @@ export default function LoginScreen({ navigation }) {
   const [timer, setTimer] = useState(30);
   const [canResend, setCanResend] = useState(false);
 
-  // Refs for 6 OTP boxes
+  // Refs for inputs
   const otpInputRefs = useRef([]);
+  const phoneInputRef = useRef(null);
+  const firstNameInputRef = useRef(null);
+  const lastNameInputRef = useRef(null);
 
   useEffect(() => {
     let interval;
@@ -186,186 +189,201 @@ export default function LoginScreen({ navigation }) {
 
       <KeyboardAvoidingView
         style={{ flex: 1 }}
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
       >
-        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-          <View style={styles.container}>
-            {/* TOP BAR / SKIP BUTTON */}
-            <View style={styles.topBar}>
-              <View style={{ flex: 1 }} />
-              <TouchableOpacity
-                onPress={handleSkip}
-                style={styles.skipBtn}
-                activeOpacity={0.7}
-              >
-                <Text style={styles.skipBtnText}>Skip</Text>
-              </TouchableOpacity>
-            </View>
+        <View style={styles.container}>
+          {/* TOP BAR / SKIP BUTTON */}
+          <View style={styles.topBar}>
+            <View style={{ flex: 1 }} />
+            <TouchableOpacity
+              onPress={handleSkip}
+              style={styles.skipBtn}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.skipBtnText}>Skip</Text>
+            </TouchableOpacity>
+          </View>
 
-            {/* ================= STEP 1: PHONE NUMBER ================= */}
-            {step === 1 && (
-              <View style={styles.content}>
-                <Text style={styles.heading}>What’s your phone number?</Text>
+          {/* ================= STEP 1: PHONE NUMBER ================= */}
+          {step === 1 && (
+            <View style={styles.content}>
+              <Text style={styles.heading}>What’s your phone number?</Text>
 
-                <View style={styles.phoneInputRow}>
-                  {/* Country Selector Card */}
-                  <TouchableOpacity
-                    style={styles.countryCard}
-                    onPress={() => setShowCountryModal(true)}
-                    activeOpacity={0.8}
-                  >
-                    <Text style={styles.flagText}>{selectedCountry.flag}</Text>
-                    <Text style={styles.countryCodeText}>
-                      {selectedCountry.code}
-                    </Text>
-                    <ChevronDown size={14} color="#64748B" />
-                  </TouchableOpacity>
-
-                  {/* Phone Input Card */}
-                  <View style={styles.phoneInputCard}>
-                    <TextInput
-                      style={styles.phoneTextInput}
-                      placeholder="Phone number"
-                      placeholderTextColor="#A8A29E"
-                      value={phoneNumber}
-                      onChangeText={setPhoneNumber}
-                      keyboardType="phone-pad"
-                      autoFocus
-                    />
-                  </View>
-                </View>
-
-                <Text style={styles.disclaimerText}>
-                  By continuing, you agree to receive{" "}
-                  <Text style={styles.boldText}>SMS</Text> messages from RESTAMP
-                  for phone verification.
-                </Text>
-              </View>
-            )}
-
-            {/* ================= STEP 2: OTP VERIFICATION ================= */}
-            {step === 2 && (
-              <View style={styles.content}>
-                <Text style={styles.heading}>
-                  We just texted you, what’s the code?
-                </Text>
-
-                {/* 6 OTP Boxes */}
-                <View style={styles.otpBoxesRow}>
-                  {otp.map((digit, idx) => {
-                    const isFocused = focusedOtpIndex === idx;
-                    const isFilled = Boolean(digit);
-                    return (
-                      <TextInput
-                        key={idx}
-                        ref={(ref) => (otpInputRefs.current[idx] = ref)}
-                        style={[
-                          styles.otpBox,
-                          isFilled ? styles.otpBoxFilled : null,
-                          isFocused ? styles.otpBoxFocused : null,
-                        ]}
-                        value={digit}
-                        onChangeText={(val) => handleOtpChange(val, idx)}
-                        onKeyPress={(e) => handleOtpKeyPress(e, idx)}
-                        onFocus={() => setFocusedOtpIndex(idx)}
-                        onBlur={() => {
-                          if (focusedOtpIndex === idx) setFocusedOtpIndex(-1);
-                        }}
-                        keyboardType="number-pad"
-                        maxLength={1}
-                        caretHidden={true}
-                        selectionColor="#2563EB"
-                        autoFocus={idx === 0}
-                      />
-                    );
-                  })}
-                </View>
-
-                <Text style={styles.subtextNotice}>
-                  We've sent a <Text style={styles.boldText}>WhatsApp / SMS</Text>{" "}
-                  verification code to{" "}
-                  <Text style={styles.boldText}>
-                    {selectedCountry.code} {phoneNumber}
-                  </Text>
-                </Text>
-
-                {/* Resend Code Button */}
+              <View style={styles.phoneInputRow}>
+                {/* Country Selector Card */}
                 <TouchableOpacity
-                  style={[
-                    styles.resendPillBtn,
-                    !canResend && styles.resendPillBtnDisabled,
-                  ]}
-                  onPress={() => {
-                    if (canResend) {
-                      setTimer(30);
-                      setCanResend(false);
-                      Alert.alert(
-                        "Code Sent",
-                        "A new verification code has been sent."
-                      );
-                    }
-                  }}
-                  activeOpacity={canResend ? 0.75 : 1}
+                  style={styles.countryCard}
+                  onPress={() => setShowCountryModal(true)}
+                  activeOpacity={0.8}
                 >
-                  <RotateCcw
-                    size={14}
-                    color={canResend ? "#2563EB" : "#94A3B8"}
-                    style={{ marginRight: 6 }}
-                  />
-                  <Text
-                    style={[
-                      styles.resendPillText,
-                      !canResend && styles.resendPillTextDisabled,
-                    ]}
-                  >
-                    {canResend ? "Resend code" : `Resend code in ${timer}s`}
+                  <Text style={styles.flagText}>{selectedCountry.flag}</Text>
+                  <Text style={styles.countryCodeText}>
+                    {selectedCountry.code}
                   </Text>
+                  <ChevronDown size={14} color="#64748B" />
                 </TouchableOpacity>
-              </View>
-            )}
 
-            {/* ================= STEP 3: USER NAME ================= */}
-            {step === 3 && (
-              <View style={styles.content}>
-                <Text style={styles.heading}>What’s your name?</Text>
-
-                {/* First Name Card */}
-                <View style={styles.nameInputCard}>
-                  <Text style={styles.nameInputLabel}>First Name</Text>
+                {/* Phone Input Card */}
+                <Pressable
+                  style={styles.phoneInputCard}
+                  onPress={() => phoneInputRef.current?.focus()}
+                >
                   <TextInput
-                    style={styles.nameTextInput}
-                    placeholder="Enter first name"
+                    ref={phoneInputRef}
+                    style={styles.phoneTextInput}
+                    placeholder="Phone number"
                     placeholderTextColor="#A8A29E"
-                    value={firstName}
-                    onChangeText={setFirstName}
-                    autoCapitalize="words"
+                    value={phoneNumber}
+                    onChangeText={setPhoneNumber}
+                    keyboardType="phone-pad"
+                    underlineColorAndroid="transparent"
                     autoFocus
                   />
-                </View>
-
-                {/* Last Name Card */}
-                <View style={styles.nameInputCard}>
-                  <Text style={styles.nameInputLabel}>Last Name</Text>
-                  <TextInput
-                    style={styles.nameTextInput}
-                    placeholder="Enter last name"
-                    placeholderTextColor="#A8A29E"
-                    value={lastName}
-                    onChangeText={setLastName}
-                    autoCapitalize="words"
-                  />
-                </View>
-
-                {/* Privacy Guarantee */}
-                <View style={styles.privacyRow}>
-                  <Lock size={13} color="#78716C" style={{ marginRight: 6 }} />
-                  <Text style={styles.privacyText}>
-                    We'll only show this information to people you connect with
-                    on RESTAMP
-                  </Text>
-                </View>
+                </Pressable>
               </View>
-            )}
+
+              <Text style={styles.disclaimerText}>
+                By continuing, you agree to receive{" "}
+                <Text style={styles.boldText}>SMS</Text> messages from RESTAMP
+                for phone verification.
+              </Text>
+            </View>
+          )}
+
+          {/* ================= STEP 2: OTP VERIFICATION ================= */}
+          {step === 2 && (
+            <View style={styles.content}>
+              <Text style={styles.heading}>
+                We just texted you, what’s the code?
+              </Text>
+
+              {/* 6 OTP Boxes */}
+              <View style={styles.otpBoxesRow}>
+                {otp.map((digit, idx) => {
+                  const isFocused = focusedOtpIndex === idx;
+                  const isFilled = Boolean(digit);
+                  return (
+                    <TextInput
+                      key={idx}
+                      ref={(ref) => (otpInputRefs.current[idx] = ref)}
+                      style={[
+                        styles.otpBox,
+                        isFilled ? styles.otpBoxFilled : null,
+                        isFocused ? styles.otpBoxFocused : null,
+                      ]}
+                      value={digit}
+                      onChangeText={(val) => handleOtpChange(val, idx)}
+                      onKeyPress={(e) => handleOtpKeyPress(e, idx)}
+                      onFocus={() => setFocusedOtpIndex(idx)}
+                      onBlur={() => {
+                        if (focusedOtpIndex === idx) setFocusedOtpIndex(-1);
+                      }}
+                      keyboardType="number-pad"
+                      maxLength={1}
+                      selectTextOnFocus={true}
+                      selectionColor="#2563EB"
+                      underlineColorAndroid="transparent"
+                      autoFocus={idx === 0}
+                    />
+                  );
+                })}
+              </View>
+
+              <Text style={styles.subtextNotice}>
+                We've sent a <Text style={styles.boldText}>WhatsApp / SMS</Text>{" "}
+                verification code to{" "}
+                <Text style={styles.boldText}>
+                  {selectedCountry.code} {phoneNumber}
+                </Text>
+              </Text>
+
+              {/* Resend Code Button */}
+              <TouchableOpacity
+                style={[
+                  styles.resendPillBtn,
+                  !canResend && styles.resendPillBtnDisabled,
+                ]}
+                onPress={() => {
+                  if (canResend) {
+                    setTimer(30);
+                    setCanResend(false);
+                    Alert.alert(
+                      "Code Sent",
+                      "A new verification code has been sent."
+                    );
+                  }
+                }}
+                activeOpacity={canResend ? 0.75 : 1}
+              >
+                <RotateCcw
+                  size={14}
+                  color={canResend ? "#2563EB" : "#94A3B8"}
+                  style={{ marginRight: 6 }}
+                />
+                <Text
+                  style={[
+                    styles.resendPillText,
+                    !canResend && styles.resendPillTextDisabled,
+                  ]}
+                >
+                  {canResend ? "Resend code" : `Resend code in ${timer}s`}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          )}
+
+          {/* ================= STEP 3: USER NAME ================= */}
+          {step === 3 && (
+            <View style={styles.content}>
+              <Text style={styles.heading}>What’s your name?</Text>
+
+              {/* First Name Card */}
+              <Pressable
+                style={styles.nameInputCard}
+                onPress={() => firstNameInputRef.current?.focus()}
+              >
+                <Text style={styles.nameInputLabel}>First Name</Text>
+                <TextInput
+                  ref={firstNameInputRef}
+                  style={styles.nameTextInput}
+                  placeholder="Enter first name"
+                  placeholderTextColor="#A8A29E"
+                  value={firstName}
+                  onChangeText={setFirstName}
+                  autoCapitalize="words"
+                  underlineColorAndroid="transparent"
+                  autoFocus
+                />
+              </Pressable>
+
+              {/* Last Name Card */}
+              <Pressable
+                style={styles.nameInputCard}
+                onPress={() => lastNameInputRef.current?.focus()}
+              >
+                <Text style={styles.nameInputLabel}>Last Name</Text>
+                <TextInput
+                  ref={lastNameInputRef}
+                  style={styles.nameTextInput}
+                  placeholder="Enter last name"
+                  placeholderTextColor="#A8A29E"
+                  value={lastName}
+                  onChangeText={setLastName}
+                  autoCapitalize="words"
+                  underlineColorAndroid="transparent"
+                />
+              </Pressable>
+
+              {/* Privacy Guarantee */}
+              <View style={styles.privacyRow}>
+                <Lock size={13} color="#78716C" style={{ marginRight: 6 }} />
+                <Text style={styles.privacyText}>
+                  We'll only show this information to people you connect with
+                  on RESTAMP
+                </Text>
+              </View>
+            </View>
+          )}
 
             {/* ================= BOTTOM BAR ================= */}
             <View style={styles.bottomBar}>
@@ -422,7 +440,6 @@ export default function LoginScreen({ navigation }) {
               </TouchableOpacity>
             </View>
           </View>
-        </TouchableWithoutFeedback>
       </KeyboardAvoidingView>
 
       {/* ================= COUNTRY CODE MODAL ================= */}
@@ -558,9 +575,15 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   phoneTextInput: {
+    flex: 1,
+    height: "100%",
     fontSize: 17,
     fontWeight: "600",
     color: "#111111",
+    paddingVertical: 0,
+    outlineStyle: "none",
+    outlineWidth: 0,
+    outlineColor: "transparent",
   },
   disclaimerText: {
     fontSize: 12.5,
@@ -595,6 +618,9 @@ const styles = StyleSheet.create({
     paddingVertical: 0,
     borderWidth: 1.5,
     borderColor: "#E2E8F0",
+    outlineStyle: "none",
+    outlineWidth: 0,
+    outlineColor: "transparent",
   },
   otpBoxFilled: {
     borderColor: "#CBD5E1",
@@ -654,7 +680,12 @@ const styles = StyleSheet.create({
     fontSize: 16.5,
     fontWeight: "600",
     color: "#111111",
-    paddingVertical: 2,
+    paddingVertical: 4,
+    height: 36,
+    width: "100%",
+    outlineStyle: "none",
+    outlineWidth: 0,
+    outlineColor: "transparent",
   },
   privacyRow: {
     flexDirection: "row",

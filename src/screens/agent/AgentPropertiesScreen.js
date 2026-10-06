@@ -174,6 +174,7 @@ export default function AgentPropertiesScreen({ navigation }) {
             placeholderTextColor="#94A3B8"
             value={searchQuery}
             onChangeText={setSearchQuery}
+            underlineColorAndroid="transparent"
           />
           {searchQuery.length > 0 && (
             <TouchableOpacity onPress={() => setSearchQuery("")}>
@@ -508,6 +509,8 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 13,
     color: "#0F172A",
+    outlineStyle: "none",
+    outlineWidth: 0,
   },
   filterScroll: {
     flexDirection: "row",

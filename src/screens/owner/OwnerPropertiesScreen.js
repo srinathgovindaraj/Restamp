@@ -226,6 +226,7 @@ export default function OwnerPropertiesScreen({ route, navigation }) {
                 value={searchQuery}
                 onChangeText={setSearchQuery}
                 autoFocus
+                underlineColorAndroid="transparent"
               />
               {searchQuery.length > 0 && (
                 <TouchableOpacity onPress={() => setSearchQuery("")} activeOpacity={0.7}>
@@ -424,6 +425,8 @@ const styles = StyleSheet.create({
     height: 44,
     fontSize: 13,
     color: COLORS.textDark,
+    outlineStyle: "none",
+    outlineWidth: 0,
   },
   tabsContainer: {
     marginHorizontal: -20,

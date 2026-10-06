@@ -430,6 +430,7 @@ export default function AgentLeadDetailScreen({ route, navigation }) {
                 value={visitDate}
                 onChangeText={setVisitDate}
                 placeholder="e.g. Sat, 04 Oct 2026, 4:30 PM"
+                underlineColorAndroid="transparent"
               />
 
               <Text style={styles.fieldLabel}>Owner Coordination Notes</Text>
@@ -438,6 +439,7 @@ export default function AgentLeadDetailScreen({ route, navigation }) {
                 value={visitNotes}
                 onChangeText={setVisitNotes}
                 placeholder="e.g. Owner will meet client at entrance, keys ready."
+                underlineColorAndroid="transparent"
                 multiline
               />
 
@@ -505,6 +507,7 @@ export default function AgentLeadDetailScreen({ route, navigation }) {
               value={closureNotes}
               onChangeText={setClosureNotes}
               placeholder="e.g. Token ₹50,000 paid. Rental agreement executed at ₹25,000/mo."
+              underlineColorAndroid="transparent"
               multiline
             />
 
@@ -978,6 +981,9 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: "#0F172A",
     marginBottom: 8,
+    outlineStyle: "none",
+    outlineWidth: 0,
+    outlineColor: "transparent",
   },
   ownerNoticeBox: {
     flexDirection: "row",

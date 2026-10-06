@@ -217,6 +217,7 @@ export default function OwnerPaymentScreen({ route, navigation }) {
                       placeholder="4242 4242 4242 8463"
                       placeholderTextColor="#94A3B8"
                       keyboardType="numeric"
+                      underlineColorAndroid="transparent"
                     />
 
                     <View style={styles.inlineRow}>
@@ -228,6 +229,7 @@ export default function OwnerPaymentScreen({ route, navigation }) {
                           onChangeText={setCardExpiry}
                           placeholder="MM/YY"
                           placeholderTextColor="#94A3B8"
+                          underlineColorAndroid="transparent"
                         />
                       </View>
                       <View style={{ flex: 1 }}>
@@ -240,6 +242,7 @@ export default function OwnerPaymentScreen({ route, navigation }) {
                           placeholder="123"
                           placeholderTextColor="#94A3B8"
                           keyboardType="numeric"
+                          underlineColorAndroid="transparent"
                         />
                       </View>
                     </View>
@@ -256,6 +259,7 @@ export default function OwnerPaymentScreen({ route, navigation }) {
                       placeholder="yourname@okhdfcbank"
                       placeholderTextColor="#94A3B8"
                       autoCapitalize="none"
+                      underlineColorAndroid="transparent"
                     />
                   </View>
                 )}
@@ -394,6 +398,7 @@ export default function OwnerPaymentScreen({ route, navigation }) {
               value={newUpiId}
               onChangeText={setNewUpiId}
               autoCapitalize="none"
+              underlineColorAndroid="transparent"
             />
 
             <TouchableOpacity
@@ -546,6 +551,8 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: "#111111",
     marginBottom: 10,
+    outlineStyle: "none",
+    outlineWidth: 0,
   },
   inlineRow: {
     flexDirection: "row",
@@ -713,6 +720,8 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#111111",
     marginBottom: 16,
+    outlineStyle: "none",
+    outlineWidth: 0,
   },
   modalAddBtn: {
     height: 48,

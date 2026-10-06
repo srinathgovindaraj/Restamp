@@ -492,6 +492,7 @@ export default function OwnerSiteVisitModal({
                 placeholderTextColor={COLORS.lightText}
                 value={note}
                 onChangeText={setNote}
+                underlineColorAndroid="transparent"
                 multiline
                 numberOfLines={2}
               />
@@ -771,6 +772,9 @@ const styles = StyleSheet.create({
     textAlignVertical: "top",
     marginBottom: 20,
     fontWeight: "400",
+    outlineStyle: "none",
+    outlineWidth: 0,
+    outlineColor: "transparent",
   },
 
   /* ── Bottom ── */

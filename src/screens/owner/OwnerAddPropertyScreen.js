@@ -1545,6 +1545,7 @@ export default function OwnerAddPropertyScreen({ route, navigation }) {
                 placeholder="Add property description..."
                 placeholderTextColor="#94A3B8"
                 maxLength={1000}
+                underlineColorAndroid="transparent"
               />
               <Text style={styles.characterCounter}>
                 {description.length} / 1000 characters
@@ -2673,6 +2674,8 @@ const styles = StyleSheet.create({
     color: "#0F172A",
     minHeight: 80,
     textAlignVertical: "top",
+    outlineStyle: "none",
+    outlineWidth: 0,
   },
   characterCounter: {
     alignSelf: "flex-end",

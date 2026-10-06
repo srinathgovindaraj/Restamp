@@ -149,6 +149,7 @@ export default function OwnerPlanConfirmScreen({ route, navigation }) {
                 if (couponApplied) setCouponApplied(false);
               }}
               autoCapitalize="characters"
+              underlineColorAndroid="transparent"
             />
             <TouchableOpacity
               style={[styles.applyPillBtn, couponApplied && styles.applyPillBtnActive]}
@@ -368,6 +369,8 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: "#111111",
     fontWeight: "500",
+    outlineStyle: "none",
+    outlineWidth: 0,
   },
   applyPillBtn: {
     backgroundColor: "#F8FAFC",

@@ -154,6 +154,7 @@ export default function AgentPlanConfirmScreen({ route, navigation }) {
               placeholder="Enter Promo Code (e.g. RESTAMP)"
               placeholderTextColor="#94A3B8"
               value={couponCode}
+              underlineColorAndroid="transparent"
               onChangeText={(text) => {
                 setCouponCode(text);
                 if (couponApplied) setCouponApplied(false);
@@ -370,6 +371,9 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: "#111111",
     fontWeight: "500",
+    outlineStyle: "none",
+    outlineWidth: 0,
+    outlineColor: "transparent",
   },
   applyPillBtn: {
     backgroundColor: "#F8FAFC",

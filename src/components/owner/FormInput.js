@@ -49,6 +49,7 @@ export default function FormInput({
           multiline={multiline}
           numberOfLines={numberOfLines}
           editable={editable}
+          underlineColorAndroid="transparent"
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
         />
@@ -121,6 +122,9 @@ const styles = StyleSheet.create({
     fontWeight: "500",
     color: "#0F172A",
     height: "100%",
+    outlineStyle: "none",
+    outlineWidth: 0,
+    outlineColor: "transparent",
   },
   helperText: {
     fontSize: 11.5,

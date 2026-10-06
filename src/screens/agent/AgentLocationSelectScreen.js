@@ -314,6 +314,7 @@ export default function AgentLocationSelectScreen({ route, navigation }) {
               value={searchQuery}
               onChangeText={setSearchQuery}
               autoCorrect={false}
+              underlineColorAndroid="transparent"
             />
             {searchQuery.length > 0 && (
               <TouchableOpacity onPress={() => setSearchQuery("")}>
@@ -620,6 +621,8 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: "#111111",
     fontWeight: "500",
+    outlineStyle: "none",
+    outlineWidth: 0,
   },
   localitiesCard: {
     backgroundColor: "#FFFFFF",

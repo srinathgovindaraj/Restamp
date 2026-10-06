@@ -228,6 +228,7 @@ export default function ExploreScreen({ navigation }) {
             placeholderTextColor="#94A3B8"
             value={searchQuery}
             onChangeText={setSearchQuery}
+            underlineColorAndroid="transparent"
           />
           {searchQuery.length > 0 && (
             <TouchableOpacity onPress={() => setSearchQuery("")} hitSlop={8}>
@@ -644,6 +645,8 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "400",
     color: "#0F172A",
+    outlineStyle: "none",
+    outlineWidth: 0,
   },
   container: {
     flex: 1,

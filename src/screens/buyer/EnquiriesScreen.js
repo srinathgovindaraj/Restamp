@@ -231,6 +231,7 @@ export default function EnquiriesScreen({ navigation }) {
             value={searchQuery}
             onChangeText={setSearchQuery}
             clearButtonMode="while-editing"
+            underlineColorAndroid="transparent"
           />
           {searchQuery.length > 0 && (
             <TouchableOpacity
@@ -553,6 +554,8 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: "#0F172A",
     paddingVertical: 0,
+    outlineStyle: "none",
+    outlineWidth: 0,
   },
   tabsRow: {
     gap: 8,

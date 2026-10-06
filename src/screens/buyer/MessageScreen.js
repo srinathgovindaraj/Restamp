@@ -216,6 +216,7 @@ export default function MessageScreen() {
             placeholderTextColor={COLORS.muted}
             value={searchQuery}
             onChangeText={setSearchQuery}
+            underlineColorAndroid="transparent"
           />
           {searchQuery.length > 0 && (
             <Pressable onPress={() => setSearchQuery("")}>
@@ -410,6 +411,7 @@ export default function MessageScreen() {
                   onChangeText={setInputMessage}
                   onSubmitEditing={handleSendMessage}
                   returnKeyType="send"
+                  underlineColorAndroid="transparent"
                 />
                 <Pressable
                   style={[
@@ -488,6 +490,8 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 13,
     color: COLORS.textPrimary,
+    outlineStyle: "none",
+    outlineWidth: 0,
   },
   filterSection: {
     marginBottom: 12,
@@ -741,6 +745,8 @@ const styles = StyleSheet.create({
     height: 42,
     fontSize: 13,
     color: COLORS.textPrimary,
+    outlineStyle: "none",
+    outlineWidth: 0,
   },
   sendBtn: {
     width: 40,

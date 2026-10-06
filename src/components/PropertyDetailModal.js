@@ -674,6 +674,7 @@ export default function PropertyDetailModal({
                 placeholderTextColor="#94A3B8"
                 value={questionText}
                 onChangeText={setQuestionText}
+                underlineColorAndroid="transparent"
               />
               <TouchableOpacity
                 style={styles.questionSendBtn}
@@ -845,6 +846,7 @@ export default function PropertyDetailModal({
                   placeholderTextColor="#94A3B8"
                   value={customInputAddress}
                   onChangeText={setCustomInputAddress}
+                  underlineColorAndroid="transparent"
                 />
                 <TouchableOpacity
                   style={[
@@ -1484,6 +1486,8 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "400",
     color: "#0F172A",
+    outlineStyle: "none",
+    outlineWidth: 0,
   },
   questionSendBtn: {
     width: 36,
@@ -1682,6 +1686,8 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "400",
     color: "#0F172A",
+    outlineStyle: "none",
+    outlineWidth: 0,
   },
   saveCustomAddressBtn: {
     height: 44,

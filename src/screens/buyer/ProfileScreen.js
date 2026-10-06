@@ -411,6 +411,7 @@ export default function ProfileScreen({ navigation }) {
                 onChangeText={setEditName}
                 placeholder="Enter your name"
                 placeholderTextColor="#94A3B8"
+                underlineColorAndroid="transparent"
               />
             </View>
 
@@ -423,6 +424,7 @@ export default function ProfileScreen({ navigation }) {
                 placeholder="Enter your phone number"
                 placeholderTextColor="#94A3B8"
                 keyboardType="phone-pad"
+                underlineColorAndroid="transparent"
               />
             </View>
 
@@ -711,6 +713,9 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     fontSize: 14,
     color: COLORS.textDark,
+    outlineStyle: "none",
+    outlineWidth: 0,
+    outlineColor: "transparent",
   },
   modalBtnRow: {
     flexDirection: "row",
