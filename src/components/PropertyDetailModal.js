@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
   View,
   Text,
@@ -41,6 +41,9 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import COLORS from "../constants/colors";
 import TYPOGRAPHY from "../constants/typography";
 import ALL_PROPERTIES, { RECOMMENDED_PROPERTIES } from "../data/properties";
+import { fetchSimilar } from "../api/listings";
+import { createEnquiry } from "../api/enquiries";
+import { getAuthTokenSync } from "../api/client";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 const REC_CARD_WIDTH = 220;
@@ -91,6 +94,28 @@ export default function PropertyDetailModal({
   const [customAddress, setCustomAddress] = useState(null);
   const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
   const [customInputAddress, setCustomInputAddress] = useState("");
+
+  // Live similar-properties state (Phase 4). Declared with the other hooks,
+  // before any early return, to preserve hook order on every render.
+  // Mock-sourced properties (no numeric backendId) skip fetching entirely.
+  const [liveSimilar, setLiveSimilar] = useState(undefined);
+  useEffect(() => {
+    setLiveSimilar(undefined);
+    const backendId = property && property.backendId;
+    if (typeof backendId !== "number") return;
+    let cancelled = false;
+    fetchSimilar(backendId, 5).then(
+      (cards) => {
+        if (!cancelled) setLiveSimilar(cards);
+      },
+      () => {
+        if (!cancelled) setLiveSimilar(null);
+      }
+    );
+    return () => {
+      cancelled = true;
+    };
+  }, [property && property.backendId]);
 
   const mainScrollViewRef = useRef(null);
   const sectionYMap = useRef({});
@@ -158,10 +183,12 @@ export default function PropertyDetailModal({
           "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=1000&q=80",
         ];
 
-  // Similar properties list excluding current property
-  const similarProps = (RECOMMENDED_PROPERTIES || ALL_PROPERTIES)
-    .filter((p) => p.id !== property.id)
+  // Similar properties: live API result wins once loaded (even when empty);
+  // while loading, on error, or for mock flows, the existing mock fallback stays.
+  const mockSimilarProps = (RECOMMENDED_PROPERTIES || ALL_PROPERTIES)
+    .filter((p) => p.id !== (property && property.id))
     .slice(0, 5);
+  const similarProps = Array.isArray(liveSimilar) ? liveSimilar : mockSimilarProps;
 
   const handleSendQuestion = () => {
     if (!questionText.trim()) {
@@ -189,6 +216,28 @@ export default function PropertyDetailModal({
   };
 
   const handleSendEnquiry = () => {
+    // Phase 6: live enquiry when authenticated with a real listing id.
+    // Otherwise the long-standing mock confirmation is preserved unchanged.
+    const backendId = property && property.backendId;
+    if (typeof backendId === "number" && getAuthTokenSync()) {
+      createEnquiry(backendId)
+        .then(() => {
+          setEnquirySent(true);
+          Alert.alert(
+            "Enquiry Sent Successfully! 🚀",
+            `Your interest in "${property.title}" (${property.price}) has been shared with the property seller.`,
+            [{ text: "Done" }]
+          );
+        })
+        .catch(() => {
+          Alert.alert(
+            "Couldn't send enquiry",
+            "Please check your connection and try again.",
+            [{ text: "OK" }]
+          );
+        });
+      return;
+    }
     setEnquirySent(true);
     Alert.alert(
       "Enquiry Sent Successfully! 🚀",
@@ -687,7 +736,9 @@ export default function PropertyDetailModal({
 
           <View style={styles.sectionDividerLine} />
 
-          {/* 11. SIMILAR PROPERTIES (RECOMMENDED PROPERTIES ONLY HAVE DETAIL PAGE) */}
+          {/* 11. SIMILAR PROPERTIES (live API result, mock fallback otherwise;
+              hidden when the loaded live result is empty) */}
+          {similarProps.length > 0 && (
           <View style={styles.sectionContainer}>
             <Text style={styles.sectionHeading}>Similar Properties</Text>
 
@@ -757,6 +808,7 @@ export default function PropertyDetailModal({
               })}
             </ScrollView>
           </View>
+          )}
         </ScrollView>
 
         {/* ================= FIXED BOTTOM ACTION STRIP ================= */}

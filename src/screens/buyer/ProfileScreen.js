@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useCallback, useState } from "react";
 import {
   View,
   Text,
@@ -33,18 +33,49 @@ import {
   Pencil,
 } from "lucide-react-native";
 import COLORS from "../../constants/colors";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import { useWishlist } from "../../context/WishlistContext";
 import { useOwner } from "../../context/OwnerContext";
 import { useAuth } from "../../context/AuthContext";
+import { getAuthTokenSync } from "../../api/client";
+import { fetchMyEnquiries } from "../../api/enquiries";
 import ConfirmationModal from "../../components/owner/ConfirmationModal";
 import AppBrandHeader from "../../components/AppBrandHeader";
 
 export default function ProfileScreen({ navigation }) {
   const nav = useNavigation() || navigation;
-  const { wishlist } = useWishlist();
-  const { subscription, leads } = useOwner();
+  const { wishlist, wishlistSynced, refreshWishlist } = useWishlist();
+  const { subscription } = useOwner();
   const { user: authUser, logout } = useAuth();
+
+  // Real counts, refreshed whenever Profile gains focus. Logged-out users keep
+  // existing local behavior (no fake server numbers ever shown when logged out,
+  // and "…" — never a fabricated count — while authenticated data loads).
+  const [authed, setAuthed] = useState(false);
+  const [enquiriesTotal, setEnquiriesTotal] = useState(null);
+  useFocusEffect(
+    useCallback(() => {
+      let cancelled = false;
+      const token = !!getAuthTokenSync();
+      setAuthed(token);
+      if (!token) {
+        return undefined;
+      }
+      refreshWishlist().catch(() => {});
+      fetchMyEnquiries(1, 1).then(
+        (data) => {
+          if (!cancelled) setEnquiriesTotal(data.total);
+        },
+        () => {}
+      );
+      return () => {
+        cancelled = true;
+      };
+    }, [refreshWishlist])
+  );
+
+  const savedCount = authed ? (wishlistSynced ? wishlist.length : "…") : wishlist.length;
+  const enquiriesCount = authed ? enquiriesTotal ?? "…" : "–";
 
   const [userProfile, setUserProfile] = useState({
     name: authUser?.name || "Alex Smith",
@@ -61,8 +92,15 @@ export default function ProfileScreen({ navigation }) {
   const [editPhone, setEditPhone] = useState(userProfile.phone);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
 
-  const wishlistCount = wishlist?.length ?? 8;
-  const enquiriesCount = leads?.length ?? 6;
+  React.useEffect(() => {
+    if (authUser) {
+      setUserProfile((prev) => ({
+        ...prev,
+        name: authUser.name || prev.name,
+        phone: authUser.phone || prev.phone,
+      }));
+    }
+  }, [authUser]);
 
   const handleSwitchToOwner = () => {
     nav.navigate("OwnerNavigator", { screen: "Dashboard" });
@@ -189,7 +227,7 @@ export default function ProfileScreen({ navigation }) {
             </View>
             <View style={styles.badgeRow}>
               <View style={styles.countBadge}>
-                <Text style={styles.countText}>{wishlistCount}</Text>
+                <Text style={styles.countText}>{savedCount}</Text>
               </View>
               <ChevronRight size={16} color="#94A3B8" />
             </View>

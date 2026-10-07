@@ -35,11 +35,13 @@ import {
 } from "lucide-react-native";
 import COLORS from "../../constants/colors";
 import { useOwner } from "../../context/OwnerContext";
+import { useAuth } from "../../context/AuthContext";
 import ConfirmationModal from "../../components/owner/ConfirmationModal";
 import AppBrandHeader from "../../components/AppBrandHeader";
 
 export default function OwnerProfileScreen({ navigation }) {
   const { ownerProfile, properties, leads, subscription } = useOwner();
+  const { logout } = useAuth();
   const [showLogoutModal, setShowLogoutModal] = useState(false);
 
   const activePropertiesCount = properties.filter((p) => p.status === "active").length;
@@ -53,8 +55,11 @@ export default function OwnerProfileScreen({ navigation }) {
     });
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     setShowLogoutModal(false);
+    if (logout) {
+      await logout();
+    }
     // Logout action resets to Buyer or shows logged out state
     navigation.reset({
       index: 0,

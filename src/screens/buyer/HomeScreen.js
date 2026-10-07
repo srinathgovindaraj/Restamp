@@ -53,6 +53,8 @@ import { useOwner } from "../../context/OwnerContext";
 import PropertyDetailModal from "../../components/PropertyDetailModal";
 import RestampLogo from "../../components/RestampLogo";
 import SearchPropertyModal from "../../components/SearchPropertyModal";
+import { apiGet } from "../../api/client";
+import { toUiProperty } from "../../api/mappers";
 
 const { width } = Dimensions.get("window");
 const CARD_WIDTH = width * 0.78;
@@ -283,9 +285,31 @@ export default function HomeScreen({ navigation }) {
     });
   };
 
-  const recList = filterProperties(RECOMMENDED_PROPERTIES).length > 0 ? filterProperties(RECOMMENDED_PROPERTIES) : RECOMMENDED_PROPERTIES;
-  const verList = filterProperties(VERIFIED_PROPERTIES).length > 0 ? filterProperties(VERIFIED_PROPERTIES) : VERIFIED_PROPERTIES;
-  const recAddedList = filterProperties(RECENTLY_ADDED).length > 0 ? filterProperties(RECENTLY_ADDED) : RECENTLY_ADDED;
+  const [liveListings, setLiveListings] = useState(null);
+
+  React.useEffect(() => {
+    let cancelled = false;
+    const dealMap = { Buy: "BUY", Resale: "RESALE", Rent: "RENT", Lease: "LEASE" };
+    const deal = dealMap[dealType] || "BUY";
+    apiGet("/buyer/listings", { deal, page: 1, page_size: 20 })
+      .then((data) => {
+        if (!cancelled && data && Array.isArray(data.items)) {
+          setLiveListings(data.items.map(toUiProperty));
+        }
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [dealType]);
+
+  const baseVerList = liveListings && liveListings.length > 0 ? liveListings : VERIFIED_PROPERTIES;
+  const baseRecAddedList = liveListings && liveListings.length > 0 ? [...liveListings].reverse() : RECENTLY_ADDED;
+  const baseRecList = liveListings && liveListings.length > 0 ? liveListings : RECOMMENDED_PROPERTIES;
+
+  const recList = filterProperties(baseRecList).length > 0 ? filterProperties(baseRecList) : baseRecList;
+  const verList = filterProperties(baseVerList).length > 0 ? filterProperties(baseVerList) : baseVerList;
+  const recAddedList = filterProperties(baseRecAddedList).length > 0 ? filterProperties(baseRecAddedList) : baseRecAddedList;
 
   // Filter preview count inside modal
   const modalMatchedCount = useMemo(() => {

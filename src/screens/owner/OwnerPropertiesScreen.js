@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect, useCallback } from "react";
 import {
   View,
   Text,
@@ -22,6 +22,7 @@ import {
 } from "lucide-react-native";
 import COLORS from "../../constants/colors";
 import { useOwner } from "../../context/OwnerContext";
+import { fetchOwnerListings, toOwnerProperty } from "../../api/owner";
 import RestampLogo from "../../components/RestampLogo";
 import AppBrandHeader from "../../components/AppBrandHeader";
 import OwnerHeader from "../../components/owner/OwnerHeader";
@@ -42,7 +43,7 @@ const STATUS_TABS = [
 
 export default function OwnerPropertiesScreen({ route, navigation }) {
   const {
-    properties,
+    properties: localProperties,
     updatePropertyStatus,
     deleteProperty,
   } = useOwner();
@@ -51,6 +52,29 @@ export default function OwnerPropertiesScreen({ route, navigation }) {
   const [activeTab, setActiveTab] = useState(initialTab);
   const [searchQuery, setSearchQuery] = useState("");
   const [showSearch, setShowSearch] = useState(false);
+  const [liveProperties, setLiveProperties] = useState(null);
+
+  // Merge: live API listings take precedence; fall back to local OwnerContext
+  const properties = useMemo(() => {
+    if (!liveProperties) return localProperties;
+    // Deduplicate by id string
+    const liveIds = new Set(liveProperties.map((p) => p.id));
+    const localOnly = localProperties.filter((p) => !liveIds.has(p.id));
+    return [...liveProperties, ...localOnly];
+  }, [liveProperties, localProperties]);
+
+  const loadLiveListings = useCallback(() => {
+    fetchOwnerListings(1, 50)
+      .then((resp) => setLiveProperties((resp.items || []).map(toOwnerProperty)))
+      .catch(() => {}); // silently fall back to local data
+  }, []);
+
+  // Load on mount and re-focus
+  useEffect(() => {
+    loadLiveListings();
+    const unsubscribe = navigation.addListener("focus", loadLiveListings);
+    return unsubscribe;
+  }, [navigation, loadLiveListings]);
 
   // Modals state
   const [selectedPropertyForPreview, setSelectedPropertyForPreview] = useState(null);

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import {
   View,
   Text,
@@ -31,6 +31,7 @@ import {
 
 import COLORS from "../../constants/colors";
 import { useOwner } from "../../context/OwnerContext";
+import { fetchOwnerListings, toOwnerProperty } from "../../api/owner";
 import RestampLogo from "../../components/RestampLogo";
 import AppBrandHeader from "../../components/AppBrandHeader";
 
@@ -41,7 +42,28 @@ export default function OwnerDashboardScreen({ navigation }) {
     Platform.OS === "android" ? (StatusBar.currentHeight || 28) : 0
   );
 
-  const { properties, leads, subscription, ownerProfile } = useOwner();
+  const { properties: localProperties, leads, subscription, ownerProfile } = useOwner();
+
+  const [liveProperties, setLiveProperties] = useState(null);
+
+  const loadLiveListings = useCallback(() => {
+    fetchOwnerListings(1, 50)
+      .then((resp) => setLiveProperties((resp.items || []).map(toOwnerProperty)))
+      .catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    loadLiveListings();
+    const unsubscribe = navigation.addListener("focus", loadLiveListings);
+    return unsubscribe;
+  }, [navigation, loadLiveListings]);
+
+  const properties = useMemo(() => {
+    if (!liveProperties) return localProperties;
+    const liveIds = new Set(liveProperties.map((p) => p.id));
+    const localOnly = localProperties.filter((p) => !liveIds.has(p.id));
+    return [...liveProperties, ...localOnly];
+  }, [liveProperties, localProperties]);
 
   // Calculate summary counts
   const activeCount = properties.filter((p) => p.status === "active").length;

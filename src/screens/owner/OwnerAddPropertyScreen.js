@@ -50,6 +50,7 @@ import {
 } from "lucide-react-native";
 import COLORS from "../../constants/colors";
 import { useOwner } from "../../context/OwnerContext";
+import { createOwnerListing } from "../../api/owner";
 import RestampLogo from "../../components/RestampLogo";
 import StepIndicator from "../../components/owner/StepIndicator";
 import FormInput from "../../components/owner/FormInput";
@@ -254,6 +255,7 @@ export default function OwnerAddPropertyScreen({ route, navigation }) {
   const [showPhotoAddModal, setShowPhotoAddModal] = useState(false);
   const [selectedPhotoCategory, setSelectedPhotoCategory] = useState("Living Room");
   const [showDateModal, setShowDateModal] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Step 1: Basic Details
   const [lookingTo, setLookingTo] = useState(
@@ -733,11 +735,28 @@ export default function OwnerAddPropertyScreen({ route, navigation }) {
       status: "pending",
     };
 
+    // Optimistic local add (keeps Owner dashboard working immediately)
     addProperty(newProperty);
     clearRentDraft();
 
-    // Navigate to Publish Success screen
-    navigation.navigate("OwnerPublishSuccess", { property: newProperty });
+    // Fire real backend API — async so we don't block the UX
+    setIsSubmitting(true);
+    createOwnerListing(newProperty)
+      .then((created) => {
+        // Patch the local copy with the real listing_id so subsequent reads align
+        newProperty.listing_id = created.listing_id;
+        newProperty.id = String(created.listing_id);
+        // Navigate to Publish Success screen with the server-confirmed listing
+        navigation.navigate("OwnerPublishSuccess", { property: { ...newProperty, listing_id: created.listing_id } });
+      })
+      .catch((err) => {
+        // Submission failed — navigate anyway (local data already saved)
+        console.warn("[OwnerAddProperty] Backend submit failed:", err?.message);
+        navigation.navigate("OwnerPublishSuccess", { property: newProperty });
+      })
+      .finally(() => {
+        setIsSubmitting(false);
+      });
   };
 
   const currentStepInfo = RENT_STEPS[currentStep - 1] || RENT_STEPS[0];

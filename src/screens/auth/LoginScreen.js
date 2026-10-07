@@ -9,6 +9,7 @@ import {
   TextInput,
   KeyboardAvoidingView,
   Platform,
+  TouchableWithoutFeedback,
   Keyboard,
   Modal,
   FlatList,
@@ -32,6 +33,7 @@ import {
 } from "lucide-react-native";
 import COLORS from "../../constants/colors";
 import { useAuth } from "../../context/AuthContext";
+import { requestOtp, verifyOtp } from "../../api/auth";
 
 const COUNTRY_CODES = [
   { flag: "🇮🇳", code: "+91", name: "India" },
@@ -44,7 +46,7 @@ const COUNTRY_CODES = [
 ];
 
 export default function LoginScreen({ navigation }) {
-  const { loginWithPhoneAndName } = useAuth();
+  const { loginWithToken, saveProfileName, setLocalProfileName } = useAuth();
 
   // Multi-step: 1 = Phone, 2 = OTP, 3 = Name
   const [step, setStep] = useState(1);
@@ -61,12 +63,41 @@ export default function LoginScreen({ navigation }) {
   // Timer for resend OTP
   const [timer, setTimer] = useState(30);
   const [canResend, setCanResend] = useState(false);
+  const [busy, setBusy] = useState(false);
+  // Local-dev helper: the backend returns debug_code ONLY when its OTP-debug
+  // mode is enabled. Never set in production (the field is absent there).
+  const [devCode, setDevCode] = useState(null);
+
+  const fullPhone = () => `${selectedCountry.code}${phoneNumber.replace(/[^0-9]/g, "")}`;
+
+  const otpErrorMessage = (e) => {
+    if (!e) return "Something went wrong. Please try again.";
+    if (e.kind === "validation") return "Enter a valid phone number with country code.";
+    if (e.status === 429 || e.kind === "retry_later")
+      return "Too many attempts. Please wait a while and try again.";
+    if (e.kind === "offline") return "No connection. Check your internet and try again.";
+    return "Could not reach the server. Please try again.";
+  };
 
   // Refs for inputs
   const otpInputRefs = useRef([]);
   const phoneInputRef = useRef(null);
   const firstNameInputRef = useRef(null);
   const lastNameInputRef = useRef(null);
+
+  // Dismiss the keyboard only for taps on non-editable background areas.
+  // (React Native Web routes native clicks to the nearest press responder
+  // without excluding <input>/<textarea> targets, so an unconditional dismiss
+  // would blur a TextInput on the same tap that focused it.)
+  const dismissKeyboardIfBackground = (e) => {
+    const target = e && e.nativeEvent ? e.nativeEvent.target : null;
+    const tag =
+      target && typeof target.tagName === "string" ? target.tagName.toLowerCase() : "";
+    if (tag === "input" || tag === "textarea" || (target && target.isContentEditable)) {
+      return;
+    }
+    Keyboard.dismiss();
+  };
 
   useEffect(() => {
     let interval;
@@ -80,16 +111,28 @@ export default function LoginScreen({ navigation }) {
     return () => clearInterval(interval);
   }, [step, timer]);
 
-  const handlePhoneSubmit = () => {
+  const handlePhoneSubmit = async () => {
     const cleaned = phoneNumber.replace(/[^0-9]/g, "");
-    if (cleaned.length < 8) {
-      Alert.alert("Invalid Phone", "Please enter a valid phone number.");
+    if (cleaned.length < 8 || busy) {
+      if (cleaned.length < 8) {
+        Alert.alert("Invalid Phone", "Please enter a valid phone number.");
+      }
       return;
     }
-    setStep(2);
-    setTimer(30);
-    setCanResend(false);
-    setFocusedOtpIndex(0);
+    setBusy(true);
+    try {
+      const resp = await requestOtp(fullPhone());
+      setDevCode(resp && resp.debug_code ? String(resp.debug_code) : null);
+      setOtp(["", "", "", "", "", ""]);
+      setStep(2);
+      setTimer(30);
+      setCanResend(false);
+      setFocusedOtpIndex(0);
+    } catch (e) {
+      Alert.alert("Could Not Send Code", otpErrorMessage(e));
+    } finally {
+      setBusy(false);
+    }
   };
 
   const handleOtpChange = (text, index) => {
@@ -126,41 +169,78 @@ export default function LoginScreen({ navigation }) {
     }
   };
 
-  const handleOtpSubmit = () => {
+  const handleOtpSubmit = async () => {
     const code = otp.join("");
-    if (code.length < 6) {
-      // If user clicks without filling all 6, prefill sample code for frictionless flow
-      setOtp(["4", "8", "2", "9", "1", "0"]);
+    if (code.length < 6 || busy) {
+      if (code.length < 6) {
+        Alert.alert("Incomplete Code", "Please enter the 6-digit code we sent you.");
+      }
+      return;
     }
-    setStep(3);
+    setBusy(true);
+    try {
+      const tokenResp = await verifyOtp(fullPhone(), code);
+      const userObj = await loginWithToken(tokenResp.access_token, {
+        phone: fullPhone(),
+        countryCode: selectedCountry.code,
+      });
+      // Returning user whose profile was already completed -> skip Name screen to Common Home
+      if (userObj && userObj.isProfileComplete) {
+        if (navigation?.reset) {
+          navigation.reset({
+            index: 0,
+            routes: [{ name: "MainTabs" }],
+          });
+        } else {
+          navigation?.navigate("MainTabs");
+        }
+      } else {
+        // New user or incomplete profile -> Name screen
+        if (userObj?.firstName) setFirstName(userObj.firstName);
+        if (userObj?.lastName) setLastName(userObj.lastName);
+        setStep(3);
+      }
+    } catch (e) {
+      if (e && (e.status === 401 || e.kind === "login")) {
+        Alert.alert("Invalid Code", "That code is incorrect or expired. Please try again.");
+      } else {
+        Alert.alert("Verification Failed", otpErrorMessage(e));
+      }
+    } finally {
+      setBusy(false);
+    }
   };
 
-  const handleNameSubmit = () => {
-    if (!firstName.trim()) {
+  const handleNameSubmit = async () => {
+    const trimmedFirst = firstName.trim();
+    const trimmedLast = lastName.trim();
+    if (!trimmedFirst) {
       Alert.alert("Name Required", "Please enter your first name.");
       return;
     }
 
-    loginWithPhoneAndName({
-      phone: phoneNumber,
-      countryCode: selectedCountry.code,
-      firstName: firstName || "Alex",
-      lastName: lastName || "Smith",
-    });
+    setBusy(true);
+    try {
+      // Persist to MySQL via PATCH /users/me
+      await saveProfileName(trimmedFirst, trimmedLast);
 
-    // Enter the app
-    if (navigation?.reset) {
-      navigation.reset({
-        index: 0,
-        routes: [{ name: "MainTabs" }],
-      });
-    } else {
-      navigation?.navigate("MainTabs");
+      // Enter the app
+      if (navigation?.reset) {
+        navigation.reset({
+          index: 0,
+          routes: [{ name: "MainTabs" }],
+        });
+      } else {
+        navigation?.navigate("MainTabs");
+      }
+    } catch (e) {
+      Alert.alert("Could Not Save Profile", "Failed to save your profile name. Please try again.");
+    } finally {
+      setBusy(false);
     }
   };
 
   const handleSkip = () => {
-    // Enter the app as guest
     if (navigation?.reset) {
       navigation.reset({
         index: 0,
@@ -191,146 +271,174 @@ export default function LoginScreen({ navigation }) {
         style={{ flex: 1 }}
         behavior={Platform.OS === "ios" ? "padding" : undefined}
       >
-        <View style={styles.container}>
-          {/* TOP BAR / SKIP BUTTON */}
-          <View style={styles.topBar}>
-            <View style={{ flex: 1 }} />
-            <TouchableOpacity
-              onPress={handleSkip}
-              style={styles.skipBtn}
-              activeOpacity={0.7}
-            >
-              <Text style={styles.skipBtnText}>Skip</Text>
-            </TouchableOpacity>
-          </View>
+        <TouchableWithoutFeedback onPress={dismissKeyboardIfBackground}>
+          <View style={styles.container}>
+            {/* TOP BAR / SKIP BUTTON */}
+            <View style={styles.topBar}>
+              <View style={{ flex: 1 }} />
+              <TouchableOpacity
+                onPress={handleSkip}
+                style={styles.skipBtn}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.skipBtnText}>Skip</Text>
+              </TouchableOpacity>
+            </View>
 
           {/* ================= STEP 1: PHONE NUMBER ================= */}
           {step === 1 && (
             <View style={styles.content}>
               <Text style={styles.heading}>What’s your phone number?</Text>
 
-              <View style={styles.phoneInputRow}>
-                {/* Country Selector Card */}
-                <TouchableOpacity
-                  style={styles.countryCard}
-                  onPress={() => setShowCountryModal(true)}
-                  activeOpacity={0.8}
-                >
-                  <Text style={styles.flagText}>{selectedCountry.flag}</Text>
-                  <Text style={styles.countryCodeText}>
-                    {selectedCountry.code}
-                  </Text>
-                  <ChevronDown size={14} color="#64748B" />
-                </TouchableOpacity>
+                <View style={styles.phoneInputRow}>
+                  {/* Country Selector Card */}
+                  <TouchableOpacity
+                    style={styles.countryCard}
+                    onPress={() => setShowCountryModal(true)}
+                    activeOpacity={0.8}
+                  >
+                    <Text style={styles.flagText}>{selectedCountry.flag}</Text>
+                    <Text style={styles.countryCodeText}>
+                      {selectedCountry.code}
+                    </Text>
+                    <ChevronDown size={14} color="#64748B" />
+                  </TouchableOpacity>
 
-                {/* Phone Input Card */}
-                <Pressable
-                  style={styles.phoneInputCard}
-                  onPress={() => phoneInputRef.current?.focus()}
-                >
-                  <TextInput
-                    ref={phoneInputRef}
-                    style={styles.phoneTextInput}
-                    placeholder="Phone number"
-                    placeholderTextColor="#A8A29E"
-                    value={phoneNumber}
-                    onChangeText={setPhoneNumber}
-                    keyboardType="phone-pad"
-                    underlineColorAndroid="transparent"
-                    autoFocus
-                  />
-                </Pressable>
-              </View>
-
-              <Text style={styles.disclaimerText}>
-                By continuing, you agree to receive{" "}
-                <Text style={styles.boldText}>SMS</Text> messages from RESTAMP
-                for phone verification.
-              </Text>
-            </View>
-          )}
-
-          {/* ================= STEP 2: OTP VERIFICATION ================= */}
-          {step === 2 && (
-            <View style={styles.content}>
-              <Text style={styles.heading}>
-                We just texted you, what’s the code?
-              </Text>
-
-              {/* 6 OTP Boxes */}
-              <View style={styles.otpBoxesRow}>
-                {otp.map((digit, idx) => {
-                  const isFocused = focusedOtpIndex === idx;
-                  const isFilled = Boolean(digit);
-                  return (
+                  {/* Phone Input Card */}
+                  <Pressable
+                    style={styles.phoneInputCard}
+                    onPress={() => phoneInputRef.current?.focus()}
+                  >
                     <TextInput
-                      key={idx}
-                      ref={(ref) => (otpInputRefs.current[idx] = ref)}
-                      style={[
-                        styles.otpBox,
-                        isFilled ? styles.otpBoxFilled : null,
-                        isFocused ? styles.otpBoxFocused : null,
-                      ]}
-                      value={digit}
-                      onChangeText={(val) => handleOtpChange(val, idx)}
-                      onKeyPress={(e) => handleOtpKeyPress(e, idx)}
-                      onFocus={() => setFocusedOtpIndex(idx)}
-                      onBlur={() => {
-                        if (focusedOtpIndex === idx) setFocusedOtpIndex(-1);
-                      }}
-                      keyboardType="number-pad"
-                      maxLength={1}
-                      selectTextOnFocus={true}
-                      selectionColor="#2563EB"
+                      ref={phoneInputRef}
+                      style={styles.phoneTextInput}
+                      placeholder="Phone number"
+                      placeholderTextColor="#A8A29E"
+                      value={phoneNumber}
+                      onChangeText={setPhoneNumber}
+                      keyboardType="phone-pad"
                       underlineColorAndroid="transparent"
-                      autoFocus={idx === 0}
+                      autoFocus
                     />
-                  );
-                })}
+                  </Pressable>
+                </View>
+
+                <Text style={styles.disclaimerText}>
+                  By continuing, you agree to receive{" "}
+                  <Text style={styles.boldText}>SMS</Text> messages from RESTAMP
+                  for phone verification.
+                </Text>
               </View>
+            )}
 
-              <Text style={styles.subtextNotice}>
-                We've sent a <Text style={styles.boldText}>WhatsApp / SMS</Text>{" "}
-                verification code to{" "}
-                <Text style={styles.boldText}>
-                  {selectedCountry.code} {phoneNumber}
+            {/* ================= STEP 2: OTP VERIFICATION ================= */}
+            {step === 2 && (
+              <View style={styles.content}>
+                <Text style={styles.heading}>
+                  We just texted you, what’s the code?
                 </Text>
-              </Text>
 
-              {/* Resend Code Button */}
-              <TouchableOpacity
-                style={[
-                  styles.resendPillBtn,
-                  !canResend && styles.resendPillBtnDisabled,
-                ]}
-                onPress={() => {
-                  if (canResend) {
-                    setTimer(30);
-                    setCanResend(false);
-                    Alert.alert(
-                      "Code Sent",
-                      "A new verification code has been sent."
+                {/* 6 OTP Boxes */}
+                <View style={styles.otpBoxesRow}>
+                  {otp.map((digit, idx) => {
+                    const isFocused = focusedOtpIndex === idx;
+                    const isFilled = Boolean(digit);
+                    return (
+                      <TextInput
+                        key={idx}
+                        ref={(ref) => (otpInputRefs.current[idx] = ref)}
+                        style={[
+                          styles.otpBox,
+                          isFilled ? styles.otpBoxFilled : null,
+                          isFocused ? styles.otpBoxFocused : null,
+                        ]}
+                        value={digit}
+                        onChangeText={(val) => handleOtpChange(val, idx)}
+                        onKeyPress={(e) => handleOtpKeyPress(e, idx)}
+                        onFocus={() => setFocusedOtpIndex(idx)}
+                        onBlur={() => {
+                          if (focusedOtpIndex === idx) setFocusedOtpIndex(-1);
+                        }}
+                        keyboardType="number-pad"
+                        maxLength={1}
+                        caretHidden={true}
+                        selectTextOnFocus={true}
+                        selectionColor="#2563EB"
+                        underlineColorAndroid="transparent"
+                        autoFocus={idx === 0}
+                      />
                     );
-                  }
-                }}
-                activeOpacity={canResend ? 0.75 : 1}
-              >
-                <RotateCcw
-                  size={14}
-                  color={canResend ? "#2563EB" : "#94A3B8"}
-                  style={{ marginRight: 6 }}
-                />
-                <Text
-                  style={[
-                    styles.resendPillText,
-                    !canResend && styles.resendPillTextDisabled,
-                  ]}
-                >
-                  {canResend ? "Resend code" : `Resend code in ${timer}s`}
+                  })}
+                </View>
+
+                <Text style={styles.subtextNotice}>
+                  We've sent a <Text style={styles.boldText}>WhatsApp / SMS</Text>{" "}
+                  verification code to{" "}
+                  <Text style={styles.boldText}>
+                    {selectedCountry.code} {phoneNumber}
+                  </Text>
                 </Text>
-              </TouchableOpacity>
-            </View>
-          )}
+
+                {/* Local-dev helper: shows the debug OTP only when the backend
+                    actually provided one (dev builds). Never shown in production. */}
+                {__DEV__ && devCode ? (
+                  <Text style={styles.devCodeNotice}>
+                    Dev build: your code is {devCode}
+                  </Text>
+                ) : null}
+
+                {/* Resend Code Button */}
+                <TouchableOpacity
+                  style={[
+                    styles.resendPillBtn,
+                    !canResend && styles.resendPillBtnDisabled,
+                  ]}
+                  onPress={() => {
+                    if (canResend && !busy) {
+                      setBusy(true);
+                      requestOtp(fullPhone()).then(
+                        (resp) => {
+                          setBusy(false);
+                          setTimer(30);
+                          setCanResend(false);
+                          // A resend issues a NEW server code: refresh the dev
+                          // display and clear stale digits so they cannot be
+                          // submitted against the new code.
+                          setDevCode(
+                            resp && resp.debug_code ? String(resp.debug_code) : null
+                          );
+                          setOtp(["", "", "", "", "", ""]);
+                          setFocusedOtpIndex(0);
+                          Alert.alert(
+                            "Code Sent",
+                            "A new verification code has been sent."
+                          );
+                        },
+                        (e) => {
+                          setBusy(false);
+                          Alert.alert("Could Not Resend", otpErrorMessage(e));
+                        }
+                      );
+                    }
+                  }}
+                  activeOpacity={canResend ? 0.75 : 1}
+                >
+                  <RotateCcw
+                    size={14}
+                    color={canResend ? "#2563EB" : "#94A3B8"}
+                    style={{ marginRight: 6 }}
+                  />
+                  <Text
+                    style={[
+                      styles.resendPillText,
+                      !canResend && styles.resendPillTextDisabled,
+                    ]}
+                  >
+                    {canResend ? "Resend code" : `Resend code in ${timer}s`}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            )}
 
           {/* ================= STEP 3: USER NAME ================= */}
           {step === 3 && (
@@ -421,6 +529,7 @@ export default function LoginScreen({ navigation }) {
               <TouchableOpacity
                 style={[
                   styles.circleNextBtn,
+                  busy && styles.circleNextBtnDisabled,
                   step === 1 && !isPhoneValid && styles.circleNextBtnDisabled,
                   step === 2 && !isOtpValid && styles.circleNextBtnDisabled,
                   step === 3 && !isNameValid && styles.circleNextBtnDisabled,
@@ -440,6 +549,7 @@ export default function LoginScreen({ navigation }) {
               </TouchableOpacity>
             </View>
           </View>
+        </TouchableWithoutFeedback>
       </KeyboardAvoidingView>
 
       {/* ================= COUNTRY CODE MODAL ================= */}
@@ -635,6 +745,19 @@ const styles = StyleSheet.create({
     color: "#78716C",
     lineHeight: 20,
     marginBottom: 16,
+  },
+  devCodeNotice: {
+    fontSize: 13,
+    fontWeight: "700",
+    color: "#1D4ED8",
+    backgroundColor: "#EFF6FF",
+    borderWidth: 1,
+    borderColor: "#BFDBFE",
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    marginBottom: 16,
+    overflow: "hidden",
   },
   resendPillBtn: {
     alignSelf: "flex-start",

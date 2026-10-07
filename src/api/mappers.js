@@ -48,8 +48,18 @@ export function toUiProperty(card) {
 // to paise: effective floor = max of the two, effective ceiling = min of the two.
 export function buildListingParams(ui, page, pageSize) {
   const params = { page, page_size: pageSize };
-  const dealMap = { Buy: "BUY", Resale: "RESALE", Rent: "RENT", Lease: "LEASE" };
-  if (ui.dealTab && dealMap[ui.dealTab]) params.deal = dealMap[ui.dealTab];
+  const dealMap = {
+    Buy: "BUY",
+    Resale: "RESALE",
+    Rent: "RENT",
+    Lease: "LEASE",
+    BUY: "BUY",
+    RESALE: "RESALE",
+    RENT: "RENT",
+    LEASE: "LEASE",
+  };
+  const dealVal = ui.dealTab || ui.dealType;
+  if (dealVal && dealMap[dealVal]) params.deal = dealMap[dealVal];
 
   const typeMap = {
     Apartment: "APARTMENT",
@@ -58,9 +68,15 @@ export function buildListingParams(ui, page, pageSize) {
     Commercial: "COMMERCIAL",
     Plot: "PLOT",
     Home: "HOUSE",
+    APARTMENT: "APARTMENT",
+    VILLA: "VILLA",
+    HOUSE: "HOUSE",
+    COMMERCIAL: "COMMERCIAL",
+    PLOT: "PLOT",
   };
-  if (ui.selectedType && ui.selectedType !== "All Types" && typeMap[ui.selectedType]) {
-    params.property_type = typeMap[ui.selectedType];
+  const typeVal = ui.selectedType || ui.propertyType;
+  if (typeVal && typeVal !== "All Types" && typeMap[typeVal]) {
+    params.property_type = typeMap[typeVal];
   }
   if (ui.searchQuery && ui.searchQuery.trim()) {
     // Backend searches title/description/locality; locality-only chips also map here.
@@ -74,14 +90,21 @@ export function buildListingParams(ui, page, pageSize) {
     if (!Number.isNaN(n)) params.bedrooms = n;
   }
   // UI budgets are rupees; API takes paise.
-  const lo = Math.max(ui.presetMinRupees || 0, ui.minRupees || 0);
-  const hi = Math.min(
+  const lo = Math.max(ui.presetMinRupees || 0, ui.minRupees || 0, ui.budgetMin || 0);
+  const rawHi = Math.min(
     ui.presetMaxRupees == null ? Infinity : ui.presetMaxRupees,
-    ui.maxRupees == null ? Infinity : ui.maxRupees
+    ui.maxRupees == null ? Infinity : ui.maxRupees,
+    ui.budgetMax == null ? Infinity : ui.budgetMax
   );
   if (lo > 0) params.min_price_paise = Math.round(lo * 100);
-  if (hi < Infinity) params.max_price_paise = Math.round(hi * 100);
-  const sortMap = { relevance: "relevance", price_asc: "price_asc", price_desc: "price_desc", area_desc: "area_desc", rating: "relevance" };
+  if (rawHi < Infinity) params.max_price_paise = Math.round(rawHi * 100);
+  const sortMap = {
+    relevance: "relevance",
+    price_asc: "price_asc",
+    price_desc: "price_desc",
+    area_desc: "area_desc",
+    rating: "relevance",
+  };
   params.sort = sortMap[ui.sort] || "relevance";
   return params;
 }

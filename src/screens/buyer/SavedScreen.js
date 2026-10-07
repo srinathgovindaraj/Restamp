@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -14,6 +14,7 @@ import {
   Platform,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useFocusEffect } from "@react-navigation/native";
 import {
   Heart,
   Star,
@@ -95,7 +96,20 @@ const INITIAL_CALL_HISTORY = [
 ];
 
 export default function SavedScreen({ navigation, route }) {
-  const { wishlist, removeFromWishlist, isWishlisted, toggleWishlist } = useWishlist();
+  const { wishlist, removeFromWishlist, isWishlisted, toggleWishlist, refreshWishlist } = useWishlist();
+
+  // Pull the server wishlist when authenticated; logged-out users keep
+  // the existing local mock behavior untouched. Refreshed on mount and
+  // whenever the screen regains focus (e.g. after a save elsewhere).
+  useEffect(() => {
+    refreshWishlist().catch(() => {});
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      refreshWishlist().catch(() => {});
+    }, [refreshWishlist])
+  );
 
   // Active tab state: "wishlist" | "viewed" | "call"
   const [activeTab, setActiveTab] = useState(route?.params?.initialTab || "wishlist");

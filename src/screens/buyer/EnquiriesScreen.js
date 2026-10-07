@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   View,
   Text,
@@ -11,7 +11,9 @@ import {
   Modal,
   Linking,
   Alert,
+  ActivityIndicator,
 } from "react-native";
+import { useFocusEffect } from "@react-navigation/native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import {
   Phone,
@@ -30,6 +32,43 @@ import COLORS from "../../constants/colors";
 import ALL_PROPERTIES from "../../data/properties";
 import { useWishlist } from "../../context/WishlistContext";
 import PropertyDetailModal from "../../components/PropertyDetailModal";
+import { fetchMyEnquiries } from "../../api/enquiries";
+import { getAuthTokenSync } from "../../api/client";
+
+// Paise integer -> short display string (mirrors backend price_display).
+function formatPaise(paise, period) {
+  const rupees = Math.floor((paise || 0) / 100);
+  const main =
+    rupees >= 10000000
+      ? `₹${(rupees / 10000000).toFixed(2)} Cr`
+      : rupees >= 100000
+      ? `₹${(rupees / 100000).toFixed(2)} L`
+      : `₹${rupees.toLocaleString("en-IN")}`;
+  return period === "MONTHLY" ? `${main}/mo` : main;
+}
+
+// Backend enquiry -> the card shape this screen already renders.
+// Fields with no backend source stay undefined and existing fallbacks apply.
+function toRow(e) {
+  return {
+    id: e.id,
+    propertyId: e.property_listing_id,
+    agentName: undefined,
+    agency: undefined,
+    phone: undefined,
+    avatar: undefined,
+    propertyTitle: e.listing ? e.listing.title : "",
+    propertyPrice: e.listing ? formatPaise(e.listing.price_paise, e.listing.price_period) : "",
+    propertyLocation: "",
+    propertyImage: undefined,
+    lastMessage: e.message || "",
+    time: undefined,
+    unread: false,
+    category: undefined,
+    status: e.status,
+    scheduledVisit: undefined,
+  };
+}
 
 const INITIAL_ENQUIRIES = [
   {
@@ -110,7 +149,10 @@ const FILTER_TABS = ["All", "Site Visits", "Negotiating", "Closed"];
 
 export default function EnquiriesScreen({ navigation, route }) {
   const { wishlist, isWishlisted, toggleWishlist } = useWishlist();
-  const [enquiries, setEnquiries] = useState(INITIAL_ENQUIRIES);
+  // null = not loaded from server (logged out or not yet fetched) -> existing mock list.
+  const [serverEnquiries, setServerEnquiries] = useState(null);
+  const [listLoading, setListLoading] = useState(false);
+  const enquiries = serverEnquiries ?? INITIAL_ENQUIRIES;
   const [activeTab, setActiveTab] = useState(route?.params?.initialTab || "All");
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -119,6 +161,34 @@ export default function EnquiriesScreen({ navigation, route }) {
       setActiveTab(route?.params?.initialTab);
     }
   }, [route?.params?.initialTab]);
+
+  // Pull the authenticated buyer's real enquiries whenever the screen gains
+  // focus. Logged-out users keep the existing local mock behavior untouched.
+  useFocusEffect(
+    useCallback(() => {
+      let cancelled = false;
+      if (!getAuthTokenSync()) {
+        return undefined;
+      }
+      setListLoading(true);
+      fetchMyEnquiries(1, 100).then(
+        (data) => {
+          if (!cancelled) {
+            setServerEnquiries((data.items || []).map(toRow));
+            setListLoading(false);
+          }
+        },
+        () => {
+          if (!cancelled) {
+            setListLoading(false);
+          }
+        }
+      );
+      return () => {
+        cancelled = true;
+      };
+    }, [])
+  );
 
   // Modals
   const [selectedProperty, setSelectedProperty] = useState(null);
@@ -139,10 +209,10 @@ export default function EnquiriesScreen({ navigation, route }) {
 
     const matchesSearch =
       searchQuery.trim() === "" ||
-      item.propertyTitle.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.agentName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.propertyLocation.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.agency.toLowerCase().includes(searchQuery.toLowerCase());
+      (item.propertyTitle || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (item.agentName || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (item.propertyLocation || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (item.agency || "").toLowerCase().includes(searchQuery.toLowerCase());
 
     return matchesTab && matchesSearch;
   });
@@ -287,7 +357,11 @@ export default function EnquiriesScreen({ navigation, route }) {
         </ScrollView>
 
         {/* Enquiries List (Cards Matching Screenshot Layout) */}
-        {filteredEnquiries.length === 0 ? (
+        {listLoading && serverEnquiries === null ? (
+          <View style={styles.emptyContainer}>
+            <ActivityIndicator size="small" color={COLORS.primary} />
+          </View>
+        ) : filteredEnquiries.length === 0 ? (
           <View style={styles.emptyContainer}>
             <MessageCircle size={36} color="#CBD5E1" strokeWidth={1.5} />
             <Text style={styles.emptyTitle}>No enquiries</Text>
@@ -308,7 +382,15 @@ export default function EnquiriesScreen({ navigation, route }) {
               >
                 {/* 1. Header: Avatar | Name & Role | Action Icons */}
                 <View style={styles.cardTopRow}>
-                  <Image source={{ uri: item.avatar }} style={styles.avatar} />
+                  {item.avatar ? (
+                    <Image source={{ uri: item.avatar }} style={styles.avatar} />
+                  ) : (
+                    <View style={[styles.avatar, styles.avatarFallback]}>
+                      <Text style={styles.avatarFallbackText}>
+                        {(item.propertyTitle || "?").charAt(0).toUpperCase()}
+                      </Text>
+                    </View>
+                  )}
 
                   <View style={styles.infoCol}>
                     <Text style={styles.contactName} numberOfLines={1}>
@@ -357,22 +439,25 @@ export default function EnquiriesScreen({ navigation, route }) {
 
                 {/* 2. Message / Interest Snippet */}
                 <Text style={styles.snippetText} numberOfLines={2}>
-                  Interested in {item.propertyTitle} in {item.propertyLocation}.{" "}
+                  Interested in {item.propertyTitle}
+                  {item.propertyLocation ? ` in ${item.propertyLocation}` : ""}.{" "}
                   {item.lastMessage}
                 </Text>
 
                 {/* 3. Footer Meta Row (Date & Status) */}
                 <View style={styles.cardFooter}>
-                  <View style={styles.metaItem}>
-                    <Calendar
-                      size={13}
-                      color="#94A3B8"
-                      style={{ marginRight: 5 }}
-                    />
-                    <Text style={styles.metaText}>
-                      Received {item.time}
-                    </Text>
-                  </View>
+                  {item.time ? (
+                    <View style={styles.metaItem}>
+                      <Calendar
+                        size={13}
+                        color="#94A3B8"
+                        style={{ marginRight: 5 }}
+                      />
+                      <Text style={styles.metaText}>
+                        Received {item.time}
+                      </Text>
+                    </View>
+                  ) : null}
 
                   <View style={styles.metaItem}>
                     <Eye size={13} color="#94A3B8" style={{ marginRight: 5 }} />
@@ -624,6 +709,16 @@ const styles = StyleSheet.create({
     height: 44,
     borderRadius: 22,
     marginRight: 12,
+  },
+  avatarFallback: {
+    backgroundColor: "#EFF6FF",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  avatarFallbackText: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#2563EB",
   },
   infoCol: {
     flex: 1,

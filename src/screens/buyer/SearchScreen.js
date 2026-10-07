@@ -38,6 +38,8 @@ import {
 import COLORS from "../../constants/colors";
 import { useListings } from "../../api/useListings";
 import { fetchListingDetail } from "../../api/listings";
+import { revealContactPhone } from "../../api/contact";
+import { getAuthTokenSync } from "../../api/client";
 import { useWishlist } from "../../context/WishlistContext";
 import PropertyDetailModal from "../../components/PropertyDetailModal";
 import SearchPropertyModal from "../../components/SearchPropertyModal";
@@ -150,6 +152,7 @@ export default function SearchScreen({ navigation, route }) {
     );
   };
   const [viewedNumberProperty, setViewedNumberProperty] = useState(null);
+  const [revealedPhone, setRevealedPhone] = useState(null);
   const [isSearchFocused, setIsSearchFocused] = useState(false);
 
   const { wishlist = [], isWishlisted, toggleWishlist } = useWishlist();
@@ -289,6 +292,19 @@ export default function SearchScreen({ navigation, route }) {
 
   const handleViewNumber = (property) => {
     setViewedNumberProperty(property);
+    // Phase 6: live contact reveal when authenticated. The sheet keeps showing
+    // the existing mock number until (and unless) the audited API succeeds —
+    // a real number is never displayed without a successful reveal response.
+    setRevealedPhone(null);
+    const backendId = property && property.backendId;
+    if (typeof backendId === "number" && getAuthTokenSync()) {
+      revealContactPhone(backendId).then(
+        (phone) => {
+          if (phone) setRevealedPhone(phone);
+        },
+        () => {}
+      );
+    }
   };
 
   const handleClearAllFilters = () => {
@@ -1139,7 +1155,7 @@ export default function SearchScreen({ navigation, route }) {
               onPress={() => {
                 Alert.alert(
                   "Phone Number Copied! 📋",
-                  `${viewedNumberProperty?.agent?.phone || "+91 98401 22334"} is ready to use.`
+                  `${revealedPhone || viewedNumberProperty?.agent?.phone || "+91 98401 22334"} is ready to use.`
                 );
               }}
             >
@@ -1149,7 +1165,7 @@ export default function SearchScreen({ navigation, route }) {
               <View style={{ flex: 1, marginLeft: 10 }}>
                 <Text style={styles.phoneLabelSmall}>CONTACT NUMBER</Text>
                 <Text style={styles.phoneDisplayText}>
-                  {viewedNumberProperty?.agent?.phone || "+91 98401 22334"}
+                  {revealedPhone || viewedNumberProperty?.agent?.phone || "+91 98401 22334"}
                 </Text>
               </View>
               <View style={styles.copyBadge}>
@@ -1168,7 +1184,14 @@ export default function SearchScreen({ navigation, route }) {
                 style={styles.callNowBtn}
                 activeOpacity={0.85}
                 onPress={() => {
-                  handleCall(viewedNumberProperty);
+                  handleCall(
+                    revealedPhone && viewedNumberProperty
+                      ? {
+                          ...viewedNumberProperty,
+                          agent: { ...(viewedNumberProperty.agent || {}), phone: revealedPhone },
+                        }
+                      : viewedNumberProperty
+                  );
                   setViewedNumberProperty(null);
                 }}
               >
@@ -1180,7 +1203,14 @@ export default function SearchScreen({ navigation, route }) {
                 style={styles.whatsappNowBtn}
                 activeOpacity={0.85}
                 onPress={() => {
-                  handleWhatsApp(viewedNumberProperty);
+                  handleWhatsApp(
+                    revealedPhone && viewedNumberProperty
+                      ? {
+                          ...viewedNumberProperty,
+                          agent: { ...(viewedNumberProperty.agent || {}), phone: revealedPhone },
+                        }
+                      : viewedNumberProperty
+                  );
                   setViewedNumberProperty(null);
                 }}
               >
