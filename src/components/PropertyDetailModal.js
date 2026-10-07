@@ -36,12 +36,14 @@ import {
   Check,
   X,
   ChevronRight,
+  Users,
 } from "lucide-react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import COLORS from "../constants/colors";
 import TYPOGRAPHY from "../constants/typography";
 import ALL_PROPERTIES, { RECOMMENDED_PROPERTIES } from "../data/properties";
 import { fetchSimilar } from "../api/listings";
+import SafeImage from "./common/SafeImage";
 import { createEnquiry } from "../api/enquiries";
 import { getAuthTokenSync } from "../api/client";
 
@@ -85,6 +87,9 @@ export default function PropertyDetailModal({
   isWishlisted,
   onToggleWishlist,
   detailLoading,
+  isAgentView = false,
+  onMatchToLead,
+  onContactOwner,
 }) {
   const [activeImageIndex, setActiveImageIndex] = useState(0);
   const [activeTab, setActiveTab] = useState("overview");
@@ -173,15 +178,26 @@ export default function PropertyDetailModal({
   }
 
   // Build photo gallery (main image + alternate architectural angles)
-  const images =
-    property.gallery && property.gallery.length > 0
-      ? property.gallery
-      : [
-          property.image,
-          "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1000&q=80",
-          "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=1000&q=80",
-          "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=1000&q=80",
-        ];
+  const images = useMemo(() => {
+    const rawList =
+      property.gallery && property.gallery.length > 0
+        ? property.gallery
+        : [property.image];
+    const cleaned = rawList.filter(
+      (u) => typeof u === "string" && u.startsWith("http") && !u.includes("seed.local")
+    );
+    if (cleaned.length > 0) return cleaned;
+    const baseImg =
+      property.image && !property.image.includes("seed.local") && property.image.startsWith("http")
+        ? property.image
+        : "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1000&q=80";
+    return [
+      baseImg,
+      "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=1000&q=80",
+      "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=1000&q=80",
+      "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=1000&q=80",
+    ];
+  }, [property]);
 
   // Similar properties: live API result wins once loaded (even when empty);
   // while loading, on error, or for mock flows, the existing mock fallback stays.
@@ -307,7 +323,7 @@ export default function PropertyDetailModal({
             {/* 1. PROPERTY IMAGE GALLERY HERO (Rounded Card matching Image 2) */}
             <View style={styles.heroCardContainer}>
               <View style={styles.galleryContainer}>
-                <Image
+                <SafeImage
                   source={{ uri: images[activeImageIndex] || property.image }}
                   style={styles.heroImage}
                   resizeMode="cover"
@@ -356,7 +372,7 @@ export default function PropertyDetailModal({
                       activeImageIndex === idx && styles.thumbnailActive,
                     ]}
                   >
-                    <Image
+                    <SafeImage
                       source={{ uri: imgUri }}
                       style={styles.thumbnailImg}
                     />
@@ -763,7 +779,7 @@ export default function PropertyDetailModal({
                     }}
                   >
                     <View style={styles.recommendedImageContainer}>
-                      <Image
+                      <SafeImage
                         source={{ uri: simProp.image }}
                         style={styles.recommendedImage}
                       />
@@ -813,46 +829,78 @@ export default function PropertyDetailModal({
 
         {/* ================= FIXED BOTTOM ACTION STRIP ================= */}
         <View style={styles.bottomBar}>
-          <TouchableOpacity
-            style={[
-              styles.siteVisitBtn,
-              siteVisitRequested && styles.siteVisitBtnActive,
-            ]}
-            activeOpacity={0.85}
-            onPress={handleRequestSiteVisit}
-          >
-            <Calendar
-              size={18}
-              color={siteVisitRequested ? "#10B981" : COLORS.primary}
-              style={{ marginRight: 6 }}
-            />
-            <Text
-              style={[
-                styles.siteVisitBtnText,
-                siteVisitRequested && styles.siteVisitBtnTextActive,
-              ]}
-            >
-              {siteVisitRequested ? "Requested ✓" : "Request Site Visit"}
-            </Text>
-          </TouchableOpacity>
+          {isAgentView ? (
+            <>
+              <TouchableOpacity
+                style={styles.siteVisitBtn}
+                activeOpacity={0.85}
+                onPress={() => onMatchToLead?.(property)}
+              >
+                <Users
+                  size={18}
+                  color={COLORS.primary}
+                  style={{ marginRight: 6 }}
+                />
+                <Text style={styles.siteVisitBtnText}>Match to Lead</Text>
+              </TouchableOpacity>
 
-          <TouchableOpacity
-            style={[
-              styles.sendEnquiryBtn,
-              enquirySent && styles.sendEnquiryBtnActive,
-            ]}
-            activeOpacity={0.85}
-            onPress={handleSendEnquiry}
-          >
-            <MessageSquare
-              size={18}
-              color="#FFFFFF"
-              style={{ marginRight: 6 }}
-            />
-            <Text style={styles.sendEnquiryBtnText}>
-              {enquirySent ? "Enquiry Sent ✓" : "Send Enquiry"}
-            </Text>
-          </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.sendEnquiryBtn}
+                activeOpacity={0.85}
+                onPress={() => onContactOwner?.(property)}
+              >
+                <Phone
+                  size={18}
+                  color="#FFFFFF"
+                  style={{ marginRight: 6 }}
+                />
+                <Text style={styles.sendEnquiryBtnText}>Contact Owner</Text>
+              </TouchableOpacity>
+            </>
+          ) : (
+            <>
+              <TouchableOpacity
+                style={[
+                  styles.siteVisitBtn,
+                  siteVisitRequested && styles.siteVisitBtnActive,
+                ]}
+                activeOpacity={0.85}
+                onPress={handleRequestSiteVisit}
+              >
+                <Calendar
+                  size={18}
+                  color={siteVisitRequested ? "#10B981" : COLORS.primary}
+                  style={{ marginRight: 6 }}
+                />
+                <Text
+                  style={[
+                    styles.siteVisitBtnText,
+                    siteVisitRequested && styles.siteVisitBtnTextActive,
+                  ]}
+                >
+                  {siteVisitRequested ? "Requested ✓" : "Request Site Visit"}
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[
+                  styles.sendEnquiryBtn,
+                  enquirySent && styles.sendEnquiryBtnActive,
+                ]}
+                activeOpacity={0.85}
+                onPress={handleSendEnquiry}
+              >
+                <MessageSquare
+                  size={18}
+                  color="#FFFFFF"
+                  style={{ marginRight: 6 }}
+                />
+                <Text style={styles.sendEnquiryBtnText}>
+                  {enquirySent ? "Enquiry Sent ✓" : "Send Enquiry"}
+                </Text>
+              </TouchableOpacity>
+            </>
+          )}
         </View>
 
         {/* ================= MANUAL LOCATION PICKER MODAL ================= */}

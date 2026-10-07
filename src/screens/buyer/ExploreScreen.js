@@ -38,6 +38,7 @@ import TYPOGRAPHY from "../../constants/typography";
 import ALL_PROPERTIES, { CHENNAI_LOCALITIES } from "../../data/properties";
 import { useWishlist } from "../../context/WishlistContext";
 import PropertyDetailModal from "../../components/PropertyDetailModal";
+import SafeImage from "../../components/common/SafeImage";
 
 // Enriched neighborhood data for Chennai localities
 const LOCALITY_DATA = [
@@ -294,7 +295,7 @@ export default function ExploreScreen({ navigation }) {
                 activeOpacity={0.88}
                 onPress={() => setSelectedLocality(loc)}
               >
-                <Image source={{ uri: loc.image }} style={styles.localityImage} />
+                <SafeImage source={{ uri: loc.image }} style={styles.localityImage} />
                 <View style={styles.localityOverlay} />
 
                 {/* Top Badge: Property Count */}
@@ -415,7 +416,7 @@ export default function ExploreScreen({ navigation }) {
               >
                 {/* 1. Large 220px Hero Photo with Rounded Corners (Airbnb Style) */}
                 <View style={styles.imageWrap}>
-                  <Image source={{ uri: property.image }} style={styles.cardImage} />
+                  <SafeImage source={{ uri: property.image }} style={styles.cardImage} />
 
                   {/* Top-Left: Clean Frosted Status Pill */}
                   <View style={styles.statusBadge}>

@@ -24,6 +24,7 @@ import {
 } from "lucide-react-native";
 import COLORS from "../../constants/colors";
 import StatusBadge from "./StatusBadge";
+import SafeImage from "../common/SafeImage";
 
 export default function OwnerPropertyCard({
   property,
@@ -61,7 +62,7 @@ export default function OwnerPropertyCard({
     <View style={styles.card}>
       {/* Top Image + Badges */}
       <View style={styles.imageContainer}>
-        <Image
+        <SafeImage
           source={{
             uri:
               property.coverPhoto ||

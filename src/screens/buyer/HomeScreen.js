@@ -55,6 +55,7 @@ import RestampLogo from "../../components/RestampLogo";
 import SearchPropertyModal from "../../components/SearchPropertyModal";
 import { apiGet } from "../../api/client";
 import { toUiProperty } from "../../api/mappers";
+import SafeImage from "../../components/common/SafeImage";
 
 const { width } = Dimensions.get("window");
 const CARD_WIDTH = width * 0.78;
@@ -572,7 +573,7 @@ export default function HomeScreen({ navigation }) {
                 onPress={() => setSelectedProperty(property)}
               >
                 <View style={styles.recommendedImageContainer}>
-                  <Image source={{ uri: property.image }} style={styles.recommendedImage} />
+                  <SafeImage source={{ uri: property.image }} style={styles.recommendedImage} />
                   <View style={styles.verifiedGreenBadge}>
                     <Text style={styles.verifiedGreenBadgeText}>verified</Text>
                   </View>
@@ -634,7 +635,7 @@ export default function HomeScreen({ navigation }) {
                 onPress={() => setSelectedProperty(property)}
               >
                 <View style={styles.cardImageContainer}>
-                  <Image source={{ uri: property.image }} style={styles.cardImage} />
+                  <SafeImage source={{ uri: property.image }} style={styles.cardImage} />
                   <View style={styles.badgeRow}>
                     <View style={styles.badgeVerified}>
                       <CheckCircle2 size={12} color="#FFFFFF" style={{ marginRight: 3 }} />
@@ -704,7 +705,7 @@ export default function HomeScreen({ navigation }) {
                 onPress={() => setSelectedProperty(property)}
               >
                 <View style={styles.cardImageContainer}>
-                  <Image source={{ uri: property.image }} style={styles.cardImage} />
+                  <SafeImage source={{ uri: property.image }} style={styles.cardImage} />
                   <View style={styles.badgeRow}>
                     <View style={styles.badgeOrange}>
                       <Text style={styles.badgeTextWhite}>{property.badge || "Just Added"}</Text>
@@ -784,7 +785,7 @@ export default function HomeScreen({ navigation }) {
                 <View style={styles.projectCardContent}>
                   {/* Left: Round Project Image with RERA Badge */}
                   <View style={styles.projectThumbWrapper}>
-                    <Image source={{ uri: proj.image }} style={styles.projectThumb} />
+                    <SafeImage source={{ uri: proj.image }} style={styles.projectThumb} />
                     <View style={styles.reraBadge}>
                       <Check size={10} color="#FFFFFF" style={{ marginRight: 2 }} />
                       <Text style={styles.reraText}>{proj.rera}</Text>
@@ -933,7 +934,7 @@ export default function HomeScreen({ navigation }) {
                 setSelectedLocality(loc.name);
               }}
             >
-              <Image source={{ uri: loc.image }} style={styles.locationCardImage} />
+              <SafeImage source={{ uri: loc.image }} style={styles.locationCardImage} />
               <View style={styles.locationOverlay} />
               <View style={styles.locationCardContent}>
                 <Text style={styles.locationCardName}>{loc.name}</Text>

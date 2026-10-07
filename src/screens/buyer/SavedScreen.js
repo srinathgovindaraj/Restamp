@@ -39,6 +39,7 @@ import { useWishlist } from "../../context/WishlistContext";
 import PropertyDetailModal from "../../components/PropertyDetailModal";
 import AppBrandHeader from "../../components/AppBrandHeader";
 import ALL_PROPERTIES from "../../data/properties";
+import SafeImage from "../../components/common/SafeImage";
 
 const INITIAL_VIEWED_PROPERTIES = [
   {
@@ -336,7 +337,7 @@ export default function SavedScreen({ navigation, route }) {
                     >
                       {/* 1. Large Hero Photo with Rounded Corners (Airbnb 4:3 / 220px) */}
                       <View style={styles.imageWrap}>
-                        <Image source={{ uri: property.image }} style={styles.cardImage} />
+                        <SafeImage source={{ uri: property.image }} style={styles.cardImage} />
 
                         {/* Top-Left: Clean Frosted Status Pill */}
                         {statusText ? (
@@ -464,7 +465,7 @@ export default function SavedScreen({ navigation, route }) {
                     >
                       {/* 1. Large Hero Photo with Rounded Corners */}
                       <View style={styles.imageWrap}>
-                        <Image source={{ uri: property.image }} style={styles.cardImage} />
+                        <SafeImage source={{ uri: property.image }} style={styles.cardImage} />
 
                         {/* Top-Left: Clean Frosted Viewed Time Pill */}
                         <View style={styles.statusBadge}>
@@ -602,7 +603,7 @@ export default function SavedScreen({ navigation, route }) {
                       activeOpacity={0.8}
                       onPress={() => setSelectedProperty(item.property)}
                     >
-                      <Image
+                      <SafeImage
                         source={{ uri: item.property?.image }}
                         style={styles.callPropertyThumb}
                       />

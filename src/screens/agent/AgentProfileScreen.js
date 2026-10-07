@@ -4,12 +4,11 @@ import {
   Text,
   StyleSheet,
   ScrollView,
-  Image,
-  TouchableOpacity,
   StatusBar,
-  Switch,
+  TouchableOpacity,
+  Image,
   Alert,
-  Platform,
+  Switch,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import {
@@ -17,41 +16,40 @@ import {
   ShieldCheck,
   MapPin,
   Building2,
-  MessageSquare,
+  Users,
   Calendar,
   Crown,
-  Sparkles,
-  RotateCw,
   CreditCard,
   FileText,
   Bell,
   Globe,
   HelpCircle,
-  LogOut,
   ChevronRight,
-  CheckCircle2,
+  LogOut,
+  Sparkles,
   ArrowRight,
+  Search,
+  Pencil,
+  RotateCcw,
+  Settings as SettingsIcon,
 } from "lucide-react-native";
 import COLORS from "../../constants/colors";
 import { useAgent } from "../../context/AgentContext";
+import ConfirmationModal from "../../components/owner/ConfirmationModal";
 import AppBrandHeader from "../../components/AppBrandHeader";
 
 export default function AgentProfileScreen({ navigation }) {
   const {
+    agentProfile,
     agentPlan,
     selectedLocalities,
-    agentProfile,
+    localityProperties,
     leads,
     visits,
-    renewPlan,
   } = useAgent();
 
-  const [pushEnabled, setPushEnabled] = useState(true);
-
-  const activePlanName = agentPlan?.name || "Agent Pro Plan";
-  const propertiesCount = 12;
-  const leadsCount = leads?.length || 6;
-  const visitsCount = visits?.length || 2;
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const [notificationsEnabled, setNotificationsEnabled] = useState(true);
 
   const handleSwitchToBuyer = () => {
     navigation.reset({
@@ -60,31 +58,31 @@ export default function AgentProfileScreen({ navigation }) {
     });
   };
 
+  const handleManagePlan = () => {
+    navigation.navigate("Menu", { initialTab: "agent" });
+  };
+
+  const handleManageLocations = () => {
+    navigation.navigate("AgentLocationSelect", {
+      selectedLocalities,
+      plan: agentPlan,
+    });
+  };
+
   const handleLogout = () => {
-    Alert.alert(
-      "Log Out",
-      "Are you sure you want to sign out of your Agent Studio? Your active subscription and leads remain saved.",
-      [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "Log Out",
-          style: "destructive",
-          onPress: () => {
-            navigation.reset({
-              index: 0,
-              routes: [{ name: "MainTabs" }],
-            });
-          },
-        },
-      ]
-    );
+    setShowLogoutModal(false);
+    navigation.reset({
+      index: 0,
+      routes: [{ name: "MainTabs" }],
+    });
+    Alert.alert("Logged Out", "You have been signed out of your agent account.");
   };
 
   return (
     <SafeAreaView style={styles.safeArea}>
       <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
 
-      {/* TOP BRAND HEADER (Matching Buyer Page) */}
+      {/* TOP BRAND HEADER */}
       <AppBrandHeader currentRole="agent" />
 
       <ScrollView
@@ -92,8 +90,8 @@ export default function AgentProfileScreen({ navigation }) {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* User Profile Card Banner */}
-        <View style={styles.profileCard}>
+        {/* HEADER: AGENT AVATAR, NAME, PHONE, EMAIL, VERIFICATION STATUS */}
+        <View style={styles.profileHeaderCard}>
           <Image
             source={{
               uri:
@@ -102,306 +100,353 @@ export default function AgentProfileScreen({ navigation }) {
             }}
             style={styles.avatar}
           />
-          <View style={styles.profileInfo}>
-            <Text style={styles.userName}>{agentProfile?.name || "Jessica Taylor"}</Text>
-            <Text style={styles.userEmail}>
-              {agentProfile?.email || "jessica.taylor@example.com"}
-            </Text>
-            <View style={styles.verifiedBadge}>
-              <CheckCircle2 size={13} color="#16A34A" style={{ marginRight: 4 }} />
-              <Text style={styles.verifiedBadgeText}>Verified Agent & Partner</Text>
-            </View>
-          </View>
-        </View>
 
-        {/* Top Mode Switch / Buyer Portal Banner */}
-        <TouchableOpacity
-          style={styles.modeSwitchBanner}
-          activeOpacity={0.88}
-          onPress={handleSwitchToBuyer}
-        >
-          <View style={styles.modeSwitchContent}>
-            <View style={styles.modeSwitchIconWrap}>
-              <Building2 size={20} color={COLORS.primary} />
+          <View style={styles.profileInfo}>
+            <View style={styles.nameRow}>
+              <Text style={styles.agentName}>{agentProfile?.name || "Vikram Prabhu"}</Text>
+              <Pencil size={14} color="#475569" style={styles.pencilIcon} />
             </View>
-            <View style={{ flex: 1, marginRight: 10 }}>
-              <Text style={styles.modeSwitchTitle}>Buyer Portal</Text>
-              <Text style={styles.modeSwitchSub} numberOfLines={1}>
-                Browse verified properties & owner listings as a Buyer
+
+            <Text style={styles.phoneText}>{agentProfile?.phone || "+91 98400 99888"}</Text>
+            <Text style={styles.emailText}>{agentProfile?.email || "vikram.prabhu@restamp.com"}</Text>
+
+            <View style={styles.verifiedBadge}>
+              <ShieldCheck size={12} color="#16A34A" style={{ marginRight: 4 }} />
+              <Text style={styles.verifiedBadgeText}>
+                {agentProfile?.kycStatus || "Verified"} Agent Partner
               </Text>
             </View>
-            <View style={styles.modeSwitchPill}>
-              <Text style={styles.modeSwitchPillText}>Open Portal</Text>
-              <ArrowRight size={12} color="#FFFFFF" style={{ marginLeft: 4 }} />
+          </View>
+        </View>
+
+        {/* MODE SWITCH BUTTON (MATCHING OWNER PROFILE DESIGN) */}
+        <TouchableOpacity
+          style={styles.modeSwitchBanner}
+          onPress={handleSwitchToBuyer}
+          activeOpacity={0.88}
+        >
+          <View style={styles.modeSwitchLeft}>
+            <View style={styles.modeSwitchIconWrap}>
+              <Search size={20} color={COLORS.primary} />
+            </View>
+            <View>
+              <Text style={styles.modeSwitchTitle}>Switch to Find Property</Text>
+              <Text style={styles.modeSwitchSub}>
+                Browse flats, villas & commercial properties as a Buyer
+              </Text>
             </View>
           </View>
+          <ArrowRight size={18} color={COLORS.primary} />
         </TouchableOpacity>
 
-        {/* SECTION 1 — ACCOUNT */}
-        <View style={styles.sectionGroup}>
-          <Text style={styles.sectionLabel}>ACCOUNT</Text>
-          <View style={styles.cardContainer}>
-            {/* 1. Personal Information */}
+        {/* 1. MY PLAN */}
+        <View style={styles.menuGroup}>
+          <Text style={styles.groupHeading}>MY PLAN</Text>
+
+          <View style={styles.planCardItem}>
+            <View style={styles.planCardTop}>
+              <View style={styles.planTitleCol}>
+                <Text style={styles.planTitleText}>{agentPlan?.name || "Agent Plan"}</Text>
+                <Text style={styles.planLimitSub}>
+                  {agentPlan?.locationLimit || selectedLocalities.length} Locations
+                </Text>
+              </View>
+
+              <View style={styles.planActivePill}>
+                <Text style={styles.planActivePillText}>
+                  {agentPlan?.status === "active" ? "Active" : "Expired"}
+                </Text>
+              </View>
+            </View>
+
+            <View style={styles.planExpiryRow}>
+              <Text style={styles.planExpiryLabel}>Expiry Date:</Text>
+              <Text style={styles.planExpiryVal}>20 Nov 2026</Text>
+            </View>
+
             <TouchableOpacity
-              style={styles.cardRow}
-              activeOpacity={0.65}
-              onPress={() =>
-                Alert.alert(
-                  "Personal Information",
-                  `Name: ${agentProfile?.name || "Jessica Taylor"}\nEmail: ${
-                    agentProfile?.email || "jessica.taylor@example.com"
-                  }\nPhone: ${agentProfile?.phone || "+91 98401 23456"}\nAgency: ${
-                    agentProfile?.agency || "Prime Realty Partners"
-                  }\nRERA: ${agentProfile?.reraNumber || "TN/AGENT/2024/0918"}`
-                )
-              }
+              style={styles.managePlanBtn}
+              onPress={handleManagePlan}
+              activeOpacity={0.8}
             >
-              <View style={styles.rowLeft}>
-                <User size={20} color="#334155" strokeWidth={1.8} style={styles.rowIcon} />
-                <Text style={styles.rowLabel}>Personal Information</Text>
-              </View>
-              <ChevronRight size={17} color="#94A3B8" />
-            </TouchableOpacity>
-
-            <View style={styles.divider} />
-
-            {/* 2. KYC / Verification */}
-            <TouchableOpacity
-              style={styles.cardRow}
-              activeOpacity={0.65}
-              onPress={() =>
-                Alert.alert(
-                  "KYC / Verification",
-                  "RERA Certificate & Aadhaar authentication completed and verified."
-                )
-              }
-            >
-              <View style={styles.rowLeft}>
-                <ShieldCheck size={20} color="#334155" strokeWidth={1.8} style={styles.rowIcon} />
-                <Text style={styles.rowLabel}>KYC / Verification</Text>
-              </View>
-              <View style={styles.rowRight}>
-                <Text style={styles.statusVerified}>Verified</Text>
-                <ChevronRight size={17} color="#94A3B8" style={{ marginLeft: 6 }} />
-              </View>
-            </TouchableOpacity>
-
-            <View style={styles.divider} />
-
-            {/* 3. Saved Address */}
-            <TouchableOpacity
-              style={styles.cardRow}
-              activeOpacity={0.65}
-              onPress={() =>
-                Alert.alert(
-                  "Saved Address",
-                  "Office: 42, 2nd Avenue, Anna Nagar East, Chennai - 600102"
-                )
-              }
-            >
-              <View style={styles.rowLeft}>
-                <MapPin size={20} color="#334155" strokeWidth={1.8} style={styles.rowIcon} />
-                <Text style={styles.rowLabel}>Saved Address</Text>
-              </View>
-              <ChevronRight size={17} color="#94A3B8" />
+              <Sparkles size={14} color={COLORS.primary} style={{ marginRight: 6 }} />
+              <Text style={styles.managePlanBtnText}>Manage Plan</Text>
+              <ChevronRight size={14} color={COLORS.primary} style={{ marginLeft: "auto" }} />
             </TouchableOpacity>
           </View>
         </View>
 
-        {/* SECTION 2 — MY ACTIVITY */}
-        <View style={styles.sectionGroup}>
-          <Text style={styles.sectionLabel}>MY ACTIVITY</Text>
-          <View style={styles.cardContainer}>
-            {/* 1. Saved Properties / Managed Properties */}
-            <TouchableOpacity
-              style={styles.cardRow}
-              activeOpacity={0.65}
-              onPress={() => navigation.navigate("AgentProperties")}
-            >
-              <View style={styles.rowLeft}>
-                <Building2 size={20} color="#334155" strokeWidth={1.8} style={styles.rowIcon} />
-                <Text style={styles.rowLabel}>Saved Properties</Text>
-              </View>
-              <View style={styles.rowRight}>
-                <View style={styles.countBadge}>
-                  <Text style={styles.countBadgeText}>{propertiesCount}</Text>
+        {/* 2. MY LOCATIONS */}
+        <View style={styles.menuGroup}>
+          <View style={styles.groupHeaderRow}>
+            <Text style={styles.groupHeading}>MY LOCATIONS</Text>
+            <TouchableOpacity onPress={handleManageLocations} activeOpacity={0.7}>
+              <Text style={styles.groupActionLink}>Manage Locations</Text>
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.locationsCoverageBox}>
+            <Text style={styles.locationsCoverageNotice}>
+              Subscription coverage management — you receive properties & buyer leads exclusively in these areas:
+            </Text>
+
+            <View style={styles.locationsChipsGrid}>
+              {selectedLocalities.map((loc) => (
+                <View key={loc} style={styles.locationChip}>
+                  <MapPin size={11} color={COLORS.primary} style={{ marginRight: 4 }} />
+                  <Text style={styles.locationChipText}>{loc}</Text>
                 </View>
-                <ChevronRight size={17} color="#94A3B8" style={{ marginLeft: 6 }} />
-              </View>
-            </TouchableOpacity>
+              ))}
+            </View>
 
-            <View style={styles.divider} />
-
-            {/* 2. Enquiries / Leads */}
             <TouchableOpacity
-              style={styles.cardRow}
-              activeOpacity={0.65}
-              onPress={() => navigation.navigate("AgentLeads")}
+              style={styles.manageLocationsBtn}
+              onPress={handleManageLocations}
+              activeOpacity={0.8}
             >
-              <View style={styles.rowLeft}>
-                <MessageSquare size={20} color="#334155" strokeWidth={1.8} style={styles.rowIcon} />
-                <Text style={styles.rowLabel}>Enquiries</Text>
-              </View>
-              <View style={styles.rowRight}>
-                <View style={styles.countBadge}>
-                  <Text style={styles.countBadgeText}>{leadsCount}</Text>
-                </View>
-                <ChevronRight size={17} color="#94A3B8" style={{ marginLeft: 6 }} />
-              </View>
-            </TouchableOpacity>
-
-            <View style={styles.divider} />
-
-            {/* 3. Site Visits */}
-            <TouchableOpacity
-              style={styles.cardRow}
-              activeOpacity={0.65}
-              onPress={() => navigation.navigate("AgentVisits")}
-            >
-              <View style={styles.rowLeft}>
-                <Calendar size={20} color="#334155" strokeWidth={1.8} style={styles.rowIcon} />
-                <Text style={styles.rowLabel}>Site Visits</Text>
-              </View>
-              <View style={styles.rowRight}>
-                <View style={styles.countBadge}>
-                  <Text style={styles.countBadgeText}>{visitsCount}</Text>
-                </View>
-                <ChevronRight size={17} color="#94A3B8" style={{ marginLeft: 6 }} />
-              </View>
+              <Text style={styles.manageLocationsBtnText}>Manage Locations</Text>
+              <ChevronRight size={14} color={COLORS.primary} />
             </TouchableOpacity>
           </View>
         </View>
 
-        {/* SECTION 3 — SUBSCRIPTION */}
-        <View style={styles.sectionGroup}>
-          <Text style={styles.sectionLabel}>SUBSCRIPTION</Text>
-          <View style={styles.cardContainer}>
-            {/* 1. Current Plan */}
-            <TouchableOpacity
-              style={styles.cardRow}
-              activeOpacity={0.65}
-              onPress={() => navigation.navigate("AgentLocationSelect")}
-            >
-              <View style={styles.rowLeft}>
-                <Crown size={20} color="#2563EB" strokeWidth={1.8} style={styles.rowIcon} />
-                <Text style={styles.rowLabel}>Current Plan</Text>
+        {/* 3. MY ACTIVITY */}
+        <View style={styles.menuGroup}>
+          <Text style={styles.groupHeading}>MY ACTIVITY</Text>
+
+          <TouchableOpacity
+            style={styles.menuRow}
+            onPress={() => navigation.navigate("Properties")}
+            activeOpacity={0.7}
+          >
+            <View style={styles.menuLeft}>
+              <Building2 size={18} color="#334155" style={styles.menuIcon} />
+              <Text style={styles.menuLabel}>Available Properties</Text>
+            </View>
+            <View style={styles.badgeRow}>
+              <View style={styles.countBadge}>
+                <Text style={styles.countText}>{localityProperties.length || 126}</Text>
               </View>
-              <View style={styles.rowRight}>
-                <Text style={styles.statusPlan}>{activePlanName}</Text>
-                <ChevronRight size={17} color="#94A3B8" style={{ marginLeft: 6 }} />
+              <ChevronRight size={16} color="#94A3B8" />
+            </View>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.menuRow}
+            onPress={() => navigation.navigate("Leads")}
+            activeOpacity={0.7}
+          >
+            <View style={styles.menuLeft}>
+              <Users size={18} color="#334155" style={styles.menuIcon} />
+              <Text style={styles.menuLabel}>My Leads</Text>
+            </View>
+            <View style={styles.badgeRow}>
+              <View style={styles.countBadge}>
+                <Text style={styles.countText}>{leads.length || 18}</Text>
               </View>
-            </TouchableOpacity>
+              <ChevronRight size={16} color="#94A3B8" />
+            </View>
+          </TouchableOpacity>
 
-            <View style={styles.divider} />
-
-            {/* 2. Upgrade Plan */}
-            <TouchableOpacity
-              style={styles.cardRow}
-              activeOpacity={0.65}
-              onPress={() => navigation.navigate("AgentLocationSelect")}
-            >
-              <View style={styles.rowLeft}>
-                <Sparkles size={20} color="#334155" strokeWidth={1.8} style={styles.rowIcon} />
-                <Text style={styles.rowLabel}>Upgrade Plan</Text>
+          <TouchableOpacity
+            style={styles.menuRow}
+            onPress={() => navigation.navigate("Visits")}
+            activeOpacity={0.7}
+          >
+            <View style={styles.menuLeft}>
+              <Calendar size={18} color="#334155" style={styles.menuIcon} />
+              <Text style={styles.menuLabel}>Site Visits</Text>
+            </View>
+            <View style={styles.badgeRow}>
+              <View style={styles.countBadge}>
+                <Text style={styles.countText}>{visits.length || 4}</Text>
               </View>
-              <ChevronRight size={17} color="#94A3B8" />
-            </TouchableOpacity>
+              <ChevronRight size={16} color="#94A3B8" />
+            </View>
+          </TouchableOpacity>
 
-            <View style={styles.divider} />
-
-            {/* 3. Renew Plan */}
-            <TouchableOpacity
-              style={styles.cardRow}
-              activeOpacity={0.65}
-              onPress={() => {
-                renewPlan();
-                Alert.alert("Plan Renewed", "Your agent subscription has been renewed for 30 days.");
-              }}
-            >
-              <View style={styles.rowLeft}>
-                <RotateCw size={20} color="#334155" strokeWidth={1.8} style={styles.rowIcon} />
-                <Text style={styles.rowLabel}>Renew Plan</Text>
+          <View style={[styles.menuRow, { borderBottomWidth: 0 }]}>
+            <View style={styles.menuLeft}>
+              <Sparkles size={18} color="#334155" style={styles.menuIcon} />
+              <Text style={styles.menuLabel}>Closed Deals</Text>
+            </View>
+            <View style={styles.badgeRow}>
+              <View style={[styles.countBadge, { backgroundColor: "#F0FDF4" }]}>
+                <Text style={[styles.countText, { color: "#16A34A" }]}>
+                  {agentProfile?.dealsClosedCount || 7}
+                </Text>
               </View>
-              <ChevronRight size={17} color="#94A3B8" />
-            </TouchableOpacity>
-
-            <View style={styles.divider} />
-
-            {/* 4. Payment History */}
-            <TouchableOpacity
-              style={styles.cardRow}
-              activeOpacity={0.65}
-              onPress={() =>
-                Alert.alert(
-                  "Payment History",
-                  `Last Transaction: ${agentPlan?.price || "₹6,999"} on 28 Sep 2026 (${activePlanName}) - Completed.`
-                )
-              }
-            >
-              <View style={styles.rowLeft}>
-                <CreditCard size={20} color="#334155" strokeWidth={1.8} style={styles.rowIcon} />
-                <Text style={styles.rowLabel}>Payment History</Text>
-              </View>
-              <ChevronRight size={17} color="#94A3B8" />
-            </TouchableOpacity>
+            </View>
           </View>
         </View>
 
-        {/* SECTION 4 — SETTINGS & PREFERENCES */}
-        <View style={styles.sectionGroup}>
-          <Text style={styles.sectionLabel}>SETTINGS & PREFERENCES</Text>
-          <View style={styles.cardContainer}>
-            {/* Notification */}
-            <TouchableOpacity
-              style={styles.cardRow}
-              activeOpacity={0.65}
-              onPress={() => Alert.alert("Notifications", "Push notifications are enabled.")}
-            >
-              <View style={styles.rowLeft}>
-                <Bell size={20} color="#334155" strokeWidth={1.8} style={styles.rowIcon} />
-                <Text style={styles.rowLabel}>Notification</Text>
-              </View>
-              <ChevronRight size={17} color="#94A3B8" />
-            </TouchableOpacity>
+        {/* 4. KYC / VERIFICATION */}
+        <View style={styles.menuGroup}>
+          <Text style={styles.groupHeading}>KYC / VERIFICATION</Text>
 
-            <View style={styles.divider} />
+          <TouchableOpacity
+            style={[styles.menuRow, { borderBottomWidth: 0 }]}
+            onPress={() =>
+              Alert.alert(
+                "KYC Status",
+                `Agent RERA ID: ${agentProfile?.reraNumber || "TN/AGENT/2024/00842"}\nStatus: VERIFIED & ACTIVE`
+              )
+            }
+            activeOpacity={0.7}
+          >
+            <View style={styles.menuLeft}>
+              <ShieldCheck size={18} color="#334155" style={styles.menuIcon} />
+              <Text style={styles.menuLabel}>RERA & Identity Verification</Text>
+            </View>
+            <View style={styles.badgeRow}>
+              <Text style={styles.kycStatusText}>Verified</Text>
+              <ChevronRight size={16} color="#94A3B8" />
+            </View>
+          </TouchableOpacity>
+        </View>
 
-            {/* Help Center */}
-            <TouchableOpacity
-              style={styles.cardRow}
-              activeOpacity={0.65}
-              onPress={() =>
-                Alert.alert(
-                  "RESTAMP Support",
-                  "Agent Partner Desk: agent-support@restamp.in or call 1800-RESTAMP-AGENT."
-                )
-              }
-            >
-              <View style={styles.rowLeft}>
-                <HelpCircle size={20} color="#334155" strokeWidth={1.8} style={styles.rowIcon} />
-                <Text style={styles.rowLabel}>Help Center</Text>
-              </View>
-              <ChevronRight size={17} color="#94A3B8" />
-            </TouchableOpacity>
+        {/* 5. PAYMENTS */}
+        <View style={styles.menuGroup}>
+          <Text style={styles.groupHeading}>PAYMENTS</Text>
 
-            <View style={styles.divider} />
+          <TouchableOpacity
+            style={styles.menuRow}
+            onPress={() =>
+              Alert.alert(
+                "Payment History",
+                "Transactions:\n• 06 Sep 2026 - ₹6,999 (Agent Pro 10 Loc) - Success\n• 06 Aug 2026 - ₹6,999 - Success"
+              )
+            }
+            activeOpacity={0.7}
+          >
+            <View style={styles.menuLeft}>
+              <CreditCard size={18} color="#334155" style={styles.menuIcon} />
+              <Text style={styles.menuLabel}>Payment History</Text>
+            </View>
+            <ChevronRight size={16} color="#94A3B8" />
+          </TouchableOpacity>
 
-            {/* Logout */}
-            <TouchableOpacity
-              style={styles.cardRow}
-              activeOpacity={0.65}
-              onPress={handleLogout}
-            >
-              <View style={styles.rowLeft}>
-                <LogOut size={20} color="#EF4444" strokeWidth={1.8} style={styles.rowIcon} />
-                <Text style={[styles.rowLabel, { color: "#EF4444" }]}>Logout</Text>
-              </View>
-            </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.menuRow, { borderBottomWidth: 0 }]}
+            onPress={() => Alert.alert("Invoices", "Invoice INV-2026-AGT-8821 downloaded.")}
+            activeOpacity={0.7}
+          >
+            <View style={styles.menuLeft}>
+              <FileText size={18} color="#334155" style={styles.menuIcon} />
+              <Text style={styles.menuLabel}>Tax Invoices</Text>
+            </View>
+            <ChevronRight size={16} color="#94A3B8" />
+          </TouchableOpacity>
+        </View>
+
+        {/* 6. NOTIFICATIONS */}
+        <View style={styles.menuGroup}>
+          <Text style={styles.groupHeading}>NOTIFICATIONS</Text>
+
+          <View style={[styles.menuRow, { borderBottomWidth: 0 }]}>
+            <View style={styles.menuLeft}>
+              <Bell size={18} color="#334155" style={styles.menuIcon} />
+              <Text style={styles.menuLabel}>Lead Alerts & Visit Reminders</Text>
+            </View>
+            <Switch
+              value={notificationsEnabled}
+              onValueChange={setNotificationsEnabled}
+              trackColor={{ false: "#CBD5E1", true: "#BFDBFE" }}
+              thumbColor={notificationsEnabled ? COLORS.primary : "#F1F5F9"}
+            />
           </View>
         </View>
 
-        <View style={{ height: 90 }} />
+        {/* 7. HELP & SUPPORT */}
+        <View style={styles.menuGroup}>
+          <Text style={styles.groupHeading}>HELP & SUPPORT</Text>
+
+          <TouchableOpacity
+            style={styles.menuRow}
+            onPress={() =>
+              Alert.alert("Agent Concierge", "Contact RESTAMP Agent Relationship Manager at 1800-420-RESTAMP")
+            }
+            activeOpacity={0.7}
+          >
+            <View style={styles.menuLeft}>
+              <HelpCircle size={18} color="#334155" style={styles.menuIcon} />
+              <Text style={styles.menuLabel}>Agent Support Desk</Text>
+            </View>
+            <ChevronRight size={16} color="#94A3B8" />
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.menuRow, { borderBottomWidth: 0 }]}
+            onPress={() => Alert.alert("FAQs", "Agent platform rules, lead SLAs & commission guidelines.")}
+            activeOpacity={0.7}
+          >
+            <View style={styles.menuLeft}>
+              <Globe size={18} color="#334155" style={styles.menuIcon} />
+              <Text style={styles.menuLabel}>FAQs & Tutorials</Text>
+            </View>
+            <ChevronRight size={16} color="#94A3B8" />
+          </TouchableOpacity>
+        </View>
+
+        {/* 8. SETTINGS */}
+        <View style={styles.menuGroup}>
+          <Text style={styles.groupHeading}>SETTINGS</Text>
+
+          <TouchableOpacity
+            style={styles.menuRow}
+            onPress={() => Alert.alert("Settings", "Agent studio preferences.")}
+            activeOpacity={0.7}
+          >
+            <View style={styles.menuLeft}>
+              <SettingsIcon size={18} color="#334155" style={styles.menuIcon} />
+              <Text style={styles.menuLabel}>Account Preferences</Text>
+            </View>
+            <ChevronRight size={16} color="#94A3B8" />
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.menuRow, { borderBottomWidth: 0 }]}
+            onPress={() => Alert.alert("Legal", "Terms of Service and Privacy Policy for RESTAMP Agents.")}
+            activeOpacity={0.7}
+          >
+            <View style={styles.menuLeft}>
+              <FileText size={18} color="#334155" style={styles.menuIcon} />
+              <Text style={styles.menuLabel}>Terms of Service</Text>
+            </View>
+            <ChevronRight size={16} color="#94A3B8" />
+          </TouchableOpacity>
+        </View>
+
+        {/* 9. LOGOUT */}
+        <View style={styles.menuGroup}>
+          <TouchableOpacity
+            style={[styles.menuRow, { borderBottomWidth: 0 }]}
+            onPress={() => setShowLogoutModal(true)}
+            activeOpacity={0.7}
+          >
+            <View style={styles.menuLeft}>
+              <LogOut size={18} color="#DC2626" style={styles.menuIcon} />
+              <Text style={[styles.menuLabel, { color: "#DC2626", fontWeight: "600" }]}>
+                Logout
+              </Text>
+            </View>
+            <ChevronRight size={16} color="#94A3B8" />
+          </TouchableOpacity>
+        </View>
       </ScrollView>
+
+      {/* LOGOUT CONFIRMATION MODAL */}
+      <ConfirmationModal
+        visible={showLogoutModal}
+        title="Logout of Agent Studio"
+        message="Are you sure you want to log out? Your active subscription and leads will remain securely saved."
+        confirmText="Log Out"
+        cancelText="Cancel"
+        variant="danger"
+        icon={LogOut}
+        onConfirm={handleLogout}
+        onCancel={() => setShowLogoutModal(false)}
+      />
     </SafeAreaView>
   );
 }
@@ -411,60 +456,69 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#FFFFFF",
   },
-  titleContainer: {
-    paddingHorizontal: 20,
-    paddingTop: 14,
-    paddingBottom: 10,
-    backgroundColor: "#FFFFFF",
-  },
-  screenTitle: {
-    fontSize: 26,
-    fontWeight: "800",
-    color: "#0F172A",
-    letterSpacing: -0.5,
-  },
   container: {
     flex: 1,
-    backgroundColor: "#FFFFFF",
   },
   scrollContent: {
-    paddingHorizontal: 20,
-    paddingTop: 4,
-    paddingBottom: 30,
+    padding: 16,
+    paddingBottom: 100,
+    gap: 16,
   },
-  profileCard: {
+  profileHeaderCard: {
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: "#FFFFFF",
     borderRadius: 20,
-    padding: 16,
-    marginBottom: 14,
     borderWidth: 1,
     borderColor: "#EEF2F6",
+    padding: 16,
+    shadowColor: "#0F172A",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 8,
+    elevation: 2,
   },
   avatar: {
-    width: 54,
-    height: 54,
-    borderRadius: 27,
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: "#E2E8F0",
     marginRight: 14,
   },
   profileInfo: {
     flex: 1,
   },
-  userName: {
-    fontSize: 16,
-    fontWeight: "800",
+  nameRow: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  agentName: {
+    fontSize: 17,
+    fontWeight: "700",
     color: "#0F172A",
     letterSpacing: -0.3,
   },
-  userEmail: {
-    fontSize: 12,
+  pencilIcon: {
+    marginLeft: 6,
+  },
+  phoneText: {
+    fontSize: 12.5,
     color: "#64748B",
     marginTop: 2,
+  },
+  emailText: {
+    fontSize: 12.5,
+    color: "#64748B",
+    marginTop: 1,
   },
   verifiedBadge: {
     flexDirection: "row",
     alignItems: "center",
+    backgroundColor: "#F0FDF4",
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
+    alignSelf: "flex-start",
     marginTop: 6,
   },
   verifiedBadgeText: {
@@ -473,117 +527,228 @@ const styles = StyleSheet.create({
     color: "#16A34A",
   },
   modeSwitchBanner: {
-    backgroundColor: "#EFF6FF",
-    borderRadius: 20,
-    padding: 14,
-    marginBottom: 20,
-    borderWidth: 1.5,
-    borderColor: "#BFDBFE",
-  },
-  modeSwitchContent: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  modeSwitchIconWrap: {
-    width: 38,
-    height: 38,
-    borderRadius: 12,
-    backgroundColor: "#DBEAFE",
-    justifyContent: "center",
-    alignItems: "center",
-    marginRight: 12,
-  },
-  modeSwitchTitle: {
-    fontSize: 13,
-    fontWeight: "800",
-    color: COLORS.primary,
-  },
-  modeSwitchSub: {
-    fontSize: 11,
-    color: "#64748B",
-    marginTop: 2,
-  },
-  modeSwitchPill: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: COLORS.primary,
-    paddingHorizontal: 12,
-    paddingVertical: 7,
-    borderRadius: 14,
-  },
-  modeSwitchPillText: {
-    fontSize: 11,
-    fontWeight: "700",
-    color: "#FFFFFF",
-  },
-  sectionGroup: {
-    marginBottom: 20,
-  },
-  sectionLabel: {
-    fontSize: 11,
-    fontWeight: "700",
-    color: "#94A3B8",
-    letterSpacing: 0.8,
-    textTransform: "uppercase",
-    marginBottom: 8,
-    paddingHorizontal: 4,
-  },
-  cardContainer: {
-    backgroundColor: "#FFFFFF",
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: "#EEF2F6",
-    overflow: "hidden",
-  },
-  cardRow: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingVertical: 14,
-    paddingHorizontal: 16,
+    backgroundColor: "#EFF6FF",
+    borderWidth: 1,
+    borderColor: "#BFDBFE",
+    borderRadius: 16,
+    padding: 14,
   },
-  rowLeft: {
+  modeSwitchLeft: {
+    flexDirection: "row",
+    alignItems: "center",
+    flex: 1,
+    marginRight: 10,
+  },
+  modeSwitchIconWrap: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    backgroundColor: "#FFFFFF",
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 10,
+  },
+  modeSwitchTitle: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: COLORS.primary,
+  },
+  modeSwitchSub: {
+    fontSize: 11.5,
+    color: "#475569",
+    marginTop: 1,
+  },
+  menuGroup: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: "#EEF2F6",
+    padding: 14,
+    shadowColor: "#0F172A",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.02,
+    shadowRadius: 4,
+    elevation: 1,
+  },
+  groupHeaderRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 8,
+  },
+  groupHeading: {
+    fontSize: 11.5,
+    fontWeight: "700",
+    color: "#64748B",
+    letterSpacing: 0.5,
+    marginBottom: 8,
+  },
+  groupActionLink: {
+    fontSize: 12,
+    fontWeight: "700",
+    color: COLORS.primary,
+    marginBottom: 8,
+  },
+  planCardItem: {
+    backgroundColor: "#F8FAFC",
+    borderRadius: 14,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
+  },
+  planCardTop: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  planTitleCol: {
+    flex: 1,
+  },
+  planTitleText: {
+    fontSize: 15,
+    fontWeight: "700",
+    color: "#0F172A",
+  },
+  planLimitSub: {
+    fontSize: 12,
+    color: "#64748B",
+    marginTop: 2,
+  },
+  planActivePill: {
+    backgroundColor: "#DCFCE7",
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
+  },
+  planActivePillText: {
+    fontSize: 11,
+    fontWeight: "700",
+    color: "#166534",
+  },
+  planExpiryRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: 10,
+    marginBottom: 10,
+  },
+  planExpiryLabel: {
+    fontSize: 12,
+    color: "#64748B",
+    marginRight: 6,
+  },
+  planExpiryVal: {
+    fontSize: 12.5,
+    fontWeight: "700",
+    color: "#0F172A",
+  },
+  managePlanBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#EFF6FF",
+    borderWidth: 1,
+    borderColor: "#DBEAFE",
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 10,
+  },
+  managePlanBtnText: {
+    fontSize: 12.5,
+    fontWeight: "700",
+    color: COLORS.primary,
+  },
+  locationsCoverageBox: {
+    backgroundColor: "#F8FAFC",
+    borderRadius: 14,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
+  },
+  locationsCoverageNotice: {
+    fontSize: 12,
+    color: "#64748B",
+    lineHeight: 17,
+    marginBottom: 10,
+  },
+  locationsChipsGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 6,
+    marginBottom: 12,
+  },
+  locationChip: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#FFFFFF",
+    borderWidth: 1,
+    borderColor: "#CBD5E1",
+    paddingHorizontal: 9,
+    paddingVertical: 5,
+    borderRadius: 8,
+  },
+  locationChipText: {
+    fontSize: 11.5,
+    fontWeight: "600",
+    color: "#334155",
+  },
+  manageLocationsBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#EFF6FF",
+    borderWidth: 1,
+    borderColor: "#DBEAFE",
+    paddingVertical: 9,
+    borderRadius: 10,
+    gap: 4,
+  },
+  manageLocationsBtnText: {
+    fontSize: 12.5,
+    fontWeight: "700",
+    color: COLORS.primary,
+  },
+  menuRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: "#F1F5F9",
+  },
+  menuLeft: {
     flexDirection: "row",
     alignItems: "center",
     flex: 1,
   },
-  rowIcon: {
-    marginRight: 12,
+  menuIcon: {
+    marginRight: 10,
   },
-  rowLabel: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#0F172A",
+  menuLabel: {
+    fontSize: 13.5,
+    color: "#1E293B",
+    fontWeight: "500",
   },
-  rowRight: {
+  badgeRow: {
     flexDirection: "row",
     alignItems: "center",
-  },
-  statusVerified: {
-    fontSize: 13,
-    fontWeight: "700",
-    color: "#16A34A",
-  },
-  statusPlan: {
-    fontSize: 13,
-    fontWeight: "700",
-    color: COLORS.primary,
+    gap: 6,
   },
   countBadge: {
     backgroundColor: "#F1F5F9",
     paddingHorizontal: 8,
     paddingVertical: 2,
-    borderRadius: 10,
+    borderRadius: 6,
   },
-  countBadgeText: {
+  countText: {
     fontSize: 12,
     fontWeight: "700",
-    color: "#0F172A",
+    color: "#475569",
   },
-  divider: {
-    height: 1,
-    backgroundColor: "#F8FAFC",
-    marginLeft: 48,
-    marginRight: 16,
+  kycStatusText: {
+    fontSize: 12,
+    fontWeight: "700",
+    color: "#16A34A",
   },
 });

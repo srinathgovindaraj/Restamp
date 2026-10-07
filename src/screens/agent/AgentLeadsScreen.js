@@ -10,11 +10,11 @@ import {
   TextInput,
   Linking,
   Alert,
+  Modal,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import {
   Search,
-  Filter,
   Users,
   Phone,
   MessageSquare,
@@ -23,52 +23,76 @@ import {
   MapPin,
   CheckCircle2,
   Clock,
-  Sparkles,
   X,
-  Plus,
+  Sparkles,
+  Building2,
 } from "lucide-react-native";
 import COLORS from "../../constants/colors";
 import { useAgent } from "../../context/AgentContext";
 import AppBrandHeader from "../../components/AppBrandHeader";
+import StatusBadge from "../../components/owner/StatusBadge";
+import EmptyState from "../../components/owner/EmptyState";
 
-const LEAD_TABS = [
-  { id: "all", label: "All" },
-  { id: "new", label: "New" },
-  { id: "contacted", label: "Contacted" },
-  { id: "qualified", label: "Qualified" },
-  { id: "visit_scheduled", label: "Visit Scheduled" },
-  { id: "visited", label: "Visited" },
-  { id: "negotiating", label: "Negotiating" },
-  { id: "converted", label: "Converted" },
-  { id: "lost", label: "Lost" },
+const FILTER_TABS = [
+  "All",
+  "New",
+  "Contacted",
+  "Visit Scheduled",
+  "Negotiating",
+  "Closed",
 ];
 
 export default function AgentLeadsScreen({ navigation }) {
-  const { leads, updateLeadStatus } = useAgent();
-  const [activeTab, setActiveTab] = useState("all");
+  const { leads, updateLeadStatus, localityProperties, matchPropertyToLead } = useAgent();
+  const [activeTab, setActiveTab] = useState("All");
   const [searchQuery, setSearchQuery] = useState("");
+  const [matchingLead, setMatchingLead] = useState(null);
 
   // Summary counts
-  const countNew = leads.filter((l) => l.status === "new").length;
-  const countQualified = leads.filter((l) => l.status === "qualified").length;
-  const countVisits = leads.filter((l) => l.status === "visit_scheduled" || l.status === "visited").length;
-  const countNegotiating = leads.filter((l) => l.status === "negotiating").length;
-  const countClosed = leads.filter((l) => l.status === "converted").length;
+  const summaryCounts = useMemo(() => {
+    const all = leads.length;
+    const newCount = leads.filter((l) => l.status === "new").length;
+    const followUps = leads.filter(
+      (l) => l.status === "contacted" || l.status === "negotiating" || l.status === "qualified"
+    ).length;
+    const visits = leads.filter(
+      (l) => l.status === "visit_scheduled" || l.status === "visited"
+    ).length;
 
+    return { all, newCount, followUps, visits };
+  }, [leads]);
+
+  // Tab mapping for status filter
   const filteredLeads = useMemo(() => {
     return leads.filter((lead) => {
       // Tab filter
-      if (activeTab !== "all" && lead.status !== activeTab) {
+      if (activeTab === "New" && lead.status !== "new") return false;
+      if (activeTab === "Contacted" && lead.status !== "contacted" && lead.status !== "qualified")
         return false;
-      }
+      if (
+        activeTab === "Visit Scheduled" &&
+        lead.status !== "visit_scheduled" &&
+        lead.status !== "visited"
+      )
+        return false;
+      if (activeTab === "Negotiating" && lead.status !== "negotiating") return false;
+      if (
+        activeTab === "Closed" &&
+        lead.status !== "converted" &&
+        lead.status !== "closed" &&
+        lead.status !== "lost"
+      )
+        return false;
+
       // Search query
       if (searchQuery.trim()) {
         const q = searchQuery.toLowerCase().trim();
         const nameMatch = lead.customerName.toLowerCase().includes(q);
-        const reqMatch = lead.requirement.toLowerCase().includes(q);
-        const locMatch = lead.preferredLocality.toLowerCase().includes(q);
+        const reqMatch = (lead.requirement || "").toLowerCase().includes(q);
+        const locMatch = (lead.preferredLocality || "").toLowerCase().includes(q);
         if (!nameMatch && !reqMatch && !locMatch) return false;
       }
+
       return true;
     });
   }, [leads, activeTab, searchQuery]);
@@ -85,75 +109,73 @@ export default function AgentLeadsScreen({ navigation }) {
     });
   };
 
-  const handleWhatsApp = (lead) => {
+  const handleMessage = (lead) => {
     const rawPhone = lead.phone || "+919876543210";
     const cleanPhone = rawPhone.replace(/[^0-9]/g, "");
     const text = encodeURIComponent(
-      `Hello ${lead.customerName}! I am Vikram Prabhu from RESTAMP regarding your requirement for ${lead.requirement} in ${lead.preferredLocality}. I have verified owner listings matching your budget.`
+      `Hello ${lead.customerName}! I am your RESTAMP Certified Agent regarding your requirement for ${lead.requirement} in ${lead.preferredLocality}. I have matching verified owner listings ready.`
     );
     Linking.openURL(`https://wa.me/${cleanPhone}?text=${text}`).catch(() => {
-      Alert.alert("WhatsApp Unavailable", `Contact ${lead.customerName} at ${rawPhone}`);
+      Alert.alert("Message Lead", `Contact ${lead.customerName} at ${rawPhone}`);
     });
+  };
+
+  const handleOpenMatchSheet = (lead) => {
+    setMatchingLead(lead);
+  };
+
+  const handleConfirmMatch = (property) => {
+    if (!matchingLead) return;
+    matchPropertyToLead(matchingLead.id, property);
+    const leadName = matchingLead.customerName;
+    setMatchingLead(null);
+    Alert.alert(
+      "Property Matched! 🎉",
+      `"${property.title}" has been matched to ${leadName}. You can now schedule a site visit.`
+    );
   };
 
   return (
     <SafeAreaView style={styles.safeArea}>
       <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
 
-      {/* TOP BRAND HEADER (Matching Buyer Page) */}
+      {/* TOP BRAND HEADER */}
       <AppBrandHeader currentRole="agent" />
 
-      {/* Screen Title */}
-      <View style={{ paddingHorizontal: 16, paddingTop: 4, paddingBottom: 10, flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
-        <View style={{ flex: 1, marginRight: 8 }}>
-          <Text style={styles.headerTitle}>Client Inquiries & Leads</Text>
-          <Text style={styles.headerSubtitle}>
-            Verified buyer & tenant leads for your localities
-          </Text>
-        </View>
-
-        <View style={styles.leadsTotalBadge}>
-          <Text style={styles.leadsTotalText}>{leads.length} Total Leads</Text>
-        </View>
+      {/* SCREEN TITLE & SUBTITLE */}
+      <View style={styles.screenHeader}>
+        <Text style={styles.headerTitle}>Leads</Text>
+        <Text style={styles.headerSubtitle}>Manage your customer enquiries</Text>
       </View>
 
-      {/* SUMMARY BADGES ROW */}
+      {/* SUMMARY PILLS: All Leads, New, Follow-ups, Visits */}
       <View style={styles.summaryBar}>
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.summaryScroll}
-        >
-          <View style={styles.statChip}>
-            <Text style={styles.statChipNumber}>{countNew}</Text>
-            <Text style={styles.statChipLabel}>New</Text>
-          </View>
-          <View style={styles.statChip}>
-            <Text style={styles.statChipNumber}>{countQualified}</Text>
-            <Text style={styles.statChipLabel}>Qualified</Text>
-          </View>
-          <View style={styles.statChip}>
-            <Text style={styles.statChipNumber}>{countVisits}</Text>
-            <Text style={styles.statChipLabel}>Visits</Text>
-          </View>
-          <View style={styles.statChip}>
-            <Text style={styles.statChipNumber}>{countNegotiating}</Text>
-            <Text style={styles.statChipLabel}>Negotiating</Text>
-          </View>
-          <View style={[styles.statChip, { backgroundColor: "#F0FDF4", borderColor: "#DCFCE7" }]}>
-            <Text style={[styles.statChipNumber, { color: "#16A34A" }]}>{countClosed}</Text>
-            <Text style={[styles.statChipLabel, { color: "#166534" }]}>Closed</Text>
-          </View>
-        </ScrollView>
+        <View style={styles.summaryPill}>
+          <Text style={styles.summaryNumber}>{summaryCounts.all}</Text>
+          <Text style={styles.summaryLabel}>All Leads</Text>
+        </View>
+        <View style={[styles.summaryPill, { backgroundColor: "#EFF6FF", borderColor: "#DBEAFE" }]}>
+          <Text style={[styles.summaryNumber, { color: COLORS.primary }]}>{summaryCounts.newCount}</Text>
+          <Text style={styles.summaryLabel}>New</Text>
+        </View>
+        <View style={styles.summaryPill}>
+          <Text style={styles.summaryNumber}>{summaryCounts.followUps}</Text>
+          <Text style={styles.summaryLabel}>Follow-ups</Text>
+        </View>
+        <View style={[styles.summaryPill, { backgroundColor: "#FFF7ED", borderColor: "#FFEDD5" }]}>
+          <Text style={[styles.summaryNumber, { color: "#EA580C" }]}>{summaryCounts.visits}</Text>
+          <Text style={styles.summaryLabel}>Visits</Text>
+        </View>
       </View>
 
-      {/* SEARCH AND STAGE TABS */}
-      <View style={styles.searchSection}>
+      {/* SEARCH AND FILTER TABS */}
+      <View style={styles.filterSection}>
+        {/* Search bar */}
         <View style={styles.searchBar}>
           <Search size={16} color="#94A3B8" style={{ marginRight: 8 }} />
           <TextInput
             style={styles.searchInput}
-            placeholder="Search leads by name, locality, or type..."
+            placeholder="Search leads by name, locality, or requirement..."
             placeholderTextColor="#94A3B8"
             value={searchQuery}
             onChangeText={setSearchQuery}
@@ -166,22 +188,23 @@ export default function AgentLeadsScreen({ navigation }) {
           )}
         </View>
 
+        {/* Filter Tabs: All, New, Contacted, Visit Scheduled, Negotiating, Closed */}
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.tabsScroll}
         >
-          {LEAD_TABS.map((tab) => {
-            const isActive = activeTab === tab.id;
+          {FILTER_TABS.map((tab) => {
+            const isActive = activeTab === tab;
             return (
               <TouchableOpacity
-                key={tab.id}
-                style={[styles.tabBtn, isActive && styles.tabBtnActive]}
-                onPress={() => setActiveTab(tab.id)}
+                key={tab}
+                style={[styles.tabChip, isActive && styles.tabChipActive]}
+                onPress={() => setActiveTab(tab)}
                 activeOpacity={0.8}
               >
-                <Text style={[styles.tabText, isActive && styles.tabTextActive]}>
-                  {tab.label}
+                <Text style={[styles.tabChipText, isActive && styles.tabChipTextActive]}>
+                  {tab}
                 </Text>
               </TouchableOpacity>
             );
@@ -189,132 +212,183 @@ export default function AgentLeadsScreen({ navigation }) {
         </ScrollView>
       </View>
 
-      {/* LEADS LIST */}
+      {/* LEADS LIST (REUSING OWNER LEADS CARD STYLING) */}
       <ScrollView
         style={styles.container}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
         {filteredLeads.length === 0 ? (
-          <View style={styles.emptyState}>
-            <Users size={38} color="#CBD5E1" />
-            <Text style={styles.emptyTitle}>No leads in this stage</Text>
-            <Text style={styles.emptySub}>
-              Leads will appear here as buyers submit inquiries in your assigned locations.
-            </Text>
-          </View>
+          <EmptyState
+            icon={Users}
+            title="No new leads yet."
+            description="Leads from interested buyers in your localities will appear here."
+            buttonTitle={activeTab !== "All" ? "View All Leads" : undefined}
+            onButtonPress={activeTab !== "All" ? () => setActiveTab("All") : undefined}
+          />
         ) : (
           <View style={styles.leadsList}>
             {filteredLeads.map((lead) => {
-              const isNew = lead.status === "new";
-              const isVisit = lead.status === "visit_scheduled";
-              const isConverted = lead.status === "converted";
+              const purpose = lead.dealType || "Rent";
+              const received = lead.timestamp || "Today, 10:30 AM";
 
               return (
-                <TouchableOpacity
-                  key={lead.id}
-                  style={styles.leadCard}
-                  onPress={() => handleLeadPress(lead)}
-                  activeOpacity={0.88}
-                >
-                  {/* Top: Avatar, Name, Phone & WhatsApp */}
-                  <View style={styles.cardTopRow}>
+                <View key={lead.id} style={styles.leadCard}>
+                  {/* Card Header: Avatar, Name & StatusBadge */}
+                  <View style={styles.cardHeaderRow}>
                     <Image source={{ uri: lead.avatar }} style={styles.avatar} />
 
                     <View style={styles.customerInfo}>
-                      <Text style={styles.customerName}>{lead.customerName}</Text>
-                      <Text style={styles.customerTime}>{lead.timestamp}</Text>
+                      <Text style={styles.customerName} numberOfLines={1}>
+                        {lead.customerName}
+                      </Text>
+                      <Text style={styles.receivedTime}>{received}</Text>
                     </View>
 
-                    {/* Quick Call & WhatsApp CTA buttons */}
-                    <View style={styles.quickActions}>
-                      <TouchableOpacity
-                        style={styles.actionCircleBtn}
-                        onPress={() => handleWhatsApp(lead)}
-                        activeOpacity={0.75}
-                      >
-                        <MessageSquare size={15} color="#16A34A" />
-                      </TouchableOpacity>
-
-                      <TouchableOpacity
-                        style={styles.actionCircleBtn}
-                        onPress={() => handleCall(lead)}
-                        activeOpacity={0.75}
-                      >
-                        <Phone size={15} color="#0F172A" />
-                      </TouchableOpacity>
-
-                      <TouchableOpacity
-                        style={styles.actionCircleBtnDark}
-                        onPress={() => handleLeadPress(lead)}
-                        activeOpacity={0.75}
-                      >
-                        <ChevronRight size={15} color="#FFFFFF" strokeWidth={2.4} />
-                      </TouchableOpacity>
-                    </View>
+                    <StatusBadge status={lead.status} />
                   </View>
 
-                  {/* Middle Snippet Requirement */}
-                  <View style={styles.requirementBox}>
-                    <View style={styles.reqLine}>
-                      <Text style={styles.reqLabel}>Requirement:</Text>
-                      <Text style={styles.reqValue} numberOfLines={1}>
-                        {lead.requirement} ({lead.dealType})
+                  {/* Card Body: Requirement, Purpose, Preferred Location, Budget */}
+                  <View style={styles.cardDetailsBox}>
+                    <View style={styles.detailRow}>
+                      <Text style={styles.detailLabel}>Requirement:</Text>
+                      <Text style={styles.detailValue} numberOfLines={1}>
+                        {lead.requirement || "Looking for 2 BHK"}
                       </Text>
                     </View>
 
-                    <View style={styles.reqLine}>
-                      <Text style={styles.reqLabel}>Location:</Text>
-                      <Text style={styles.reqValue} numberOfLines={1}>
+                    <View style={styles.detailRow}>
+                      <Text style={styles.detailLabel}>Purpose:</Text>
+                      <Text style={styles.detailValue}>{purpose}</Text>
+                    </View>
+
+                    <View style={styles.detailRow}>
+                      <Text style={styles.detailLabel}>Preferred Location:</Text>
+                      <Text style={styles.detailValue} numberOfLines={1}>
                         {lead.preferredLocality}
                       </Text>
                     </View>
 
-                    <View style={styles.reqLine}>
-                      <Text style={styles.reqLabel}>Budget:</Text>
-                      <Text style={[styles.reqValue, { fontWeight: "700", color: COLORS.primary }]}>
+                    <View style={styles.detailRow}>
+                      <Text style={styles.detailLabel}>Budget:</Text>
+                      <Text style={[styles.detailValue, styles.budgetValue]}>
                         {lead.budget}
                       </Text>
                     </View>
                   </View>
 
-                  {/* Bottom: Status Badge + CTA */}
-                  <View style={styles.cardFooter}>
-                    <View
-                      style={[
-                        styles.statusPill,
-                        isNew && styles.statusPillNew,
-                        isVisit && styles.statusPillVisit,
-                        isConverted && styles.statusPillConverted,
-                      ]}
-                    >
-                      <Text
-                        style={[
-                          styles.statusPillText,
-                          isNew && styles.statusPillTextNew,
-                          isVisit && styles.statusPillTextVisit,
-                          isConverted && styles.statusPillTextConverted,
-                        ]}
+                  {/* Divider */}
+                  <View style={styles.cardDivider} />
+
+                  {/* Actions: Call, Message, Match Property, View Details */}
+                  <View style={styles.cardActionsRow}>
+                    <View style={styles.leftIconActions}>
+                      <TouchableOpacity
+                        style={styles.iconCircleBtn}
+                        onPress={() => handleCall(lead)}
+                        activeOpacity={0.75}
                       >
-                        {lead.status.replace("_", " ").toUpperCase()}
-                      </Text>
+                        <Phone size={16} color="#0F172A" />
+                      </TouchableOpacity>
+
+                      <TouchableOpacity
+                        style={[styles.iconCircleBtn, { backgroundColor: "#F0FDF4" }]}
+                        onPress={() => handleMessage(lead)}
+                        activeOpacity={0.75}
+                      >
+                        <MessageSquare size={16} color="#16A34A" />
+                      </TouchableOpacity>
                     </View>
 
                     <TouchableOpacity
-                      style={styles.viewLeadBtn}
+                      style={styles.btnMatchProperty}
+                      onPress={() => handleOpenMatchSheet(lead)}
+                      activeOpacity={0.8}
+                    >
+                      <Users size={13} color={COLORS.primary} style={{ marginRight: 4 }} />
+                      <Text style={styles.btnMatchPropertyText}>Match Property</Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                      style={styles.btnViewDetails}
                       onPress={() => handleLeadPress(lead)}
                       activeOpacity={0.8}
                     >
-                      <Text style={styles.viewLeadBtnText}>View Lead</Text>
-                      <ChevronRight size={13} color={COLORS.primary} strokeWidth={2.4} />
+                      <Text style={styles.btnViewDetailsText}>View Details</Text>
+                      <ChevronRight size={14} color="#FFFFFF" />
                     </TouchableOpacity>
                   </View>
-                </TouchableOpacity>
+                </View>
               );
             })}
           </View>
         )}
       </ScrollView>
+
+      {/* MATCH PROPERTY MODAL */}
+      <Modal
+        visible={!!matchingLead}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setMatchingLead(null)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.matchSheetContainer}>
+            <View style={styles.matchSheetHeader}>
+              <View style={{ flex: 1, marginRight: 8 }}>
+                <Text style={styles.matchSheetTitle}>Match Property with Lead</Text>
+                <Text style={styles.matchSheetSubtitle} numberOfLines={1}>
+                  {matchingLead?.customerName} • Seeking: {matchingLead?.requirement} ({matchingLead?.preferredLocality})
+                </Text>
+              </View>
+              <TouchableOpacity
+                style={styles.closeSheetBtn}
+                onPress={() => setMatchingLead(null)}
+              >
+                <X size={18} color="#0F172A" />
+              </TouchableOpacity>
+            </View>
+
+            <Text style={styles.matchSheetPrompt}>
+              Select from available owner-posted properties in your subscribed locations:
+            </Text>
+
+            <ScrollView style={styles.matchSheetScroll} showsVerticalScrollIndicator={false}>
+              {localityProperties
+                .filter((p) => {
+                  if (!matchingLead) return true;
+                  const loc = (p.location || "").toLowerCase();
+                  const target = (matchingLead.preferredLocality || "").toLowerCase();
+                  return loc.includes(target) || target.includes(loc);
+                })
+                .concat(localityProperties.slice(0, 4))
+                .filter((p, i, self) => self.findIndex((t) => t.id === p.id) === i)
+                .map((property) => (
+                  <TouchableOpacity
+                    key={property.id}
+                    style={styles.matchPropItem}
+                    onPress={() => handleConfirmMatch(property)}
+                    activeOpacity={0.82}
+                  >
+                    <Image source={{ uri: property.image }} style={styles.matchPropThumb} />
+                    <View style={styles.matchPropInfo}>
+                      <Text style={styles.matchPropTitle} numberOfLines={1}>
+                        {property.title}
+                      </Text>
+                      <Text style={styles.matchPropLoc} numberOfLines={1}>
+                        {property.location}
+                      </Text>
+                      <Text style={styles.matchPropPrice}>{property.price}</Text>
+                    </View>
+                    <View style={styles.matchAssignPill}>
+                      <Text style={styles.matchAssignPillText}>Select</Text>
+                    </View>
+                  </TouchableOpacity>
+                ))}
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -324,73 +398,51 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#FFFFFF",
   },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
+  screenHeader: {
     paddingHorizontal: 16,
-    paddingVertical: 12,
-    backgroundColor: "#FFFFFF",
-    borderBottomWidth: 1,
-    borderBottomColor: "#EEF2F6",
+    paddingTop: 4,
+    paddingBottom: 8,
   },
   headerTitle: {
-    fontSize: 17,
+    fontSize: 20,
     fontWeight: "800",
     color: "#0F172A",
+    letterSpacing: -0.4,
   },
   headerSubtitle: {
-    fontSize: 11,
+    fontSize: 12.5,
     color: "#64748B",
     marginTop: 2,
   },
-  leadsTotalBadge: {
-    backgroundColor: "#EFF6FF",
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 100,
-  },
-  leadsTotalText: {
-    fontSize: 11,
-    fontWeight: "700",
-    color: COLORS.primary,
-  },
   summaryBar: {
-    backgroundColor: "#FFFFFF",
-    borderBottomWidth: 1,
-    borderBottomColor: "#EEF2F6",
-    paddingVertical: 10,
-  },
-  summaryScroll: {
+    flexDirection: "row",
     paddingHorizontal: 16,
-    flexDirection: "row",
     gap: 8,
+    marginBottom: 10,
   },
-  statChip: {
-    flexDirection: "row",
-    alignItems: "center",
+  summaryPill: {
+    flex: 1,
     backgroundColor: "#F8FAFC",
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 100,
     borderWidth: 1,
     borderColor: "#E2E8F0",
-    gap: 6,
+    borderRadius: 12,
+    paddingVertical: 8,
+    alignItems: "center",
+    justifyContent: "center",
   },
-  statChipNumber: {
-    fontSize: 13,
+  summaryNumber: {
+    fontSize: 16,
     fontWeight: "800",
     color: "#0F172A",
   },
-  statChipLabel: {
-    fontSize: 12,
+  summaryLabel: {
+    fontSize: 10.5,
     color: "#64748B",
-    fontWeight: "600",
+    fontWeight: "500",
+    marginTop: 1,
   },
-  searchSection: {
-    backgroundColor: "#FFFFFF",
+  filterSection: {
     paddingHorizontal: 16,
-    paddingTop: 10,
     paddingBottom: 10,
     borderBottomWidth: 1,
     borderBottomColor: "#EEF2F6",
@@ -400,42 +452,42 @@ const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: "#F8FAFC",
     borderRadius: 12,
+    paddingHorizontal: 12,
+    height: 42,
     borderWidth: 1,
     borderColor: "#E2E8F0",
-    paddingHorizontal: 12,
-    height: 40,
-    marginBottom: 8,
+    marginBottom: 10,
   },
   searchInput: {
     flex: 1,
     fontSize: 13,
     color: "#0F172A",
-    outlineStyle: "none",
-    outlineWidth: 0,
+    paddingVertical: 0,
   },
   tabsScroll: {
     flexDirection: "row",
     gap: 8,
+    alignItems: "center",
   },
-  tabBtn: {
-    paddingHorizontal: 12,
+  tabChip: {
+    paddingHorizontal: 14,
     paddingVertical: 6,
-    borderRadius: 100,
-    backgroundColor: "#F8FAFC",
+    borderRadius: 20,
+    backgroundColor: "#F1F5F9",
     borderWidth: 1,
     borderColor: "#E2E8F0",
   },
-  tabBtnActive: {
-    backgroundColor: "#EFF6FF",
-    borderColor: "#2563EB",
+  tabChipActive: {
+    backgroundColor: COLORS.primary,
+    borderColor: COLORS.primary,
   },
-  tabText: {
+  tabChipText: {
     fontSize: 12,
     fontWeight: "600",
-    color: "#64748B",
+    color: "#475569",
   },
-  tabTextActive: {
-    color: "#2563EB",
+  tabChipTextActive: {
+    color: "#FFFFFF",
     fontWeight: "700",
   },
   container: {
@@ -443,145 +495,220 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     padding: 16,
-    paddingBottom: 110,
-  },
-  emptyState: {
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: 50,
-  },
-  emptyTitle: {
-    fontSize: 15,
-    fontWeight: "700",
-    color: "#0F172A",
-    marginTop: 10,
-  },
-  emptySub: {
-    fontSize: 12,
-    color: "#64748B",
-    marginTop: 4,
-    textAlign: "center",
-    maxWidth: 240,
+    paddingBottom: 100,
   },
   leadsList: {
-    gap: 12,
+    gap: 14,
   },
   leadCard: {
     backgroundColor: "#FFFFFF",
     borderRadius: 20,
-    padding: 16,
     borderWidth: 1,
     borderColor: "#EEF2F6",
+    padding: 16,
+    shadowColor: "#0F172A",
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.04,
+    shadowRadius: 8,
+    elevation: 2,
   },
-  cardTopRow: {
+  cardHeaderRow: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 10,
+    marginBottom: 12,
   },
   avatar: {
     width: 44,
     height: 44,
     borderRadius: 22,
-    marginRight: 12,
+    backgroundColor: "#E2E8F0",
+    marginRight: 10,
   },
   customerInfo: {
     flex: 1,
+    justifyContent: "center",
   },
   customerName: {
     fontSize: 15,
     fontWeight: "700",
     color: "#0F172A",
+    letterSpacing: -0.2,
   },
-  customerTime: {
-    fontSize: 11,
-    color: "#94A3B8",
+  receivedTime: {
+    fontSize: 11.5,
+    color: "#64748B",
     marginTop: 2,
   },
-  quickActions: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-  },
-  actionCircleBtn: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: "#F1F5F9",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  actionCircleBtnDark: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: "#2563EB",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  requirementBox: {
+  cardDetailsBox: {
     backgroundColor: "#F8FAFC",
     borderRadius: 12,
-    padding: 10,
-    gap: 4,
-    marginBottom: 10,
+    padding: 12,
+    gap: 6,
   },
-  reqLine: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  reqLabel: {
-    width: 90,
-    fontSize: 12,
-    color: "#64748B",
-  },
-  reqValue: {
-    flex: 1,
-    fontSize: 12,
-    fontWeight: "600",
-    color: "#0F172A",
-  },
-  cardFooter: {
+  detailRow: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
   },
-  statusPill: {
-    backgroundColor: "#F1F5F9",
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 6,
+  detailLabel: {
+    fontSize: 12,
+    color: "#64748B",
   },
-  statusPillNew: {
-    backgroundColor: "#EFF6FF",
+  detailValue: {
+    fontSize: 12.5,
+    fontWeight: "600",
+    color: "#1E293B",
   },
-  statusPillVisit: {
-    backgroundColor: "#FFF7ED",
-  },
-  statusPillConverted: {
-    backgroundColor: "#F0FDF4",
-  },
-  statusPillText: {
-    fontSize: 10,
-    fontWeight: "800",
-    color: "#475569",
-  },
-  statusPillTextNew: {
+  budgetValue: {
     color: COLORS.primary,
+    fontWeight: "700",
   },
-  statusPillTextVisit: {
-    color: "#EA580C",
+  cardDivider: {
+    height: 1,
+    backgroundColor: "#F1F5F9",
+    marginVertical: 12,
   },
-  statusPillTextConverted: {
-    color: "#16A34A",
-  },
-  viewLeadBtn: {
+  cardActionsRow: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 3,
+    gap: 8,
   },
-  viewLeadBtnText: {
+  leftIconActions: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+  },
+  iconCircleBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: "#F1F5F9",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  btnMatchProperty: {
+    flex: 1,
+    height: 38,
+    borderRadius: 10,
+    backgroundColor: "#EFF6FF",
+    borderWidth: 1,
+    borderColor: "#DBEAFE",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: 8,
+  },
+  btnMatchPropertyText: {
     fontSize: 12,
     fontWeight: "700",
     color: COLORS.primary,
+  },
+  btnViewDetails: {
+    flex: 1,
+    height: 38,
+    borderRadius: 10,
+    backgroundColor: COLORS.primary,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: 8,
+    gap: 4,
+  },
+  btnViewDetailsText: {
+    fontSize: 12,
+    fontWeight: "700",
+    color: "#FFFFFF",
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(15, 23, 42, 0.55)",
+    justifyContent: "flex-end",
+  },
+  matchSheetContainer: {
+    backgroundColor: "#FFFFFF",
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    padding: 20,
+    maxHeight: "80%",
+  },
+  matchSheetHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 8,
+  },
+  matchSheetTitle: {
+    fontSize: 17,
+    fontWeight: "700",
+    color: "#0F172A",
+  },
+  matchSheetSubtitle: {
+    fontSize: 12.5,
+    color: "#64748B",
+    marginTop: 2,
+  },
+  closeSheetBtn: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    backgroundColor: "#F1F5F9",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  matchSheetPrompt: {
+    fontSize: 12,
+    color: "#475569",
+    marginBottom: 12,
+  },
+  matchSheetScroll: {
+    maxHeight: 340,
+  },
+  matchPropItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: 10,
+    backgroundColor: "#F8FAFC",
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: "#EEF2F6",
+    marginBottom: 10,
+  },
+  matchPropThumb: {
+    width: 54,
+    height: 54,
+    borderRadius: 10,
+    backgroundColor: "#E2E8F0",
+    marginRight: 10,
+  },
+  matchPropInfo: {
+    flex: 1,
+    justifyContent: "center",
+  },
+  matchPropTitle: {
+    fontSize: 13.5,
+    fontWeight: "700",
+    color: "#0F172A",
+  },
+  matchPropLoc: {
+    fontSize: 11.5,
+    color: "#64748B",
+    marginTop: 2,
+  },
+  matchPropPrice: {
+    fontSize: 12.5,
+    fontWeight: "700",
+    color: COLORS.primary,
+    marginTop: 2,
+  },
+  matchAssignPill: {
+    backgroundColor: COLORS.primary,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 8,
+  },
+  matchAssignPillText: {
+    fontSize: 12,
+    fontWeight: "700",
+    color: "#FFFFFF",
   },
 });

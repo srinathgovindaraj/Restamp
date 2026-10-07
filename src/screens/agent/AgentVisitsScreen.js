@@ -18,18 +18,18 @@ import {
   MapPin,
   Building2,
   Phone,
-  MessageSquare,
   CheckCircle2,
   XCircle,
-  AlertCircle,
-  ChevronRight,
-  ShieldCheck,
   X,
   User,
+  Eye,
+  RotateCcw,
 } from "lucide-react-native";
 import COLORS from "../../constants/colors";
 import { useAgent } from "../../context/AgentContext";
 import AppBrandHeader from "../../components/AppBrandHeader";
+import EmptyState from "../../components/owner/EmptyState";
+import StatusBadge from "../../components/owner/StatusBadge";
 
 const VISIT_TABS = [
   { id: "upcoming", label: "Upcoming" },
@@ -38,70 +38,83 @@ const VISIT_TABS = [
 ];
 
 export default function AgentVisitsScreen({ navigation }) {
-  const { visits, updateVisitStatus, scheduleVisit } = useAgent();
+  const { visits, updateVisitStatus, updateLeadStatus } = useAgent();
   const [activeTab, setActiveTab] = useState("upcoming");
 
-  // Reschedule / Action modal state
-  const [selectedVisitForAction, setSelectedVisitForAction] = useState(null);
+  // Selected visit for "View Details" modal
+  const [selectedVisitForDetails, setSelectedVisitForDetails] = useState(null);
+
+  // Reschedule state inside modal
+  const [isRescheduling, setIsRescheduling] = useState(false);
+  const [newDate, setNewDate] = useState("");
+  const [newTime, setNewTime] = useState("");
 
   const filteredVisits = useMemo(() => {
     return visits.filter((v) => v.status === activeTab);
   }, [visits, activeTab]);
 
-  const handleCall = (phone, name) => {
+  const handleCallCustomer = (phone, name) => {
     const raw = phone || "+919876543210";
     Linking.openURL(`tel:${raw.replace(/[^0-9+]/g, "")}`).catch(() => {
-      Alert.alert("Call", `Call ${name} at ${raw}`);
+      Alert.alert("Call Customer", `Call ${name} at ${raw}`);
     });
   };
 
-  const handleWhatsApp = (phone, name, visit) => {
-    const raw = phone || "+919876543210";
-    const text = encodeURIComponent(
-      `Hello ${name}! Regarding the scheduled site visit for ${visit.propertyTitle} on ${visit.date} at ${visit.time}. Please let me know if you need directions or have any questions.`
+  const handleOpenDetails = (visit) => {
+    setSelectedVisitForDetails(visit);
+    setIsRescheduling(false);
+    setNewDate(visit.fullDate || visit.date || "12 Oct 2026");
+    setNewTime(visit.time || "11:30 AM");
+  };
+
+  const handleMarkCompleted = (visit) => {
+    updateVisitStatus(visit.id, "completed");
+    if (visit.leadId) {
+      updateLeadStatus(visit.leadId, "visited");
+    }
+    setSelectedVisitForDetails(null);
+    Alert.alert(
+      "Visit Completed! ✅",
+      `Site visit with ${visit.customerName} has been marked as Completed. Lead status updated to 'Visited'.`
     );
-    Linking.openURL(`https://wa.me/${raw.replace(/[^0-9]/g, "")}?text=${text}`).catch(() => {
-      Alert.alert("WhatsApp", `Contact ${name} at ${raw}`);
-    });
   };
 
-  const handleMarkCompleted = (visitId) => {
-    updateVisitStatus(visitId, "completed");
-    setSelectedVisitForAction(null);
-    Alert.alert("Visit Completed! ✅", "Site visit status marked as completed. You can now follow up for negotiation.");
+  const handleCancelVisit = (visit) => {
+    updateVisitStatus(visit.id, "cancelled");
+    setSelectedVisitForDetails(null);
+    Alert.alert("Visit Cancelled", "The site visit has been marked as cancelled.");
   };
 
-  const handleCancelVisit = (visitId) => {
-    updateVisitStatus(visitId, "cancelled");
-    setSelectedVisitForAction(null);
-    Alert.alert("Visit Cancelled", "The visit has been marked as cancelled.");
+  const handleConfirmReschedule = (visit) => {
+    updateVisitStatus(visit.id, "upcoming");
+    // Update visit with new date/time
+    visit.fullDate = newDate;
+    visit.date = newDate;
+    visit.time = newTime;
+    setIsRescheduling(false);
+    setSelectedVisitForDetails(null);
+    Alert.alert(
+      "Visit Rescheduled! 📅",
+      `Site visit rescheduled to ${newDate} at ${newTime}. Notification sent to ${visit.customerName}.`
+    );
   };
 
   return (
     <SafeAreaView style={styles.safeArea}>
       <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
 
-      {/* TOP BRAND HEADER (Matching Buyer Page) */}
+      {/* TOP BRAND HEADER */}
       <AppBrandHeader currentRole="agent" />
 
-      {/* Screen Title */}
-      <View style={{ paddingHorizontal: 16, paddingTop: 4, paddingBottom: 10, flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
-        <View style={{ flex: 1, marginRight: 8 }}>
-          <Text style={styles.headerTitle}>Site Visits & Inspections</Text>
-          <Text style={styles.headerSubtitle}>
-            Coordinated buyer & owner inspections
-          </Text>
-        </View>
-
-        <View style={styles.activeBadge}>
-          <Calendar size={13} color={COLORS.primary} style={{ marginRight: 4 }} />
-          <Text style={styles.activeBadgeText}>
-            {visits.filter((v) => v.status === "upcoming").length} Upcoming
-          </Text>
-        </View>
+      {/* SCREEN TITLE */}
+      <View style={styles.screenHeader}>
+        <Text style={styles.headerTitle}>Site Visits</Text>
+        <Text style={styles.headerSubtitle}>
+          Coordinate customer inspections and property walkthroughs
+        </Text>
       </View>
 
-      {/* TABS (Upcoming, Completed, Cancelled) */}
+      {/* TABS: Upcoming, Completed, Cancelled */}
       <View style={styles.tabsRow}>
         {VISIT_TABS.map((tab) => {
           const isActive = activeTab === tab.id;
@@ -129,188 +142,253 @@ export default function AgentVisitsScreen({ navigation }) {
         showsVerticalScrollIndicator={false}
       >
         {filteredVisits.length === 0 ? (
-          <View style={styles.emptyState}>
-            <Calendar size={38} color="#CBD5E1" />
-            <Text style={styles.emptyTitle}>No {activeTab} visits</Text>
-            <Text style={styles.emptySub}>
-              {activeTab === "upcoming"
-                ? "Schedule visits directly from any client lead page."
-                : `Visits marked as ${activeTab} will appear here.`}
-            </Text>
-          </View>
+          <EmptyState
+            icon={Calendar}
+            title="No site visits scheduled."
+            description={
+              activeTab === "upcoming"
+                ? "Schedule visits directly from any customer lead page."
+                : `No visits marked as ${activeTab}.`
+            }
+          />
         ) : (
           <View style={styles.visitsList}>
-            {filteredVisits.map((item) => (
-              <View key={item.id} style={styles.visitCard}>
-                {/* Top Card Row: Date/Time Badge & Status */}
-                <View style={styles.cardHeader}>
-                  <View style={styles.timeBadge}>
-                    <Clock size={13} color={COLORS.primary} style={{ marginRight: 5 }} />
-                    <Text style={styles.timeBadgeText}>
-                      {item.date} • {item.time}
-                    </Text>
-                  </View>
+            {filteredVisits.map((item) => {
+              const visitDate = item.fullDate || item.date || "12 Oct 2026";
+              const visitTime = item.time || "11:30 AM";
 
-                  <View
-                    style={[
-                      styles.statusPill,
-                      item.status === "completed" && styles.statusPillCompleted,
-                      item.status === "cancelled" && styles.statusPillCancelled,
-                    ]}
-                  >
-                    <Text
+              return (
+                <View key={item.id} style={styles.visitCard}>
+                  {/* Card Header: Customer Name & Status */}
+                  <View style={styles.cardHeader}>
+                    <View style={styles.customerNameRow}>
+                      <User size={15} color={COLORS.primary} style={{ marginRight: 6 }} />
+                      <Text style={styles.customerName}>{item.customerName}</Text>
+                    </View>
+
+                    <View
                       style={[
-                        styles.statusPillText,
-                        item.status === "completed" && styles.statusPillTextCompleted,
-                        item.status === "cancelled" && styles.statusPillTextCancelled,
+                        styles.statusPill,
+                        item.status === "completed" && styles.statusPillCompleted,
+                        item.status === "cancelled" && styles.statusPillCancelled,
                       ]}
                     >
-                      {item.status === "upcoming"
-                        ? "VISIT SCHEDULED"
-                        : item.status.toUpperCase()}
-                    </Text>
-                  </View>
-                </View>
-
-                {/* Property Details Block */}
-                <View style={styles.propertyInfoBlock}>
-                  <Text style={styles.propertyTitle}>{item.propertyTitle}</Text>
-                  <View style={styles.locationRow}>
-                    <MapPin size={13} color="#64748B" style={{ marginRight: 4 }} />
-                    <Text style={styles.locationText}>{item.propertyLocation}</Text>
-                  </View>
-                </View>
-
-                {/* Customer & Owner Info Grid */}
-                <View style={styles.partiesGrid}>
-                  {/* Client Party */}
-                  <View style={styles.partyBox}>
-                    <View style={styles.partyHeader}>
-                      <User size={13} color="#64748B" style={{ marginRight: 4 }} />
-                      <Text style={styles.partyRoleLabel}>Client / Buyer</Text>
-                    </View>
-                    <Text style={styles.partyName}>{item.customerName}</Text>
-                    <View style={styles.partyActionsRow}>
-                      <TouchableOpacity
-                        style={styles.partyMiniBtn}
-                        onPress={() => handleWhatsApp(item.customerPhone, item.customerName, item)}
+                      <Text
+                        style={[
+                          styles.statusPillText,
+                          item.status === "completed" && styles.statusPillTextCompleted,
+                          item.status === "cancelled" && styles.statusPillTextCancelled,
+                        ]}
                       >
-                        <MessageSquare size={13} color="#16A34A" />
-                        <Text style={[styles.partyMiniBtnText, { color: "#16A34A" }]}>WhatsApp</Text>
-                      </TouchableOpacity>
-                      <TouchableOpacity
-                        style={styles.partyMiniBtn}
-                        onPress={() => handleCall(item.customerPhone, item.customerName)}
-                      >
-                        <Phone size={13} color="#0F172A" />
-                        <Text style={styles.partyMiniBtnText}>Call</Text>
-                      </TouchableOpacity>
+                        {item.status === "upcoming"
+                          ? "Upcoming"
+                          : item.status === "completed"
+                          ? "Completed"
+                          : "Cancelled"}
+                      </Text>
                     </View>
                   </View>
 
-                  {/* Owner Party */}
-                  <View style={styles.partyBox}>
-                    <View style={styles.partyHeader}>
-                      <Building2 size={13} color="#64748B" style={{ marginRight: 4 }} />
-                      <Text style={styles.partyRoleLabel}>Property Owner</Text>
+                  {/* Visit Body: Property & Location */}
+                  <View style={styles.visitBody}>
+                    <View style={styles.bodyField}>
+                      <Text style={styles.fieldLabel}>Property:</Text>
+                      <Text style={styles.fieldValueBold}>
+                        {item.propertyTitle || "2 BHK Apartment"}
+                      </Text>
                     </View>
-                    <Text style={styles.partyName}>{item.ownerName || "Property Owner"}</Text>
-                    <View style={styles.partyActionsRow}>
-                      <TouchableOpacity
-                        style={styles.partyMiniBtn}
-                        onPress={() => handleWhatsApp(item.ownerPhone, item.ownerName, item)}
-                      >
-                        <MessageSquare size={13} color="#16A34A" />
-                        <Text style={[styles.partyMiniBtnText, { color: "#16A34A" }]}>WhatsApp</Text>
-                      </TouchableOpacity>
-                      <TouchableOpacity
-                        style={styles.partyMiniBtn}
-                        onPress={() => handleCall(item.ownerPhone, item.ownerName)}
-                      >
-                        <Phone size={13} color="#0F172A" />
-                        <Text style={styles.partyMiniBtnText}>Call</Text>
-                      </TouchableOpacity>
+
+                    <View style={styles.bodyField}>
+                      <Text style={styles.fieldLabel}>Location:</Text>
+                      <Text style={styles.fieldValue}>
+                        {item.propertyLocation || "Anna Nagar, Chennai"}
+                      </Text>
+                    </View>
+
+                    <View style={styles.dateTimeRow}>
+                      <View style={styles.dateTimeBadge}>
+                        <Calendar size={13} color="#2563EB" style={{ marginRight: 5 }} />
+                        <Text style={styles.dateTimeText}>Visit Date: {visitDate}</Text>
+                      </View>
+
+                      <View style={styles.dateTimeBadge}>
+                        <Clock size={13} color="#2563EB" style={{ marginRight: 5 }} />
+                        <Text style={styles.dateTimeText}>Time: {visitTime}</Text>
+                      </View>
                     </View>
                   </View>
-                </View>
 
-                {/* Notes if available */}
-                {item.notes && (
-                  <View style={styles.notesBox}>
-                    <Text style={styles.notesText}>Note: {item.notes}</Text>
-                  </View>
-                )}
+                  {/* Divider */}
+                  <View style={styles.cardDivider} />
 
-                {/* Bottom Action Buttons for Visit */}
-                {item.status === "upcoming" && (
+                  {/* Actions: View Details, Call Customer */}
                   <View style={styles.cardActionsRow}>
                     <TouchableOpacity
-                      style={styles.btnActionSecondary}
-                      onPress={() => setSelectedVisitForAction(item)}
+                      style={styles.callCustomerBtn}
+                      onPress={() =>
+                        handleCallCustomer(item.customerPhone, item.customerName)
+                      }
                       activeOpacity={0.8}
                     >
-                      <Text style={styles.btnActionSecondaryText}>Manage Visit</Text>
+                      <Phone size={14} color="#0F172A" style={{ marginRight: 5 }} />
+                      <Text style={styles.callCustomerBtnText}>Call Customer</Text>
                     </TouchableOpacity>
 
                     <TouchableOpacity
-                      style={styles.btnActionPrimary}
-                      onPress={() => handleMarkCompleted(item.id)}
-                      activeOpacity={0.88}
+                      style={styles.viewDetailsBtn}
+                      onPress={() => handleOpenDetails(item)}
+                      activeOpacity={0.8}
                     >
-                      <CheckCircle2 size={14} color="#FFFFFF" style={{ marginRight: 5 }} />
-                      <Text style={styles.btnActionPrimaryText}>Mark Completed</Text>
+                      <Eye size={14} color="#FFFFFF" style={{ marginRight: 5 }} />
+                      <Text style={styles.viewDetailsBtnText}>View Details</Text>
                     </TouchableOpacity>
                   </View>
-                )}
-              </View>
-            ))}
+                </View>
+              );
+            })}
           </View>
         )}
       </ScrollView>
 
-      {/* MANAGE VISIT ACTION MODAL */}
+      {/* VISIT DETAILS MODAL */}
       <Modal
-        visible={!!selectedVisitForAction}
+        visible={!!selectedVisitForDetails}
         transparent
-        animationType="fade"
-        onRequestClose={() => setSelectedVisitForAction(null)}
+        animationType="slide"
+        onRequestClose={() => setSelectedVisitForDetails(null)}
       >
         <View style={styles.modalOverlay}>
-          <View style={styles.modalCard}>
+          <View style={styles.detailsModalCard}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Manage Visit</Text>
-              <TouchableOpacity onPress={() => setSelectedVisitForAction(null)}>
+              <Text style={styles.modalTitle}>Site Visit Details</Text>
+              <TouchableOpacity
+                style={styles.modalCloseBtn}
+                onPress={() => setSelectedVisitForDetails(null)}
+              >
                 <X size={18} color="#0F172A" />
               </TouchableOpacity>
             </View>
 
-            <Text style={styles.modalSub}>
-              {selectedVisitForAction?.customerName} • {selectedVisitForAction?.propertyTitle}
-            </Text>
+            {selectedVisitForDetails && (
+              <ScrollView showsVerticalScrollIndicator={false}>
+                {/* Details list: Customer, Property, Owner, Location, Date, Time, Notes */}
+                <View style={styles.detailsList}>
+                  <View style={styles.detailRow}>
+                    <Text style={styles.detailLabel}>Customer</Text>
+                    <Text style={styles.detailValueBold}>
+                      {selectedVisitForDetails.customerName} ({selectedVisitForDetails.customerPhone || "+91 98840 55667"})
+                    </Text>
+                  </View>
 
-            <View style={styles.modalOptionsList}>
-              <TouchableOpacity
-                style={styles.modalOptionItem}
-                onPress={() => handleMarkCompleted(selectedVisitForAction?.id)}
-              >
-                <CheckCircle2 size={18} color="#16A34A" style={{ marginRight: 10 }} />
-                <View style={{ flex: 1 }}>
-                  <Text style={styles.modalOptionTitle}>Mark as Completed</Text>
-                  <Text style={styles.modalOptionSub}>Site inspection done with client</Text>
-                </View>
-              </TouchableOpacity>
+                  <View style={styles.detailRow}>
+                    <Text style={styles.detailLabel}>Property</Text>
+                    <Text style={styles.detailValueBold}>
+                      {selectedVisitForDetails.propertyTitle || "2 BHK Apartment"}
+                    </Text>
+                  </View>
 
-              <TouchableOpacity
-                style={styles.modalOptionItem}
-                onPress={() => handleCancelVisit(selectedVisitForAction?.id)}
-              >
-                <XCircle size={18} color="#DC2626" style={{ marginRight: 10 }} />
-                <View style={{ flex: 1 }}>
-                  <Text style={[styles.modalOptionTitle, { color: "#DC2626" }]}>Cancel Visit</Text>
-                  <Text style={styles.modalOptionSub}>Client or owner cancelled inspection</Text>
+                  <View style={styles.detailRow}>
+                    <Text style={styles.detailLabel}>Owner</Text>
+                    <Text style={styles.detailValue}>
+                      {selectedVisitForDetails.ownerName || "Sundar Raman"} ({selectedVisitForDetails.ownerPhone || "+91 98400 12345"})
+                    </Text>
+                  </View>
+
+                  <View style={styles.detailRow}>
+                    <Text style={styles.detailLabel}>Location</Text>
+                    <Text style={styles.detailValue}>
+                      {selectedVisitForDetails.propertyLocation || "Anna Nagar, Chennai"}
+                    </Text>
+                  </View>
+
+                  <View style={styles.detailRow}>
+                    <Text style={styles.detailLabel}>Date</Text>
+                    <Text style={styles.detailValue}>
+                      {selectedVisitForDetails.fullDate || selectedVisitForDetails.date || "12 Oct 2026"}
+                    </Text>
+                  </View>
+
+                  <View style={styles.detailRow}>
+                    <Text style={styles.detailLabel}>Time</Text>
+                    <Text style={styles.detailValue}>
+                      {selectedVisitForDetails.time || "11:30 AM"}
+                    </Text>
+                  </View>
+
+                  <View style={styles.detailRow}>
+                    <Text style={styles.detailLabel}>Notes</Text>
+                    <Text style={styles.detailValue}>
+                      {selectedVisitForDetails.notes || "Inspection of keys and apartment interior."}
+                    </Text>
+                  </View>
                 </View>
-              </TouchableOpacity>
-            </View>
+
+                {/* Reschedule Edit Form if active */}
+                {isRescheduling && (
+                  <View style={styles.rescheduleForm}>
+                    <Text style={styles.formHeading}>Choose New Schedule</Text>
+                    <Text style={styles.inputLabel}>New Date</Text>
+                    <TextInput
+                      style={styles.textInput}
+                      value={newDate}
+                      onChangeText={setNewDate}
+                      placeholder="e.g. 15 Oct 2026"
+                    />
+                    <Text style={styles.inputLabel}>New Time</Text>
+                    <TextInput
+                      style={styles.textInput}
+                      value={newTime}
+                      onChangeText={setNewTime}
+                      placeholder="e.g. 04:30 PM"
+                    />
+
+                    <TouchableOpacity
+                      style={styles.confirmRescheduleBtn}
+                      onPress={() => handleConfirmReschedule(selectedVisitForDetails)}
+                      activeOpacity={0.88}
+                    >
+                      <Text style={styles.confirmRescheduleBtnText}>Save New Schedule</Text>
+                    </TouchableOpacity>
+                  </View>
+                )}
+
+                {/* Actions: Reschedule, Mark Completed, Cancel Visit */}
+                {!isRescheduling && (
+                  <View style={styles.detailsModalActions}>
+                    <TouchableOpacity
+                      style={styles.btnReschedule}
+                      onPress={() => setIsRescheduling(true)}
+                      activeOpacity={0.8}
+                    >
+                      <RotateCcw size={14} color={COLORS.primary} style={{ marginRight: 4 }} />
+                      <Text style={styles.btnRescheduleText}>Reschedule</Text>
+                    </TouchableOpacity>
+
+                    {selectedVisitForDetails.status !== "completed" && (
+                      <TouchableOpacity
+                        style={styles.btnComplete}
+                        onPress={() => handleMarkCompleted(selectedVisitForDetails)}
+                        activeOpacity={0.88}
+                      >
+                        <CheckCircle2 size={14} color="#FFFFFF" style={{ marginRight: 4 }} />
+                        <Text style={styles.btnCompleteText}>Mark Completed</Text>
+                      </TouchableOpacity>
+                    )}
+
+                    {selectedVisitForDetails.status !== "cancelled" && (
+                      <TouchableOpacity
+                        style={styles.btnCancel}
+                        onPress={() => handleCancelVisit(selectedVisitForDetails)}
+                        activeOpacity={0.8}
+                      >
+                        <XCircle size={14} color="#DC2626" style={{ marginRight: 4 }} />
+                        <Text style={styles.btnCancelText}>Cancel Visit</Text>
+                      </TouchableOpacity>
+                    )}
+                  </View>
+                )}
+              </ScrollView>
+            )}
           </View>
         </View>
       </Modal>
@@ -323,68 +401,49 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#FFFFFF",
   },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
+  screenHeader: {
     paddingHorizontal: 16,
-    paddingVertical: 12,
-    backgroundColor: "#FFFFFF",
-    borderBottomWidth: 1,
-    borderBottomColor: "#EEF2F6",
+    paddingTop: 4,
+    paddingBottom: 8,
   },
   headerTitle: {
-    fontSize: 17,
+    fontSize: 20,
     fontWeight: "800",
     color: "#0F172A",
+    letterSpacing: -0.4,
   },
   headerSubtitle: {
-    fontSize: 11,
+    fontSize: 12.5,
     color: "#64748B",
     marginTop: 2,
   },
-  activeBadge: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#EFF6FF",
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 100,
-  },
-  activeBadgeText: {
-    fontSize: 11,
-    fontWeight: "700",
-    color: COLORS.primary,
-  },
   tabsRow: {
     flexDirection: "row",
-    backgroundColor: "#FFFFFF",
     paddingHorizontal: 16,
-    paddingVertical: 10,
+    paddingBottom: 10,
+    gap: 8,
     borderBottomWidth: 1,
     borderBottomColor: "#EEF2F6",
-    gap: 8,
   },
   tabBtn: {
-    flex: 1,
-    paddingVertical: 8,
-    borderRadius: 100,
-    backgroundColor: "#F8FAFC",
-    alignItems: "center",
+    paddingHorizontal: 16,
+    paddingVertical: 7,
+    borderRadius: 20,
+    backgroundColor: "#F1F5F9",
     borderWidth: 1,
     borderColor: "#E2E8F0",
   },
   tabBtnActive: {
-    backgroundColor: "#EFF6FF",
-    borderColor: "#2563EB",
+    backgroundColor: COLORS.primary,
+    borderColor: COLORS.primary,
   },
   tabText: {
     fontSize: 12,
     fontWeight: "600",
-    color: "#64748B",
+    color: "#475569",
   },
   tabTextActive: {
-    color: "#2563EB",
+    color: "#FFFFFF",
     fontWeight: "700",
   },
   container: {
@@ -392,25 +451,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     padding: 16,
-    paddingBottom: 110,
-  },
-  emptyState: {
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: 50,
-  },
-  emptyTitle: {
-    fontSize: 15,
-    fontWeight: "700",
-    color: "#0F172A",
-    marginTop: 10,
-  },
-  emptySub: {
-    fontSize: 12,
-    color: "#64748B",
-    marginTop: 4,
-    textAlign: "center",
-    maxWidth: 240,
+    paddingBottom: 100,
   },
   visitsList: {
     gap: 14,
@@ -418,9 +459,14 @@ const styles = StyleSheet.create({
   visitCard: {
     backgroundColor: "#FFFFFF",
     borderRadius: 20,
-    padding: 16,
     borderWidth: 1,
     borderColor: "#EEF2F6",
+    padding: 16,
+    shadowColor: "#0F172A",
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.04,
+    shadowRadius: 8,
+    elevation: 2,
   },
   cardHeader: {
     flexDirection: "row",
@@ -428,35 +474,35 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     marginBottom: 10,
   },
-  timeBadge: {
+  customerNameRow: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#EFF6FF",
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 100,
   },
-  timeBadgeText: {
-    fontSize: 12,
+  customerName: {
+    fontSize: 15,
     fontWeight: "700",
-    color: COLORS.primary,
+    color: "#0F172A",
   },
   statusPill: {
-    backgroundColor: "#FFF7ED",
+    backgroundColor: "#EFF6FF",
+    borderWidth: 1,
+    borderColor: "#DBEAFE",
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: 6,
   },
   statusPillCompleted: {
     backgroundColor: "#F0FDF4",
+    borderColor: "#DCFCE7",
   },
   statusPillCancelled: {
     backgroundColor: "#FEF2F2",
+    borderColor: "#FECACA",
   },
   statusPillText: {
-    fontSize: 9,
-    fontWeight: "800",
-    color: "#EA580C",
+    fontSize: 11,
+    fontWeight: "700",
+    color: COLORS.primary,
   },
   statusPillTextCompleted: {
     color: "#16A34A",
@@ -464,166 +510,246 @@ const styles = StyleSheet.create({
   statusPillTextCancelled: {
     color: "#DC2626",
   },
-  propertyInfoBlock: {
-    marginBottom: 12,
+  visitBody: {
+    backgroundColor: "#F8FAFC",
+    borderRadius: 12,
+    padding: 12,
+    gap: 6,
   },
-  propertyTitle: {
-    fontSize: 15,
-    fontWeight: "700",
-    color: "#0F172A",
-  },
-  locationRow: {
+  bodyField: {
     flexDirection: "row",
     alignItems: "center",
-    marginTop: 3,
+    justifyContent: "space-between",
   },
-  locationText: {
+  fieldLabel: {
     fontSize: 12,
     color: "#64748B",
   },
-  partiesGrid: {
-    flexDirection: "row",
-    gap: 10,
-    marginBottom: 10,
-  },
-  partyBox: {
-    flex: 1,
-    backgroundColor: "#F8FAFC",
-    borderRadius: 14,
-    padding: 10,
-    borderWidth: 1,
-    borderColor: "#E2E8F0",
-  },
-  partyHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 4,
-  },
-  partyRoleLabel: {
-    fontSize: 10,
-    color: "#64748B",
+  fieldValue: {
+    fontSize: 12.5,
     fontWeight: "600",
-    textTransform: "uppercase",
+    color: "#1E293B",
   },
-  partyName: {
+  fieldValueBold: {
     fontSize: 13,
     fontWeight: "700",
     color: "#0F172A",
-    marginBottom: 6,
   },
-  partyActionsRow: {
+  dateTimeRow: {
     flexDirection: "row",
-    gap: 6,
+    gap: 8,
+    marginTop: 6,
   },
-  partyMiniBtn: {
-    flex: 1,
+  dateTimeBadge: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "center",
     backgroundColor: "#FFFFFF",
-    paddingVertical: 5,
-    borderRadius: 6,
     borderWidth: 1,
     borderColor: "#E2E8F0",
-    gap: 3,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
   },
-  partyMiniBtnText: {
-    fontSize: 10,
-    fontWeight: "700",
-    color: "#0F172A",
-  },
-  notesBox: {
-    backgroundColor: "#F8FAFC",
-    padding: 8,
-    borderRadius: 8,
-    marginBottom: 10,
-  },
-  notesText: {
+  dateTimeText: {
     fontSize: 11,
-    color: "#64748B",
-    fontStyle: "italic",
+    fontWeight: "600",
+    color: "#334155",
+  },
+  cardDivider: {
+    height: 1,
+    backgroundColor: "#F1F5F9",
+    marginVertical: 12,
   },
   cardActionsRow: {
     flexDirection: "row",
-    gap: 8,
-    marginTop: 4,
-    borderTopWidth: 1,
-    borderTopColor: "#F1F5F9",
-    paddingTop: 10,
-  },
-  btnActionSecondary: {
-    flex: 1,
-    backgroundColor: "#F1F5F9",
-    paddingVertical: 9,
-    borderRadius: 100,
     alignItems: "center",
+    gap: 10,
   },
-  btnActionSecondaryText: {
-    fontSize: 12,
-    fontWeight: "700",
-    color: "#0F172A",
-  },
-  btnActionPrimary: {
-    flex: 1.3,
+  callCustomerBtn: {
+    flex: 1,
+    height: 38,
+    borderRadius: 10,
+    backgroundColor: "#F1F5F9",
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#16A34A",
-    paddingVertical: 9,
-    borderRadius: 100,
   },
-  btnActionPrimaryText: {
-    fontSize: 12,
+  callCustomerBtnText: {
+    fontSize: 12.5,
+    fontWeight: "700",
+    color: "#0F172A",
+  },
+  viewDetailsBtn: {
+    flex: 1,
+    height: 38,
+    borderRadius: 10,
+    backgroundColor: COLORS.primary,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  viewDetailsBtnText: {
+    fontSize: 12.5,
     fontWeight: "700",
     color: "#FFFFFF",
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: "rgba(15, 23, 42, 0.45)",
-    justifyContent: "center",
-    padding: 20,
+    backgroundColor: "rgba(15, 23, 42, 0.55)",
+    justifyContent: "flex-end",
   },
-  modalCard: {
+  detailsModalCard: {
     backgroundColor: "#FFFFFF",
-    borderRadius: 22,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
     padding: 20,
+    maxHeight: "85%",
   },
   modalHeader: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
+    marginBottom: 16,
   },
   modalTitle: {
-    fontSize: 16,
-    fontWeight: "800",
-    color: "#0F172A",
-  },
-  modalSub: {
-    fontSize: 12,
-    color: "#64748B",
-    marginTop: 3,
-    marginBottom: 14,
-  },
-  modalOptionsList: {
-    gap: 10,
-  },
-  modalOptionItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    padding: 12,
-    backgroundColor: "#F8FAFC",
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: "#E2E8F0",
-  },
-  modalOptionTitle: {
-    fontSize: 14,
+    fontSize: 17,
     fontWeight: "700",
     color: "#0F172A",
   },
-  modalOptionSub: {
-    fontSize: 11,
+  modalCloseBtn: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: "#F1F5F9",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  detailsList: {
+    backgroundColor: "#F8FAFC",
+    borderRadius: 14,
+    padding: 14,
+    gap: 10,
+    borderWidth: 1,
+    borderColor: "#EEF2F6",
+    marginBottom: 16,
+  },
+  detailRow: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    justifyContent: "space-between",
+  },
+  detailLabel: {
+    fontSize: 12,
     color: "#64748B",
-    marginTop: 1,
+    width: 80,
+  },
+  detailValue: {
+    flex: 1,
+    fontSize: 12.5,
+    color: "#1E293B",
+    textAlign: "right",
+  },
+  detailValueBold: {
+    flex: 1,
+    fontSize: 13,
+    fontWeight: "700",
+    color: "#0F172A",
+    textAlign: "right",
+  },
+  rescheduleForm: {
+    backgroundColor: "#EFF6FF",
+    borderRadius: 14,
+    padding: 14,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: "#DBEAFE",
+  },
+  formHeading: {
+    fontSize: 13,
+    fontWeight: "700",
+    color: COLORS.primary,
+    marginBottom: 10,
+  },
+  inputLabel: {
+    fontSize: 11.5,
+    fontWeight: "600",
+    color: "#475569",
+    marginBottom: 4,
+    marginTop: 6,
+  },
+  textInput: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "#CBD5E1",
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    fontSize: 12.5,
+    color: "#0F172A",
+  },
+  confirmRescheduleBtn: {
+    backgroundColor: COLORS.primary,
+    borderRadius: 10,
+    paddingVertical: 11,
+    alignItems: "center",
+    marginTop: 12,
+  },
+  confirmRescheduleBtnText: {
+    fontSize: 13,
+    fontWeight: "700",
+    color: "#FFFFFF",
+  },
+  detailsModalActions: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  btnReschedule: {
+    flex: 1,
+    height: 40,
+    borderRadius: 10,
+    backgroundColor: "#EFF6FF",
+    borderWidth: 1,
+    borderColor: "#DBEAFE",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  btnRescheduleText: {
+    fontSize: 12,
+    fontWeight: "700",
+    color: COLORS.primary,
+  },
+  btnComplete: {
+    flex: 1.2,
+    height: 40,
+    borderRadius: 10,
+    backgroundColor: "#16A34A",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  btnCompleteText: {
+    fontSize: 12,
+    fontWeight: "700",
+    color: "#FFFFFF",
+  },
+  btnCancel: {
+    flex: 1,
+    height: 40,
+    borderRadius: 10,
+    backgroundColor: "#FEF2F2",
+    borderWidth: 1,
+    borderColor: "#FECACA",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  btnCancelText: {
+    fontSize: 12,
+    fontWeight: "700",
+    color: "#DC2626",
   },
 });

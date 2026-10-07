@@ -43,6 +43,7 @@ import { getAuthTokenSync } from "../../api/client";
 import { useWishlist } from "../../context/WishlistContext";
 import PropertyDetailModal from "../../components/PropertyDetailModal";
 import SearchPropertyModal from "../../components/SearchPropertyModal";
+import SafeImage from "../../components/common/SafeImage";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
@@ -612,7 +613,7 @@ export default function SearchScreen({ navigation, route }) {
                 >
                 {/* Media Container with Image, Bookmark icon and 10 photos badge */}
                 <View style={styles.cardMediaContainer}>
-                  <Image source={{ uri: property.image }} style={styles.cardImage} />
+                  <SafeImage source={{ uri: property.image }} style={styles.cardImage} />
 
                   {/* Heart / Favorite Button in Top Right (Matching Home Screen) */}
                   <TouchableOpacity

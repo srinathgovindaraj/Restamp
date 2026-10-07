@@ -1,12 +1,115 @@
 /**
- * useListings hook (Phase 2): paginated GET /buyer/listings bound to UI filter state.
+ * useListings hook: paginated GET /buyer/listings bound to UI filter state.
+ * Gracefully falls back to mock properties when the backend server is offline/unreachable.
  * Returns { items, total, page, loading, loadingMore, error, loadMore, refresh }.
- * Category pseudo-filters (Pool/Townhouse) and rating sort have no backend
- * equivalent and are applied client-side by the caller where needed.
  */
 import { useCallback, useEffect, useRef, useState } from "react";
 import { apiGet } from "./client";
 import { buildListingParams, toUiProperty } from "./mappers";
+import ALL_PROPERTIES from "../data/properties";
+
+function filterMockProperties(filters, pageToLoad, pageSize) {
+  let result = [...ALL_PROPERTIES];
+
+  // 1. Deal Tab (Buy / Rent / Lease)
+  if (filters.dealTab) {
+    const deal = String(filters.dealTab).toLowerCase();
+    if (deal === "buy") {
+      result = result.filter(
+        (p) =>
+          p.listingType === "Sale" ||
+          p.badgeType === "sale" ||
+          p.badgeType === "resale" ||
+          p.transactionType === "BUY" ||
+          (!p.price?.includes("/mo") && !p.price?.includes("/month"))
+      );
+    } else if (deal === "rent") {
+      result = result.filter(
+        (p) =>
+          p.listingType === "Rent" ||
+          p.badgeType === "rent" ||
+          p.price?.includes("/mo") ||
+          p.price?.includes("/month")
+      );
+    } else if (deal === "lease") {
+      result = result.filter(
+        (p) => p.listingType === "Lease" || p.badgeType === "lease"
+      );
+    }
+  }
+
+  // 2. Property Type
+  if (filters.selectedType && filters.selectedType !== "All Types") {
+    const targetType = String(filters.selectedType).toLowerCase();
+    result = result.filter(
+      (p) =>
+        (p.type || "").toLowerCase() === targetType ||
+        (targetType === "house" && (p.type || "").toLowerCase() === "home")
+    );
+  }
+
+  // 3. Search query or locality
+  const query = (filters.searchQuery || filters.locality || "").trim().toLowerCase();
+  if (query) {
+    result = result.filter((p) => {
+      const loc = (p.location || "").toLowerCase();
+      const addr = (p.address || "").toLowerCase();
+      const title = (p.title || "").toLowerCase();
+      const desc = (p.description || "").toLowerCase();
+      return (
+        loc.includes(query) ||
+        addr.includes(query) ||
+        title.includes(query) ||
+        desc.includes(query)
+      );
+    });
+  }
+
+  // 4. BHK
+  if (filters.bhk && filters.bhk !== "All BHK") {
+    if (filters.bhk === "4+ BHK") {
+      result = result.filter((p) => (p.beds || 0) >= 4);
+    } else {
+      const n = parseInt(filters.bhk, 10);
+      if (!Number.isNaN(n)) {
+        result = result.filter((p) => (p.beds || 0) === n);
+      }
+    }
+  }
+
+  // 5. Budget in Rupees
+  const minR = Math.max(filters.presetMinRupees || 0, filters.minRupees || 0);
+  const maxR = Math.min(
+    filters.presetMaxRupees == null ? Infinity : filters.presetMaxRupees,
+    filters.maxRupees == null ? Infinity : filters.maxRupees
+  );
+  if (minR > 0 || maxR < Infinity) {
+    result = result.filter((p) => {
+      const pVal = p.rawPrice || 0;
+      if (pVal === 0) return true;
+      return pVal >= minR && pVal <= maxR;
+    });
+  }
+
+  // 6. Sort
+  if (filters.sort === "price_asc") {
+    result.sort((a, b) => (a.rawPrice || 0) - (b.rawPrice || 0));
+  } else if (filters.sort === "price_desc") {
+    result.sort((a, b) => (b.rawPrice || 0) - (a.rawPrice || 0));
+  } else if (filters.sort === "area_desc") {
+    result.sort(
+      (a, b) =>
+        (parseInt(String(b.sqft || 0).replace(/,/g, ""), 10) || 0) -
+        (parseInt(String(a.sqft || 0).replace(/,/g, ""), 10) || 0)
+    );
+  }
+
+  const total = result.length;
+  const start = (pageToLoad - 1) * pageSize;
+  const items = result.slice(start, start + pageSize);
+
+  return { items, total };
+}
 
 export function useListings(uiFilters, { pageSize = 20 } = {}) {
   const [items, setItems] = useState([]);
@@ -28,8 +131,8 @@ export function useListings(uiFilters, { pageSize = 20 } = {}) {
       }
       setError(null);
       try {
-        const params = buildListingParams(JSON.parse(filtersKey), pageToLoad, pageSize);
-        // Category pseudo-types without backend meaning stay client-side.
+        const parsedFilters = JSON.parse(filtersKey);
+        const params = buildListingParams(parsedFilters, pageToLoad, pageSize);
         const data = await apiGet("/buyer/listings", params);
         if (reqId.current !== myReq) return; // stale response
         const mapped = (data.items || []).map(toUiProperty);
@@ -38,7 +141,17 @@ export function useListings(uiFilters, { pageSize = 20 } = {}) {
         setPage(pageToLoad);
       } catch (e) {
         if (reqId.current !== myReq) return;
-        setError(e);
+        // Fallback to offline mock properties if backend is unreachable
+        try {
+          const parsedFilters = JSON.parse(filtersKey);
+          const fallback = filterMockProperties(parsedFilters, pageToLoad, pageSize);
+          setItems((prev) => (append ? [...prev, ...fallback.items] : fallback.items));
+          setTotal(fallback.total);
+          setPage(pageToLoad);
+          setError(null); // Clear error since fallback succeeded
+        } catch {
+          setError(e);
+        }
       } finally {
         if (reqId.current === myReq) {
           setLoading(false);

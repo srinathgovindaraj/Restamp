@@ -3,8 +3,36 @@
  * Every key below is either authoritative backend data or an explicit,
  * documented UI fallback (rating/furnishing-style fields stay mock-only).
  */
-const FALLBACK_IMAGE =
-  "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?q=80&w=800&auto=format&fit=crop";
+export const PROPERTY_TYPE_FALLBACK_IMAGES = {
+  Apartment: [
+    "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=1000&q=80",
+    "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&w=1000&q=80",
+    "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?auto=format&fit=crop&w=1000&q=80",
+    "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=1000&q=80",
+  ],
+  Villa: [
+    "https://images.unsplash.com/photo-1613490493576-7fde63acd811?auto=format&fit=crop&w=1000&q=80",
+    "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=1000&q=80",
+    "https://images.unsplash.com/photo-1613977257363-707ba9348227?auto=format&fit=crop&w=1000&q=80",
+    "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=1000&q=80",
+  ],
+  House: [
+    "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1000&q=80",
+    "https://images.unsplash.com/photo-1580587771525-78b9dba3b914?auto=format&fit=crop&w=1000&q=80",
+    "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=1000&q=80",
+  ],
+  Plot: [
+    "https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=1000&q=80",
+    "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1000&q=80",
+  ],
+  Commercial: [
+    "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=1000&q=80",
+    "https://images.unsplash.com/photo-1497366811353-6870744d04b2?auto=format&fit=crop&w=1000&q=80",
+    "https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=1000&q=80",
+  ],
+};
+
+const FALLBACK_IMAGE = PROPERTY_TYPE_FALLBACK_IMAGES.Apartment[0];
 
 const CONSTRUCTION_LABELS = {
   READY_TO_MOVE: "Ready to move",
@@ -12,15 +40,35 @@ const CONSTRUCTION_LABELS = {
   NEW_LAUNCH: "New Launch",
 };
 
-function titleCaseType(t) {
+export function titleCaseType(t) {
   if (!t) return "Apartment";
   const lower = String(t).toLowerCase();
   if (lower === "house") return "House";
   return lower.charAt(0).toUpperCase() + lower.slice(1);
 }
 
+export function getCleanImageUrl(url, propertyType = "Apartment", seed = 0) {
+  if (
+    url &&
+    typeof url === "string" &&
+    url.startsWith("http") &&
+    !url.includes("seed.local")
+  ) {
+    return url;
+  }
+  const typeKey = titleCaseType(propertyType);
+  const pool =
+    PROPERTY_TYPE_FALLBACK_IMAGES[typeKey] ||
+    PROPERTY_TYPE_FALLBACK_IMAGES.Apartment;
+  const idx = Math.abs(Number(seed) || 0) % pool.length;
+  return pool[idx];
+}
+
 export function toUiProperty(card) {
   const areaNum = card.area_value ?? undefined;
+  const pType = titleCaseType(card.property_type);
+  const image = getCleanImageUrl(card.cover_image_url, pType, card.listing_id || 0);
+
   return {
     id: card.listing_id,
     title: card.title,
@@ -35,9 +83,9 @@ export function toUiProperty(card) {
     sqft: areaNum != null ? areaNum.toLocaleString("en-IN") : undefined,
     isVerified: true, // server guarantees VERIFIED
     constructionStatus: CONSTRUCTION_LABELS[card.construction_status] || undefined,
-    image: card.cover_image_url || FALLBACK_IMAGE,
+    image,
     description: card.description || undefined,
-    type: titleCaseType(card.property_type),
+    type: pType,
     transactionType: card.transaction_type,
     backendId: card.listing_id,
   };

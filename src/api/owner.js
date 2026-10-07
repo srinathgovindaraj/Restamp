@@ -5,6 +5,7 @@
  * Errors thrown as ApiError (see client.js).
  */
 import { apiPost, apiGetAuth } from "./client";
+import { getCleanImageUrl } from "./mappers";
 
 /**
  * Map a UI property form object to the backend OwnerListingCreate schema.
@@ -160,6 +161,13 @@ export async function fetchOwnerListing(listingId) {
  */
 export function toOwnerProperty(apiListing) {
   const isRent = apiListing.price_period === "MONTHLY";
+  const pType = apiListing.property_type === "COMMERCIAL" ? "Commercial" : "Apartment";
+  const coverPhoto = getCleanImageUrl(
+    apiListing.cover_image_url,
+    pType,
+    apiListing.listing_id || 0
+  );
+
   return {
     id: String(apiListing.listing_id),
     listing_id: apiListing.listing_id,
@@ -179,8 +187,8 @@ export function toOwnerProperty(apiListing) {
     status: apiListing.verification_status === "VERIFIED" ? "active" : "pending",
     verification_status: apiListing.verification_status,
     listing_status: apiListing.listing_status,
-    images: apiListing.cover_image_url ? [apiListing.cover_image_url] : [],
-    coverPhoto: apiListing.cover_image_url || null,
+    images: [coverPhoto],
+    coverPhoto,
     description: apiListing.description || "",
     // Stats not available from listing API (no backend counter yet)
     views: 0,
