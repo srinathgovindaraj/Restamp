@@ -32,6 +32,7 @@ import {
   Pencil,
   RotateCcw,
   Settings as SettingsIcon,
+  Wallet,
 } from "lucide-react-native";
 import COLORS from "../../constants/colors";
 import { useAgent } from "../../context/AgentContext";
@@ -265,19 +266,24 @@ export default function AgentProfileScreen({ navigation }) {
             </View>
           </TouchableOpacity>
 
-          <View style={[styles.menuRow, { borderBottomWidth: 0 }]}>
+          <TouchableOpacity
+            style={[styles.menuRow, { borderBottomWidth: 0 }]}
+            onPress={() => navigation.navigate("AgentEarnings")}
+            activeOpacity={0.7}
+          >
             <View style={styles.menuLeft}>
-              <Sparkles size={18} color="#334155" style={styles.menuIcon} />
-              <Text style={styles.menuLabel}>Closed Deals</Text>
+              <Wallet size={18} color="#334155" style={styles.menuIcon} />
+              <Text style={styles.menuLabel}>Earnings & Commission</Text>
             </View>
             <View style={styles.badgeRow}>
               <View style={[styles.countBadge, { backgroundColor: "#F0FDF4" }]}>
                 <Text style={[styles.countText, { color: "#16A34A" }]}>
-                  {agentProfile?.dealsClosedCount || 7}
+                  ₹2.4L
                 </Text>
               </View>
+              <ChevronRight size={16} color="#94A3B8" />
             </View>
-          </View>
+          </TouchableOpacity>
         </View>
 
         {/* 4. KYC / VERIFICATION */}

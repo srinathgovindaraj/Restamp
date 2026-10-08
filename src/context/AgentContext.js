@@ -209,6 +209,85 @@ const INITIAL_VISITS = [
   },
 ];
 
+const INITIAL_EARNINGS_TRANSACTIONS = [
+  {
+    id: "tx-1",
+    clientName: "Rajesh Balaji",
+    dealType: "Sale (3 BHK Apartment)",
+    propertyTitle: "3 BHK Luxury Flat in Kilpauk Garden Rd",
+    locality: "Kilpauk",
+    dealValue: "₹1.88 Cr",
+    commissionRate: "1.0%",
+    commissionAmount: 188000,
+    commissionFormatted: "₹1,88,000",
+    payoutStatus: "paid", // paid | processing | pending
+    date: "26 Sep 2026",
+    payoutDate: "28 Sep 2026",
+    invoiceId: "INV-2026-COMM-1092",
+    utrNumber: "CMS49281740921",
+    bankAccount: "HDFC Bank •••• 4892",
+    tdsDeducted: 9400,
+    netDisbursed: 178600,
+  },
+  {
+    id: "tx-2",
+    clientName: "Arun Kumar",
+    dealType: "Rental (2 BHK Flat)",
+    propertyTitle: "2 BHK Luxury Apartment in Anna Nagar",
+    locality: "Anna Nagar",
+    dealValue: "₹30,000 / mo",
+    commissionRate: "1 Month Rent",
+    commissionAmount: 30000,
+    commissionFormatted: "₹30,000",
+    payoutStatus: "paid",
+    date: "18 Sep 2026",
+    payoutDate: "20 Sep 2026",
+    invoiceId: "INV-2026-COMM-1085",
+    utrNumber: "CMS48102948102",
+    bankAccount: "HDFC Bank •••• 4892",
+    tdsDeducted: 1500,
+    netDisbursed: 28500,
+  },
+  {
+    id: "tx-3",
+    clientName: "Suresh Babu",
+    dealType: "Rental (2 BHK Flat)",
+    propertyTitle: "2 BHK Apartment near Velachery Main Rd",
+    locality: "Velachery",
+    dealValue: "₹24,000 / mo",
+    commissionRate: "1 Month Rent",
+    commissionAmount: 24000,
+    commissionFormatted: "₹24,000",
+    payoutStatus: "processing",
+    date: "02 Oct 2026",
+    payoutDate: "10 Oct 2026 (Expected)",
+    invoiceId: "INV-2026-COMM-1104",
+    utrNumber: "Pending Bank Clearance",
+    bankAccount: "HDFC Bank •••• 4892",
+    tdsDeducted: 1200,
+    netDisbursed: 22800,
+  },
+  {
+    id: "tx-4",
+    clientName: "Divya Raman",
+    dealType: "Commercial Lease",
+    propertyTitle: "Prime Commercial Floor in Guindy Tech Zone",
+    locality: "Guindy",
+    dealValue: "₹85,000 / mo",
+    commissionRate: "1 Month Rent",
+    commissionAmount: 85000,
+    commissionFormatted: "₹85,000",
+    payoutStatus: "pending",
+    date: "05 Oct 2026",
+    payoutDate: "12 Oct 2026 (Under Verification)",
+    invoiceId: "INV-2026-COMM-1110",
+    utrNumber: "Pending Token Execution",
+    bankAccount: "HDFC Bank •••• 4892",
+    tdsDeducted: 4250,
+    netDisbursed: 80750,
+  },
+];
+
 export function AgentProvider({ children }) {
   // Active Agent Subscription Plan
   // Default to active Pro Broker plan so returning agent demo is instantly active
@@ -246,6 +325,9 @@ export function AgentProvider({ children }) {
   // Leads and Visits
   const [leads, setLeads] = useState(INITIAL_AGENT_LEADS);
   const [visits, setVisits] = useState(INITIAL_VISITS);
+
+  // Earnings and Commission Transactions
+  const [earningsTransactions, setEarningsTransactions] = useState(INITIAL_EARNINGS_TRANSACTIONS);
 
   // Plan Expiry status simulation
   const [isPlanExpired, setIsPlanExpired] = useState(false);
@@ -358,6 +440,34 @@ export function AgentProvider({ children }) {
         ...prev,
         dealsClosedCount: (prev.dealsClosedCount || 0) + 1,
       }));
+      // Record commission transaction
+      const targetLead = leads.find((l) => l.id === leadId);
+      if (targetLead) {
+        const commAmt =
+          targetLead.dealType === "Rent"
+            ? targetLead.budgetNumeric || 25000
+            : Math.round((targetLead.budgetNumeric || 20000000) * 0.01);
+        const newTx = {
+          id: `tx-${Date.now()}`,
+          clientName: targetLead.customerName,
+          dealType: `${targetLead.dealType === "Rent" ? "Rental" : "Sale"} (${targetLead.bhk || "Property"})`,
+          propertyTitle: targetLead.matchedPropertyTitle || "Matched Property",
+          locality: targetLead.preferredLocality || "Chennai",
+          dealValue: targetLead.budget || "₹25,000",
+          commissionRate: targetLead.dealType === "Rent" ? "1 Month Rent" : "1.0%",
+          commissionAmount: commAmt,
+          commissionFormatted: `₹${commAmt.toLocaleString("en-IN")}`,
+          payoutStatus: "processing",
+          date: "Today",
+          payoutDate: "15 Oct 2026 (Scheduled)",
+          invoiceId: `INV-2026-COMM-${Math.floor(1000 + Math.random() * 9000)}`,
+          utrNumber: "Pending Bank Clearance",
+          bankAccount: "HDFC Bank •••• 4892",
+          tdsDeducted: Math.round(commAmt * 0.05),
+          netDisbursed: Math.round(commAmt * 0.95),
+        };
+        setEarningsTransactions((prev) => [newTx, ...prev]);
+      }
     }
   };
 
@@ -386,6 +496,8 @@ export function AgentProvider({ children }) {
         agentProfile,
         leads,
         visits,
+        earningsTransactions,
+        setEarningsTransactions,
         isPlanExpired,
         localityProperties,
         activatePlan,

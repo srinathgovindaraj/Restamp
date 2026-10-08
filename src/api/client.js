@@ -5,9 +5,15 @@
  * none); an Authorization hook is reserved for the auth phase.
  */
 const RAW_BASE_URL =
-  (typeof process !== "undefined" && process.env && process.env.EXPO_PUBLIC_API_URL) || "";
+  (typeof process !== "undefined" &&
+    process.env &&
+    process.env.EXPO_PUBLIC_API_URL) ||
+  "https://restamp-backend.onrender.com";
 
-export const API_BASE_URL = (RAW_BASE_URL || "http://127.0.0.1:8000").replace(/\/+$/, "");
+export const API_BASE_URL = (RAW_BASE_URL || "http://127.0.0.1:8000").replace(
+  /\/+$/,
+  "",
+);
 
 export class ApiError extends Error {
   constructor(kind, status, detail) {
@@ -28,7 +34,9 @@ function mapStatus(status) {
 export async function apiGet(path, params = {}) {
   const qs = Object.entries(params)
     .filter(([, v]) => v !== undefined && v !== null && v !== "")
-    .map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(String(v))}`)
+    .map(
+      ([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(String(v))}`,
+    )
     .join("&");
   const url = `${API_BASE_URL}${path}${qs ? `?${qs}` : ""}`;
   let response;
@@ -38,15 +46,33 @@ export async function apiGet(path, params = {}) {
     throw new ApiError(
       "offline",
       0,
-      "No connection. Make sure the backend is running and reachable."
+      "No connection. Make sure the backend is running and reachable.",
     );
   }
   if (response.ok) return response.json();
-  throw new ApiError(mapStatus(response.status), response.status, `Request failed (${response.status}).`);
+  throw new ApiError(
+    mapStatus(response.status),
+    response.status,
+    `Request failed (${response.status}).`,
+  );
 }
 
 export function isApiError(e, kind) {
   return e instanceof ApiError && (kind === undefined || e.kind === kind);
+}
+
+/** Check connectivity to the live backend /health endpoint */
+export async function checkBackendHealth() {
+  try {
+    const data = await apiGet("/health");
+    return { ok: true, status: data?.status || "ok", url: API_BASE_URL };
+  } catch (err) {
+    return {
+      ok: false,
+      error: err?.message || "Unreachable",
+      url: API_BASE_URL,
+    };
+  }
 }
 
 // --- Optional auth (Phase 5) -------------------------------------------------
@@ -71,7 +97,10 @@ export function getAuthTokenSync() {
 }
 
 async function authHeaders() {
-  if (!_authTokenProvider) return _authTokenCurrent ? { Authorization: `Bearer ${_authTokenCurrent}` } : {};
+  if (!_authTokenProvider)
+    return _authTokenCurrent
+      ? { Authorization: `Bearer ${_authTokenCurrent}` }
+      : {};
   try {
     const token = await _authTokenProvider();
     _authTokenCurrent = token || null;
@@ -95,14 +124,18 @@ async function authedFetch(url, options = {}) {
     throw new ApiError(
       "offline",
       0,
-      "No connection. Make sure the backend is running and reachable."
+      "No connection. Make sure the backend is running and reachable.",
     );
   }
   if (response.ok) {
     if (response.status === 204) return null;
     return response.json();
   }
-  throw new ApiError(mapStatus(response.status), response.status, `Request failed (${response.status}).`);
+  throw new ApiError(
+    mapStatus(response.status),
+    response.status,
+    `Request failed (${response.status}).`,
+  );
 }
 
 export async function apiPost(path, body) {
@@ -126,7 +159,9 @@ export async function apiPatchAuth(path, body) {
 export async function apiGetAuth(path, params = {}) {
   const qs = Object.entries(params)
     .filter(([, v]) => v !== undefined && v !== null && v !== "")
-    .map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(String(v))}`)
+    .map(
+      ([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(String(v))}`,
+    )
     .join("&");
   const url = `${API_BASE_URL}${path}${qs ? `?${qs}` : ""}`;
   return authedFetch(url, { method: "GET" });

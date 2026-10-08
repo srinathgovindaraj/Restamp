@@ -36,6 +36,7 @@ import COLORS from "../../constants/colors";
 import { useAgent } from "../../context/AgentContext";
 import PropertyDetailModal from "../../components/PropertyDetailModal";
 import StatusBadge from "../../components/owner/StatusBadge";
+import ScheduleVisitModal from "../../components/ScheduleVisitModal";
 
 const PIPELINE_STAGES = [
   { id: "new", label: "Enquiry Received" },
@@ -111,14 +112,20 @@ export default function AgentLeadDetailScreen({ route, navigation }) {
     );
   };
 
-  const handleConfirmScheduleVisit = () => {
+  const handleConfirmScheduleVisit = (visitDetails) => {
     const prop =
+      visitDetails?.property ||
       selectedPropertyForVisit ||
       matchingProperties[0] || {
         id: "prop-1",
         title: lead.requirement || "2 BHK Apartment",
         location: lead.preferredLocality || "Anna Nagar",
       };
+
+    const finalDate = visitDetails?.date || visitDate || "12 Oct 2026";
+    const finalFullDate = visitDetails?.fullDate || finalDate;
+    const finalTime = visitDetails?.time || visitTime || "10:00 am";
+    const finalNotes = visitDetails?.notes || visitNotes || "Site visit coordinated via RESTAMP Agent";
 
     scheduleVisit({
       leadId: lead.id,
@@ -129,16 +136,16 @@ export default function AgentLeadDetailScreen({ route, navigation }) {
       propertyLocation: prop.location,
       ownerName: prop.ownerName || "Property Owner",
       ownerPhone: prop.ownerPhone || "+91 98400 12345",
-      date: visitDate,
-      fullDate: visitDate,
-      time: visitTime,
-      notes: visitNotes || "Site visit coordinated via RESTAMP Agent",
+      date: finalDate,
+      fullDate: finalFullDate,
+      time: finalTime,
+      notes: finalNotes,
     });
 
     setScheduleModalVisible(false);
     Alert.alert(
       "Site Visit Scheduled! 📅",
-      `Visit for ${prop.title} with ${lead.customerName} scheduled on ${visitDate} at ${visitTime}. Both customer and owner have been notified.`
+      `Visit for ${prop.title} with ${lead.customerName} scheduled on ${finalDate} at ${finalTime}. Both customer and owner have been notified.`
     );
   };
 
@@ -415,69 +422,15 @@ export default function AgentLeadDetailScreen({ route, navigation }) {
         </TouchableOpacity>
       </View>
 
-      {/* SCHEDULE VISIT MODAL */}
-      <Modal
+      {/* REDESIGNED SCHEDULE VISIT MODAL (Matches Reference Image) */}
+      <ScheduleVisitModal
         visible={scheduleModalVisible}
-        transparent
-        animationType="slide"
-        onRequestClose={() => setScheduleModalVisible(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalCard}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Schedule Site Visit</Text>
-              <TouchableOpacity
-                style={styles.modalCloseBtn}
-                onPress={() => setScheduleModalVisible(false)}
-              >
-                <X size={18} color="#0F172A" />
-              </TouchableOpacity>
-            </View>
-
-            <ScrollView style={{ maxHeight: 380 }} showsVerticalScrollIndicator={false}>
-              <Text style={styles.inputLabel}>Visit Date</Text>
-              <TextInput
-                style={styles.textInput}
-                value={visitDate}
-                onChangeText={setVisitDate}
-                placeholder="e.g. 12 Oct 2026"
-              />
-
-              <Text style={styles.inputLabel}>Visit Time</Text>
-              <TextInput
-                style={styles.textInput}
-                value={visitTime}
-                onChangeText={setVisitTime}
-                placeholder="e.g. 11:30 AM"
-              />
-
-              <Text style={styles.inputLabel}>Assigned Property</Text>
-              <View style={styles.propSelectBox}>
-                <Text style={styles.propSelectText}>
-                  {selectedPropertyForVisit?.title || matchingProperties[0]?.title || "2 BHK Apartment in Anna Nagar"}
-                </Text>
-              </View>
-
-              <Text style={styles.inputLabel}>Notes for Visit</Text>
-              <TextInput
-                style={[styles.textInput, { height: 60, textAlignVertical: "top" }]}
-                value={visitNotes}
-                onChangeText={setVisitNotes}
-                placeholder="Key highlights or owner coordination notes..."
-                multiline
-              />
-            </ScrollView>
-
-            <TouchableOpacity
-              style={styles.modalSubmitBtn}
-              onPress={handleConfirmScheduleVisit}
-              activeOpacity={0.88}
-            >
-              <Text style={styles.modalSubmitBtnText}>Confirm Visit</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
+        onClose={() => setScheduleModalVisible(false)}
+        onConfirm={handleConfirmScheduleVisit}
+        lead={lead}
+        property={selectedPropertyForVisit || matchingProperties[0]}
+        matchingProperties={matchingProperties}
+      />
 
       {/* UPDATE STATUS MODAL */}
       <Modal

@@ -29,6 +29,7 @@ import AgentPlanConfirmScreen from "../screens/agent/AgentPlanConfirmScreen";
 import AgentPaymentScreen from "../screens/agent/AgentPaymentScreen";
 import AgentPaymentSuccessScreen from "../screens/agent/AgentPaymentSuccessScreen";
 import AgentLeadDetailScreen from "../screens/agent/AgentLeadDetailScreen";
+import AgentEarningsScreen from "../screens/agent/AgentEarningsScreen";
 import LoginScreen from "../screens/auth/LoginScreen";
 
 const Tab = createBottomTabNavigator();
@@ -188,6 +189,7 @@ export default function AppNavigator() {
         <Stack.Screen name="AgentPaymentSuccess" component={AgentPaymentSuccessScreen} />
         <Stack.Screen name="AgentNavigator" component={AgentNavigator} />
         <Stack.Screen name="AgentLeadDetail" component={AgentLeadDetailScreen} />
+        <Stack.Screen name="AgentEarnings" component={AgentEarningsScreen} />
       </Stack.Navigator>
 
     </NavigationContainer>

@@ -8,3 +8,4 @@ export { default as AgentLeadsScreen } from "./AgentLeadsScreen";
 export { default as AgentVisitsScreen } from "./AgentVisitsScreen";
 export { default as AgentProfileScreen } from "./AgentProfileScreen";
 export { default as AgentLeadDetailScreen } from "./AgentLeadDetailScreen";
+export { default as AgentEarningsScreen } from "./AgentEarningsScreen";

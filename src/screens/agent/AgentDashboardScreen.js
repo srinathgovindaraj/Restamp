@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import {
   View,
   Text,
@@ -31,6 +31,7 @@ import {
   CheckCircle2,
   MapPin,
   Check,
+  Wallet,
 } from "lucide-react-native";
 
 import COLORS from "../../constants/colors";
@@ -51,6 +52,7 @@ export default function AgentDashboardScreen({ navigation }) {
     agentProfile,
     leads,
     visits,
+    earningsTransactions = [],
     isPlanExpired,
     localityProperties,
     matchPropertyToLead,
@@ -59,23 +61,24 @@ export default function AgentDashboardScreen({ navigation }) {
   const [locationsModalVisible, setLocationsModalVisible] = useState(false);
   const [matchingLead, setMatchingLead] = useState(null);
 
-  // Dynamic date matching reference design ("Wednesday, 7 Oct")
-  const todayFormatted = new Date().toLocaleDateString("en-US", {
-    weekday: "long",
-    day: "numeric",
-    month: "short",
-  });
+  // Dynamic date matching reference design ("Wednesday, Oct 7")
+  const today = new Date();
+  const weekday = today.toLocaleDateString("en-US", { weekday: "long" });
+  const month = today.toLocaleDateString("en-US", { month: "short" });
+  const day = today.getDate();
+  const todayFormatted = `${weekday}, ${month} ${day}`;
 
-  // Dynamic greeting based on current local hour
-  const currentHour = new Date().getHours();
+  // Dynamic greeting based on current local hour ("Good Morning,")
+  const currentHour = today.getHours();
   const greetingText =
     currentHour < 12
-      ? "Good morning"
+      ? "Good Morning,"
       : currentHour < 17
-      ? "Good afternoon"
-      : "Good evening";
+      ? "Good Afternoon,"
+      : "Good Evening,";
 
-  const agentName = agentProfile?.name || "Vikram Prabhu";
+  const rawAgentName = agentProfile?.name || "Vikram Prabhu";
+  const agentName = rawAgentName.endsWith(",") ? rawAgentName : `${rawAgentName},`;
 
   // Calculate summary counts
   const availablePropertiesCount = localityProperties.length || 126;
@@ -83,7 +86,16 @@ export default function AgentDashboardScreen({ navigation }) {
   const todaysVisitsCount = visits.filter(
     (v) => v.date === "Today" || v.status === "upcoming"
   ).length || 3;
-  const closedDealsCount = agentProfile?.dealsClosedCount || 7;
+  const totalEarned = useMemo(() => {
+    return (earningsTransactions || []).reduce(
+      (acc, curr) => acc + (curr.commissionAmount || 0),
+      0
+    );
+  }, [earningsTransactions]);
+  const formattedEarned =
+    totalEarned >= 100000
+      ? `₹${(totalEarned / 100000).toFixed(1)}L`
+      : `₹${(totalEarned / 1000).toFixed(0)}k`;
 
   // Latest leads
   const recentLeads = leads.slice(0, 3);
@@ -129,11 +141,11 @@ export default function AgentDashboardScreen({ navigation }) {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* 1. GREETING SECTION (Matches Owner Dashboard design: Date / Greeting / Name,) */}
+        {/* 1. GREETING & HERO SECTION (Redesigned Section 1: Date / Greeting / Name / Welcome Card) */}
         <View style={styles.greetingSection}>
           <Text style={styles.dateText}>{todayFormatted}</Text>
           <Text style={styles.greetingMainText}>{greetingText}</Text>
-          <Text style={styles.greetingSubName}>{agentName},</Text>
+          <Text style={styles.greetingSubName}>{agentName}</Text>
         </View>
 
         {/* EXPIRED PLAN BANNER (IF APPLICABLE) */}
@@ -158,31 +170,21 @@ export default function AgentDashboardScreen({ navigation }) {
           </View>
         )}
 
-        {/* 2. TOP FEATURE / STATUS CARD: Active Subscription (Matching Owner featureCard) */}
-        <TouchableOpacity
-          style={styles.featureCard}
-          onPress={handleManagePlan}
-          activeOpacity={0.88}
-        >
-          <View style={styles.featureLeftCol}>
-            <Text style={styles.featureCardSub}>ACTIVE SUBSCRIPTION</Text>
-            <Text style={styles.featureCardTitle} numberOfLines={1}>
-              {agentPlan?.name || "Agent Plan"} • {agentPlan?.locationLimit || selectedLocalities.length} Locations
-            </Text>
-            <Text style={styles.featureCardMeta}>
-              Active until: <Text style={{ fontWeight: "700", color: "#0F172A" }}>20 Nov 2026</Text>
+        {/* 2. WELCOME BACK HERO BANNER CARD (Section 1 Redesign with Fixed Height) */}
+        <View style={styles.welcomeBanner}>
+          <View style={styles.welcomeBannerLeft}>
+            <Text style={styles.welcomeBannerTitle}>Welcome Back!</Text>
+            <Text style={styles.welcomeBannerEmoji}>👋</Text>
+            <Text style={styles.welcomeBannerSub}>
+              Everything looks good{"\n"}today.
             </Text>
           </View>
-
-          <View style={styles.featureRightCol}>
-            <View style={[styles.nowBadge, styles.liveBadge]}>
-              <Text style={styles.nowBadgeText}>
-                {agentPlan?.status === "active" ? "Active" : "Expired"}
-              </Text>
-            </View>
-            <ArrowRight size={18} color="#475569" style={{ marginLeft: 10 }} />
-          </View>
-        </TouchableOpacity>
+          <Image
+            source={require("../../../assets/agent-welcome-building.png")}
+            style={styles.welcomeBannerImage}
+            resizeMode="contain"
+          />
+        </View>
 
         {/* 3. 2-COLUMN METRICS GRID: Real Estate Stats (OVERVIEW) */}
         {/* Row 1: Available Properties & New Leads */}
@@ -244,22 +246,24 @@ export default function AgentDashboardScreen({ navigation }) {
             <Text style={styles.metricLabel}>Visits Today</Text>
           </TouchableOpacity>
 
-          {/* Card 4: Closed Deals */}
+          {/* Card 4: Earnings & Commission */}
           <TouchableOpacity
             style={styles.metricCard}
-            onPress={() => navigation.navigate("Profile")}
+            onPress={() => navigation.navigate("AgentEarnings")}
             activeOpacity={0.85}
           >
             <View style={styles.metricCardTop}>
               <View style={styles.metricIconWrap}>
-                <ShieldCheck size={17} color="#1E293B" strokeWidth={1.8} />
+                <Wallet size={17} color="#1E293B" strokeWidth={1.8} />
               </View>
               <ArrowRight size={14} color="#94A3B8" />
             </View>
             <Text style={styles.metricNumber}>
-              {String(closedDealsCount).padStart(2, "0")}
+              {formattedEarned || "₹2.4L"}
             </Text>
-            <Text style={styles.metricLabel}>Closed Deals</Text>
+            <Text style={styles.metricLabel} numberOfLines={1}>
+              Earnings & Comm.
+            </Text>
           </TouchableOpacity>
         </View>
 
@@ -636,32 +640,79 @@ const styles = StyleSheet.create({
     zIndex: 100,
   },
 
-  // 1. Greeting Section (Matching Owner Dashboard exactly)
+  // 1. Greeting Section (Redesigned Section 1)
   greetingSection: {
+    marginTop: 8,
     marginBottom: 16,
-    marginTop: 10,
   },
   dateText: {
-    fontSize: 13,
-    fontWeight: "500",
-    color: "#64748B",
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#4F75A8",
     letterSpacing: -0.2,
-    marginBottom: 4,
+    marginBottom: 6,
   },
   greetingMainText: {
-    fontSize: 26,
+    fontSize: 20,
     fontWeight: "800",
-    color: "#0F172A",
-    letterSpacing: -0.6,
-    lineHeight: 32,
+    color: "#1E293B",
+    letterSpacing: -0.4,
+    lineHeight: 26,
+    marginBottom: 2,
   },
   greetingSubName: {
-    fontSize: 24,
-    fontWeight: "600",
-    color: "#64748B",
-    letterSpacing: -0.5,
-    lineHeight: 30,
-    marginTop: 2,
+    fontSize: 27,
+    fontWeight: "800",
+    color: "#374766",
+    letterSpacing: -0.6,
+    lineHeight: 33,
+  },
+
+  // Welcome Back Hero Banner Card (Vibrant Blue Card with 3D isometric building - fixed height)
+  welcomeBanner: {
+    backgroundColor: "#024EFA",
+    borderRadius: 20,
+    height: 112, // Fixed height per design requirement (compact & responsive)
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingLeft: 20,
+    paddingRight: 8,
+    marginBottom: 16,
+    overflow: "hidden",
+    shadowColor: "#024EFA",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.22,
+    shadowRadius: 10,
+    elevation: 4,
+  },
+  welcomeBannerLeft: {
+    flex: 1,
+    paddingRight: 10,
+    justifyContent: "center",
+  },
+  welcomeBannerTitle: {
+    fontSize: 18,
+    fontWeight: "800",
+    color: "#FFFFFF",
+    letterSpacing: -0.3,
+    lineHeight: 22,
+  },
+  welcomeBannerEmoji: {
+    fontSize: 16,
+    marginVertical: 2,
+    lineHeight: 20,
+  },
+  welcomeBannerSub: {
+    fontSize: 12.5,
+    fontWeight: "400",
+    color: "rgba(255, 255, 255, 0.92)",
+    letterSpacing: -0.1,
+    lineHeight: 16,
+  },
+  welcomeBannerImage: {
+    width: 108,
+    height: 98,
   },
 
   expiredBanner: {
@@ -703,67 +754,6 @@ const styles = StyleSheet.create({
     color: "#FFFFFF",
   },
 
-  // 2. Feature Status Card: Subscription (Matching Owner featureCard)
-  featureCard: {
-    backgroundColor: "#FFFFFF",
-    borderRadius: 16,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    marginBottom: 12,
-    borderWidth: 1,
-    borderColor: "#EEF2F6",
-    shadowColor: "#000000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.03,
-    shadowRadius: 8,
-    elevation: 2,
-  },
-  featureLeftCol: {
-    flex: 1,
-    marginRight: 12,
-  },
-  featureCardSub: {
-    fontSize: 11,
-    fontWeight: "700",
-    color: "#64748B",
-    letterSpacing: 0.4,
-    textTransform: "uppercase",
-    marginBottom: 3,
-  },
-  featureCardTitle: {
-    fontSize: 15.5,
-    fontWeight: "700",
-    color: "#0F172A",
-    letterSpacing: -0.3,
-  },
-  featureCardMeta: {
-    fontSize: 12,
-    color: "#64748B",
-    marginTop: 3,
-  },
-  featureRightCol: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  nowBadge: {
-    borderRadius: 10,
-    paddingHorizontal: 10,
-    paddingVertical: 3.5,
-  },
-  liveBadge: {
-    backgroundColor: "#ECFDF5",
-    borderWidth: 1,
-    borderColor: "#A7F3D0",
-  },
-  nowBadgeText: {
-    color: "#059669",
-    fontSize: 11.5,
-    fontWeight: "700",
-    letterSpacing: 0.2,
-  },
 
   // 3. 2-Column Metrics Grid (Matching Owner metricsGrid & metricCard)
   metricsGrid: {

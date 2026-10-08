@@ -30,6 +30,7 @@ import { useAgent } from "../../context/AgentContext";
 import AppBrandHeader from "../../components/AppBrandHeader";
 import EmptyState from "../../components/owner/EmptyState";
 import StatusBadge from "../../components/owner/StatusBadge";
+import ScheduleVisitModal from "../../components/ScheduleVisitModal";
 
 const VISIT_TABS = [
   { id: "upcoming", label: "Upcoming" },
@@ -85,17 +86,21 @@ export default function AgentVisitsScreen({ navigation }) {
     Alert.alert("Visit Cancelled", "The site visit has been marked as cancelled.");
   };
 
-  const handleConfirmReschedule = (visit) => {
+  const handleConfirmReschedule = (visit, reschedData) => {
     updateVisitStatus(visit.id, "upcoming");
-    // Update visit with new date/time
-    visit.fullDate = newDate;
-    visit.date = newDate;
-    visit.time = newTime;
+    const d = reschedData?.date || newDate || "15 Oct 2026";
+    const t = reschedData?.time || newTime || "04:30 PM";
+    visit.fullDate = reschedData?.fullDate || d;
+    visit.date = d;
+    visit.time = t;
+    if (reschedData?.notes) {
+      visit.notes = reschedData.notes;
+    }
     setIsRescheduling(false);
     setSelectedVisitForDetails(null);
     Alert.alert(
       "Visit Rescheduled! 📅",
-      `Site visit rescheduled to ${newDate} at ${newTime}. Notification sent to ${visit.customerName}.`
+      `Site visit rescheduled to ${d} at ${t}. Notification sent to ${visit.customerName}.`
     );
   };
 
@@ -323,51 +328,21 @@ export default function AgentVisitsScreen({ navigation }) {
                   </View>
                 </View>
 
-                {/* Reschedule Edit Form if active */}
-                {isRescheduling && (
-                  <View style={styles.rescheduleForm}>
-                    <Text style={styles.formHeading}>Choose New Schedule</Text>
-                    <Text style={styles.inputLabel}>New Date</Text>
-                    <TextInput
-                      style={styles.textInput}
-                      value={newDate}
-                      onChangeText={setNewDate}
-                      placeholder="e.g. 15 Oct 2026"
-                    />
-                    <Text style={styles.inputLabel}>New Time</Text>
-                    <TextInput
-                      style={styles.textInput}
-                      value={newTime}
-                      onChangeText={setNewTime}
-                      placeholder="e.g. 04:30 PM"
-                    />
-
-                    <TouchableOpacity
-                      style={styles.confirmRescheduleBtn}
-                      onPress={() => handleConfirmReschedule(selectedVisitForDetails)}
-                      activeOpacity={0.88}
-                    >
-                      <Text style={styles.confirmRescheduleBtnText}>Save New Schedule</Text>
-                    </TouchableOpacity>
-                  </View>
-                )}
-
                 {/* Actions: Reschedule, Mark Completed, Cancel Visit */}
-                {!isRescheduling && (
-                  <View style={styles.detailsModalActions}>
-                    <TouchableOpacity
-                      style={styles.btnReschedule}
-                      onPress={() => setIsRescheduling(true)}
-                      activeOpacity={0.8}
-                    >
-                      <RotateCcw size={14} color={COLORS.primary} style={{ marginRight: 4 }} />
-                      <Text style={styles.btnRescheduleText}>Reschedule</Text>
-                    </TouchableOpacity>
+                <View style={styles.detailsModalActions}>
+                  <TouchableOpacity
+                    style={styles.btnReschedule}
+                    onPress={() => setIsRescheduling(true)}
+                    activeOpacity={0.8}
+                  >
+                    <RotateCcw size={14} color={COLORS.primary} style={{ marginRight: 4 }} />
+                    <Text style={styles.btnRescheduleText}>Reschedule</Text>
+                  </TouchableOpacity>
 
-                    {selectedVisitForDetails.status !== "completed" && (
-                      <TouchableOpacity
-                        style={styles.btnComplete}
-                        onPress={() => handleMarkCompleted(selectedVisitForDetails)}
+                  {selectedVisitForDetails.status !== "completed" && (
+                    <TouchableOpacity
+                      style={styles.btnComplete}
+                      onPress={() => handleMarkCompleted(selectedVisitForDetails)}
                         activeOpacity={0.88}
                       >
                         <CheckCircle2 size={14} color="#FFFFFF" style={{ marginRight: 4 }} />
@@ -392,6 +367,25 @@ export default function AgentVisitsScreen({ navigation }) {
           </View>
         </View>
       </Modal>
+
+      {/* RESCHEDULE VISIT MODAL (Matches Reference Image) */}
+      <ScheduleVisitModal
+        visible={isRescheduling && !!selectedVisitForDetails}
+        onClose={() => setIsRescheduling(false)}
+        title="Reschedule Visit"
+        lead={{
+          customerName: selectedVisitForDetails?.customerName,
+          phone: selectedVisitForDetails?.customerPhone,
+        }}
+        property={{
+          title: selectedVisitForDetails?.propertyTitle,
+          location: selectedVisitForDetails?.propertyLocation,
+        }}
+        initialTime={selectedVisitForDetails?.time || "10:00 am"}
+        onConfirm={(reschedData) => {
+          handleConfirmReschedule(selectedVisitForDetails, reschedData);
+        }}
+      />
     </SafeAreaView>
   );
 }
