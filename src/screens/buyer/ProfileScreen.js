@@ -38,6 +38,7 @@ import { useWishlist } from "../../context/WishlistContext";
 import { useOwner } from "../../context/OwnerContext";
 import { useAuth } from "../../context/AuthContext";
 import { getAuthTokenSync } from "../../api/client";
+import { enterOwnerFlow } from "../../api/users";
 import { fetchMyEnquiries } from "../../api/enquiries";
 import ConfirmationModal from "../../components/owner/ConfirmationModal";
 import AppBrandHeader from "../../components/AppBrandHeader";
@@ -46,7 +47,9 @@ export default function ProfileScreen({ navigation }) {
   const nav = useNavigation() || navigation;
   const { wishlist, wishlistSynced, refreshWishlist } = useWishlist();
   const { subscription } = useOwner();
-  const { user: authUser, logout } = useAuth();
+  const { user: authUser, logout, refreshMe } = useAuth();
+  const authForOwnerEntry = { user: authUser, refreshMe };
+  const [switchingOwner, setSwitchingOwner] = useState(false);
 
   // Real counts, refreshed whenever Profile gains focus. Logged-out users keep
   // existing local behavior (no fake server numbers ever shown when logged out,
@@ -102,8 +105,17 @@ export default function ProfileScreen({ navigation }) {
     }
   }, [authUser]);
 
-  const handleSwitchToOwner = () => {
-    nav.navigate("OwnerNavigator", { screen: "Dashboard" });
+  // P0 fix: backend requires the OWNER role for /owner/* endpoints.
+  // Switch the backend role first (real POST /users/me/role, token
+  // preserved), and only then navigate. Never logs out, never touches OTP.
+  const handleSwitchToOwner = async () => {
+    if (switchingOwner) return;
+    setSwitchingOwner(true);
+    try {
+      await enterOwnerFlow(nav, authForOwnerEntry, "Dashboard");
+    } finally {
+      setSwitchingOwner(false);
+    }
   };
 
   const handleLogout = () => {

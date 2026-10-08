@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -10,6 +10,8 @@ import { useNavigation } from "@react-navigation/native";
 import { Building2, Search, Bell } from "lucide-react-native";
 import RestampLogo from "./RestampLogo";
 import COLORS from "../constants/colors";
+import { useAuth } from "../context/AuthContext";
+import { enterOwnerFlow } from "../api/users";
 
 export default function AppBrandHeader({
   currentRole = "buyer",
@@ -19,10 +21,21 @@ export default function AppBrandHeader({
   style,
 }) {
   const navigation = useNavigation();
+  const auth = useAuth();
+  const [switchingOwner, setSwitchingOwner] = useState(false);
 
-  const handleSwitchPress = () => {
+  const handleSwitchPress = async () => {
     if (currentRole === "buyer") {
-      navigation.navigate("OwnerNavigator", { screen: "Dashboard" });
+      // P0 fix: backend requires the OWNER role for /owner/* endpoints.
+      // Switch the backend role first (real POST /users/me/role, token
+      // preserved), and only then navigate. Never logs out, never touches OTP.
+      if (switchingOwner) return;
+      setSwitchingOwner(true);
+      try {
+        await enterOwnerFlow(navigation, auth, "Dashboard");
+      } finally {
+        setSwitchingOwner(false);
+      }
     } else {
       // Owner or Agent switching back to Buyer
       navigation.reset({
@@ -55,6 +68,7 @@ export default function AppBrandHeader({
             style={styles.switchRolePill}
             activeOpacity={0.8}
             onPress={handleSwitchPress}
+            disabled={switchingOwner}
           >
             {isBuyer ? (
               <Building2 size={13} color="#2563EB" style={{ marginRight: 4 }} />

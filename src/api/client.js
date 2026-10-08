@@ -149,6 +149,13 @@ export async function apiDelete(path) {
   return authedFetch(`${API_BASE_URL}${path}`, { method: "DELETE" });
 }
 
+export async function apiPutAuth(path, body) {
+  return authedFetch(`${API_BASE_URL}${path}`, {
+    method: "PUT",
+    body: body === undefined ? undefined : JSON.stringify(body),
+  });
+}
+
 export async function apiPatchAuth(path, body) {
   return authedFetch(`${API_BASE_URL}${path}`, {
     method: "PATCH",
