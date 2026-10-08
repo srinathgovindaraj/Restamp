@@ -33,21 +33,26 @@ export async function fetchMyRole() {
 let _roleSwitchInFlight = false;
 
 /**
- * Ensure the backend role is OWNER before entering any Owner flow.
+ * Ensure the backend holds the given role before entering a role-gated flow.
  *
- * - If auth.user.role is already "OWNER", no network call is made.
- * - Otherwise POSTs /users/me/role { role: "OWNER" } with the existing token.
+ * Roles are mutually exclusive server-side (single user_current_role row):
+ * switching to OWNER drops BUYER access and vice versa, so every direction
+ * must go through this helper — there are no one-way doors.
+ *
+ * - If auth.user.role already matches, no network call is made.
+ * - Otherwise POSTs /users/me/role with the existing token.
  * - Best-effort refreshes the AuthContext user (via auth.refreshMe) so the UI
  *   role matches the backend; a refresh failure does NOT fail the switch
  *   because the server-side role was already updated.
  * - Never clears the token and never logs the user out.
  *
  * @param {object} auth - the value returned by useAuth() ({ user, refreshMe })
- * @returns {Promise<{ alreadyOwner: boolean }>}
+ * @param {"BUYER" | "OWNER"} role
+ * @returns {Promise<{ already: boolean }>}
  */
-export async function ensureOwnerRole(auth) {
-  if (auth?.user?.role === "OWNER") {
-    return { alreadyOwner: true };
+export async function ensureRole(auth, role) {
+  if (auth?.user?.role === role) {
+    return { already: true };
   }
   if (_roleSwitchInFlight) {
     // A switch is already running (e.g. double tap); wait for it to finish.
@@ -56,40 +61,54 @@ export async function ensureOwnerRole(auth) {
     while (_roleSwitchInFlight && Date.now() - startedAt < 10000) {
       await new Promise((r) => setTimeout(r, 100));
     }
-    return { alreadyOwner: auth?.user?.role === "OWNER" };
+    return { already: auth?.user?.role === role };
   }
   _roleSwitchInFlight = true;
   try {
-    await setMyRole("OWNER");
+    await setMyRole(role);
     if (auth && typeof auth.refreshMe === "function") {
       try {
         await auth.refreshMe();
       } catch {
-        // Server role is already OWNER; a stale local profile must not block
-        // entry into the Owner flow.
+        // Server role is already updated; a stale local profile must not
+        // block entry into the flow.
       }
     }
-    return { alreadyOwner: false };
+    return { already: false };
   } finally {
     _roleSwitchInFlight = false;
   }
 }
 
-function roleSwitchErrorMessage(e) {
-  if (!e) return "Could not switch to Owner mode. Please try again.";
+/**
+ * Ensure the backend role is OWNER before entering any Owner flow.
+ *
+ * @param {object} auth - the value returned by useAuth() ({ user, refreshMe })
+ * @returns {Promise<{ alreadyOwner: boolean }>}
+ */
+export async function ensureOwnerRole(auth) {
+  const { already } = await ensureRole(auth, "OWNER");
+  return { alreadyOwner: already };
+}
+
+function roleSwitchErrorMessage(e, role) {
+  const mode = role === "BUYER" ? "Buyer mode" : "Owner mode";
+  if (!e) return `Could not switch to ${mode}. Please try again.`;
   if (e.kind === "offline") {
     return "No connection. Make sure the backend is running and reachable, then try again.";
   }
   if (e.kind === "login" || e.status === 401) {
-    return "Your session has expired. Please log in again, then try posting your property.";
+    return role === "BUYER"
+      ? "Your session has expired. Please log in again."
+      : "Your session has expired. Please log in again, then try posting your property.";
   }
   if (e.kind === "denied" || e.status === 403) {
-    return "This account is not allowed to become an Owner. Please contact support.";
+    return "This account is not allowed to switch roles. Please contact support.";
   }
   if (e.kind === "validation" || e.status === 400 || e.status === 422) {
     return "The server rejected the role change. Please update the app and try again.";
   }
-  return "Could not switch to Owner mode. Please try again.";
+  return `Could not switch to ${mode}. Please try again.`;
 }
 
 /**
@@ -111,7 +130,7 @@ export async function enterOwnerFlow(navigation, auth, ownerScreen = "Dashboard"
   try {
     await ensureOwnerRole(auth);
   } catch (e) {
-    Alert.alert("Could not open Owner mode", roleSwitchErrorMessage(e));
+    Alert.alert("Could not open Owner mode", roleSwitchErrorMessage(e, "OWNER"));
     return false;
   }
   try {
@@ -119,6 +138,38 @@ export async function enterOwnerFlow(navigation, auth, ownerScreen = "Dashboard"
     return true;
   } catch (e) {
     Alert.alert("Could not open Owner mode", "Navigation failed. Please try again.");
+    return false;
+  }
+}
+
+/**
+ * Single reusable Buyer entry point for ALL owner->buyer transitions
+ * (Owner header pill, and any future "back to browsing" affordance).
+ *
+ * Mirror of enterOwnerFlow: ensures the backend role is BUYER first (real
+ * POST, token preserved) — buyer endpoints 403 while the account holds
+ * OWNER — and ONLY then resets into MainTabs. On failure, stays put with a
+ * clean error — never logs out, never touches OTP state.
+ *
+ * @param {object} navigation - React Navigation object
+ * @param {object} auth - the value returned by useAuth()
+ * @returns {Promise<boolean>} true when navigation happened
+ */
+export async function enterBuyerFlow(navigation, auth) {
+  try {
+    await ensureRole(auth, "BUYER");
+  } catch (e) {
+    Alert.alert("Could not open Buyer mode", roleSwitchErrorMessage(e, "BUYER"));
+    return false;
+  }
+  try {
+    navigation.reset({
+      index: 0,
+      routes: [{ name: "MainTabs" }],
+    });
+    return true;
+  } catch (e) {
+    Alert.alert("Could not open Buyer mode", "Navigation failed. Please try again.");
     return false;
   }
 }

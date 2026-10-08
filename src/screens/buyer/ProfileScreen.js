@@ -54,9 +54,11 @@ export default function ProfileScreen({ navigation }) {
   const authForOwnerEntry = { user: authUser, refreshMe };
   const [switchingOwner, setSwitchingOwner] = useState(false);
 
-  // Real counts, refreshed whenever Profile gains focus. Logged-out users keep
-  // existing local behavior (no fake server numbers ever shown when logged out,
-  // and "…" — never a fabricated count — while authenticated data loads).
+  // Real counts + live role, refreshed whenever Profile gains focus.
+  // Logged-out users keep existing local behavior (no fake server numbers
+  // ever shown when logged out, and "…" — never a fabricated count — while
+  // authenticated data loads). The role comes from the backend (never the
+  // stale JWT claim) so the badge below always reflects the live role.
   const [authed, setAuthed] = useState(false);
   const [enquiriesTotal, setEnquiriesTotal] = useState(null);
   useFocusEffect(
@@ -67,6 +69,7 @@ export default function ProfileScreen({ navigation }) {
       if (!token) {
         return undefined;
       }
+      refreshMe().catch(() => {});
       refreshWishlist().catch(() => {});
       fetchMyEnquiries(1, 1).then(
         (data) => {
@@ -77,7 +80,7 @@ export default function ProfileScreen({ navigation }) {
       return () => {
         cancelled = true;
       };
-    }, [refreshWishlist])
+    }, [refreshMe, refreshWishlist])
   );
 
   const savedCount = authed ? (wishlistSynced ? wishlist.length : "…") : wishlist.length;
@@ -199,12 +202,19 @@ export default function ProfileScreen({ navigation }) {
             <Text style={styles.phoneText}>{userProfile.phone}</Text>
             <Text style={styles.emailText}>{userProfile.email}</Text>
 
-            {userProfile.verified && (
+            {/* Role badge reflects the LIVE backend role (never hardcoded):
+                BUYER -> Verified Buyer, OWNER -> Owner Mode. */}
+            {authUser?.role === "OWNER" ? (
+              <View style={styles.verifiedBadge}>
+                <ShieldCheck size={12} color="#16A34A" style={{ marginRight: 4 }} />
+                <Text style={styles.verifiedBadgeText}>Owner Mode</Text>
+              </View>
+            ) : authUser?.role === "BUYER" ? (
               <View style={styles.verifiedBadge}>
                 <ShieldCheck size={12} color="#16A34A" style={{ marginRight: 4 }} />
                 <Text style={styles.verifiedBadgeText}>Verified Buyer</Text>
               </View>
-            )}
+            ) : null}
           </View>
         </View>
 
