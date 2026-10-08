@@ -31,7 +31,6 @@ import {
   ArrowRight,
   X,
   Pencil,
-  Chrome,
   Check,
 } from "lucide-react-native";
 import COLORS from "../../constants/colors";
@@ -274,7 +273,7 @@ export default function ProfileScreen({ navigation }) {
           {googleLinked ? (
             <View style={[styles.menuRow, { borderBottomWidth: 0 }]}>
               <View style={styles.menuLeft}>
-                <Chrome size={18} color="#334155" style={styles.menuIcon} />
+                <Globe size={18} color="#334155" style={styles.menuIcon} />
                 <Text style={styles.menuLabel}>Google</Text>
               </View>
               <View style={styles.badgeRow}>
@@ -291,7 +290,7 @@ export default function ProfileScreen({ navigation }) {
                 disabled={linkingGoogle}
               >
                 <View style={styles.menuLeft}>
-                  <Chrome size={18} color="#334155" style={styles.menuIcon} />
+                  <Globe size={18} color="#334155" style={styles.menuIcon} />
                   <Text style={styles.menuLabel}>Link Google Account</Text>
                 </View>
                 <ChevronRight size={16} color="#94A3B8" />
