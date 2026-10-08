@@ -331,6 +331,44 @@ export function normalizeUploadFile({ name, type, size } = {}) {
 }
 
 /**
+ * Build the FormData "file" part for an upload.
+ *
+ * React Native's fetch accepts the {uri, name, type} object form (native
+ * bridge streams the file). Browsers do NOT — a plain object is coerced to
+ * the text "[object Object]", which FastAPI cannot bind to UploadFile and
+ * rejects with 422 "Invalid request". So for browser-resolvable URIs
+ * (blob:/data:, as produced by expo-image-picker on web), fetch the bytes
+ * and append a real File. Native file:///content:// URIs keep the object
+ * form. Throws a retryable offline error when bytes cannot be read, and a
+ * readable error when the resolved blob is empty/oversized.
+ */
+export async function toUploadableFile({ uri, name, type }) {
+  const needsBytes =
+    typeof uri === "string" &&
+    (uri.startsWith("blob:") || uri.startsWith("data:")) &&
+    typeof File !== "undefined";
+  if (!needsBytes) return { uri, name, type };
+  let blob;
+  try {
+    blob = await (await fetch(uri)).blob();
+  } catch {
+    const err = new Error(
+      "Could not read the selected photo. Please try selecting it again."
+    );
+    err.kind = "retry";
+    err.status = 0;
+    throw err;
+  }
+  if (!blob || blob.size === 0) {
+    throw new Error("The selected photo is empty. Please choose another photo.");
+  }
+  if (blob.size > MAX_UPLOAD_BYTES) {
+    throw new Error("Image exceeds the 10 MB limit.");
+  }
+  return new File([blob], name, { type: type || blob.type || "image/jpeg" });
+}
+
+/**
  * Upload one picked image file to an existing owner listing.
  * Uses multipart/form-data with the current auth token (same session as
  * createOwnerListing). Returns the server PhotoUploadOut
@@ -341,7 +379,7 @@ export async function uploadListingPhoto(listingId, { uri, name, type, size, cat
   const token = getAuthTokenSync();
   const file = normalizeUploadFile({ name, type, size });
   const form = new FormData();
-  form.append("file", { uri, name: file.name, type: file.type });
+  form.append("file", await toUploadableFile({ uri, name: file.name, type: file.type }));
   if (category) form.append("category", category);
   let response;
   try {

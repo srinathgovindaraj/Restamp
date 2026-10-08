@@ -33,7 +33,8 @@ import {
 } from "lucide-react-native";
 import COLORS from "../../constants/colors";
 import { useAuth } from "../../context/AuthContext";
-import { requestOtp, verifyOtp } from "../../api/auth";
+import { requestOtp, verifyOtp, googleSignIn } from "../../api/auth";
+import GoogleSignInButton from "../../components/GoogleSignInButton";
 
 const COUNTRY_CODES = [
   { flag: "🇮🇳", code: "+91", name: "India" },
@@ -251,6 +252,46 @@ export default function LoginScreen({ navigation }) {
     }
   };
 
+  // Web-only Google Sign-In: GIS credential -> POST /auth/google ->
+  // existing loginWithToken. Unknown Google identities (backend 404
+  // GOOGLE_UNKNOWN) are NOT auto-created; the user must sign in by phone.
+  const handleGoogleCredential = async (idToken) => {
+    if (busy) return;
+    setBusy(true);
+    try {
+      const tokenResp = await googleSignIn(idToken);
+      const userObj = await loginWithToken(tokenResp.access_token);
+      if (userObj && userObj.isProfileComplete) {
+        if (navigation?.reset) {
+          navigation.reset({
+            index: 0,
+            routes: [{ name: "MainTabs" }],
+          });
+        } else {
+          navigation?.navigate("MainTabs");
+        }
+      } else {
+        if (userObj?.firstName) setFirstName(userObj.firstName);
+        if (userObj?.lastName) setLastName(userObj.lastName);
+        setStep(3);
+      }
+    } catch (e) {
+      if (e && (e.status === 404 || e.detail === "GOOGLE_UNKNOWN")) {
+        Alert.alert(
+          "Google Account Not Linked",
+          "Your Google account is not linked to a Restamp account yet. Please sign in with your phone first."
+        );
+      } else {
+        Alert.alert(
+          "Google Sign-In Failed",
+          "Could not sign you in with Google. Please try again or use phone login."
+        );
+      }
+    } finally {
+      setBusy(false);
+    }
+  };
+
   const isPhoneValid = phoneNumber.replace(/[^0-9]/g, "").length >= 8;
   const isOtpValid = otp.join("").length === 6 || otp.some((d) => d.length > 0);
   const isNameValid = firstName.trim().length > 0;
@@ -328,6 +369,19 @@ export default function LoginScreen({ navigation }) {
                   <Text style={styles.boldText}>SMS</Text> messages from RESTAMP
                   for phone verification.
                 </Text>
+
+                {/* Web-only Google Sign-In (phone OTP stays the native flow). */}
+                {Platform.OS === "web" ? (
+                  <GoogleSignInButton
+                    onCredential={handleGoogleCredential}
+                    onError={() =>
+                      Alert.alert(
+                        "Google Sign-In Failed",
+                        "Could not start Google Sign-In. Please try again or use phone login."
+                      )
+                    }
+                  />
+                ) : null}
               </View>
             )}
 

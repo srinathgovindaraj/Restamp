@@ -22,7 +22,7 @@ writeFileSync(
     .replace('from "./client"', 'from "./client.js"')
     .replace('from "./mappers"', 'from "./mappers.js"')
 );
-const { isLocalPhotoUri, syncIdSetWithPhotos, pendingLocalPhotos, normalizeUploadFile, MAX_UPLOAD_BYTES } = await import(
+const { isLocalPhotoUri, syncIdSetWithPhotos, pendingLocalPhotos, normalizeUploadFile, MAX_UPLOAD_BYTES, toUploadableFile } = await import(
   join(tmp, "owner.js")
 );
 
@@ -156,3 +156,34 @@ if (failures > 0) {
   process.exit(1);
 }
 console.log("ALL NORMALIZATION TESTS PASSED");
+
+// ---- Web FormData file parts (photo-upload 422 fix) ----
+// Browser fetch coerces a plain {uri,name,type} object to "[object Object]"
+// text, which FastAPI cannot bind to UploadFile (422 "Invalid request").
+// blob:/data: URIs must therefore resolve to real File objects; native
+// file:///content:// URIs keep the bridge object form.
+{
+  // data: URI stands in for a browser blob: URI (same fetch→Blob path).
+  const tinyPng =
+    "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==";
+  const f = await toUploadableFile({ uri: tinyPng, name: "a.png", type: "image/png" });
+  check("W1 data: URI -> File instance", f instanceof File, typeof f);
+  check("W1 File name/type/size", f.name === "a.png" && f.type === "image/png" && f.size > 0,
+    `${f.name} ${f.type} ${f.size}`);
+  const fd = new FormData();
+  fd.append("file", f);
+  const part = fd.get("file");
+  check("W2 FormData part is a File, not text", part instanceof File, typeof part);
+
+  const n = await toUploadableFile({ uri: "file:///device/a.jpg", name: "a.jpg", type: "image/jpeg" });
+  check("W3 file:// keeps object form", !(n instanceof File) && n.uri === "file:///device/a.jpg", n);
+  const c = await toUploadableFile({ uri: "content://media/1", name: "a.jpg", type: "image/jpeg" });
+  check("W4 content:// keeps object form", !(c instanceof File), typeof c);
+
+  try {
+    await toUploadableFile({ uri: "data:image/png;base64,", name: "empty.png", type: "image/png" });
+    check("W5 empty blob throws", false);
+  } catch (e) {
+    check("W5 empty blob throws readable error", /empty/i.test(e.message), e.message);
+  }
+}

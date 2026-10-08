@@ -31,6 +31,8 @@ import {
   ArrowRight,
   X,
   Pencil,
+  Chrome,
+  Check,
 } from "lucide-react-native";
 import COLORS from "../../constants/colors";
 import { useNavigation, useFocusEffect } from "@react-navigation/native";
@@ -40,6 +42,8 @@ import { useAuth } from "../../context/AuthContext";
 import { getAuthTokenSync } from "../../api/client";
 import { enterOwnerFlow } from "../../api/users";
 import { fetchMyEnquiries } from "../../api/enquiries";
+import { linkGoogleAccount } from "../../api/auth";
+import GoogleSignInButton from "../../components/GoogleSignInButton";
 import ConfirmationModal from "../../components/owner/ConfirmationModal";
 import AppBrandHeader from "../../components/AppBrandHeader";
 
@@ -94,6 +98,45 @@ export default function ProfileScreen({ navigation }) {
   const [editName, setEditName] = useState(userProfile.name);
   const [editPhone, setEditPhone] = useState(userProfile.phone);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
+
+  // Google account linking (web-only GIS button; phone session JWT is sent
+  // automatically by the API client — the user_id is never chosen client-side).
+  const googleLinked = (authUser?.providers || []).includes("google");
+  const [showGoogleLink, setShowGoogleLink] = useState(false);
+  const [linkingGoogle, setLinkingGoogle] = useState(false);
+
+  const handleGoogleLinkCredential = async (idToken) => {
+    if (linkingGoogle) return;
+    setLinkingGoogle(true);
+    try {
+      await linkGoogleAccount(idToken);
+      await refreshMe();
+      setShowGoogleLink(false);
+      Alert.alert(
+        "Google Account Linked",
+        "Google account linked successfully. You can now sign in with Google."
+      );
+    } catch (e) {
+      if (e && e.status === 409) {
+        Alert.alert(
+          "Already Linked Elsewhere",
+          "This Google account is already linked to another Restamp account."
+        );
+      } else if (e && (e.status === 401 || e.kind === "login")) {
+        Alert.alert(
+          "Session Expired",
+          "Your session has expired. Please log in again."
+        );
+      } else {
+        Alert.alert(
+          "Linking Failed",
+          "Could not link your Google account. Please try again."
+        );
+      }
+    } finally {
+      setLinkingGoogle(false);
+    }
+  };
 
   React.useEffect(() => {
     if (authUser) {
@@ -222,6 +265,58 @@ export default function ProfileScreen({ navigation }) {
             </View>
             <ChevronRight size={16} color="#94A3B8" />
           </TouchableOpacity>
+        </View>
+
+        {/* 1b. LINKED ACCOUNTS */}
+        <View style={styles.menuGroup}>
+          <Text style={styles.groupHeading}>LINKED ACCOUNTS</Text>
+
+          {googleLinked ? (
+            <View style={[styles.menuRow, { borderBottomWidth: 0 }]}>
+              <View style={styles.menuLeft}>
+                <Chrome size={18} color="#334155" style={styles.menuIcon} />
+                <Text style={styles.menuLabel}>Google</Text>
+              </View>
+              <View style={styles.badgeRow}>
+                <Check size={15} color="#16A34A" />
+                <Text style={styles.linkedText}>Linked ✓</Text>
+              </View>
+            </View>
+          ) : Platform.OS === "web" ? (
+            <View>
+              <TouchableOpacity
+                style={[{ borderBottomWidth: 0 }, styles.menuRow]}
+                onPress={() => setShowGoogleLink((v) => !v)}
+                activeOpacity={0.7}
+                disabled={linkingGoogle}
+              >
+                <View style={styles.menuLeft}>
+                  <Chrome size={18} color="#334155" style={styles.menuIcon} />
+                  <Text style={styles.menuLabel}>Link Google Account</Text>
+                </View>
+                <ChevronRight size={16} color="#94A3B8" />
+              </TouchableOpacity>
+              {showGoogleLink ? (
+                <View style={styles.googleLinkBody}>
+                  <Text style={styles.googleLinkHint}>
+                    {linkingGoogle
+                      ? "Linking your Google account…"
+                      : "Choose the Google account to link. It will be used for future Google sign-ins."}
+                  </Text>
+                  <GoogleSignInButton
+                    compact
+                    onCredential={handleGoogleLinkCredential}
+                    onError={() =>
+                      Alert.alert(
+                        "Google Sign-In Failed",
+                        "Could not start Google Sign-In. Please try again."
+                      )
+                    }
+                  />
+                </View>
+              ) : null}
+            </View>
+          ) : null}
         </View>
 
         {/* 2. MY ACTIVITY */}
@@ -635,6 +730,23 @@ const styles = StyleSheet.create({
   badgeRow: {
     flexDirection: "row",
     alignItems: "center",
+  },
+  linkedText: {
+    fontSize: 12,
+    fontWeight: "600",
+    color: "#16A34A",
+    marginLeft: 4,
+  },
+  googleLinkBody: {
+    paddingVertical: 6,
+    alignItems: "center",
+  },
+  googleLinkHint: {
+    fontSize: 12,
+    color: COLORS.textSecondary,
+    textAlign: "center",
+    marginBottom: 4,
+    lineHeight: 17,
   },
   kycStatusText: {
     fontSize: 12,
